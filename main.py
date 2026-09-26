@@ -78,6 +78,7 @@ def render_layout(content: str, active_page: str = "home", user: str = None):
             try {{
                 const response = await fetch('/api/search-isbn?isbn=' + encodeURIComponent(isbn));
                 const data = await response.json();
+                console.log("Risposta ricevuta dal server:", data);
                 
                 if (data.success) {{
                     if (data.title) document.getElementById('title').value = data.title;
@@ -88,11 +89,11 @@ def render_layout(content: str, active_page: str = "home", user: str = None):
                     if (data.image) document.getElementById('image').value = data.image;
                     if (data.ean) document.getElementById('ean').value = data.ean;
                 }} else {{
-                    alert("Libro non trovato tramite questo ISBN.");
+                    alert("Il server ha risposto: Libro non trovato o chiave API mancante.");
                 }}
             }} catch (e) {{
-                console.error("Errore di rete durante il recupero ISBN", e);
-                alert("Errore di connessione durante la ricerca.");
+                console.error("Errore di rete o eccezione JS:", e);
+                alert("Errore tecnico: " + e.message);
             }} finally {{
                 searchBtn.innerText = originalText;
                 searchBtn.disabled = false;
@@ -134,7 +135,7 @@ async def search_isbn(isbn: str):
     try:
         api_key = os.environ.get("GEMINI_API_KEY")
         if not api_key:
-            print("ERRORE: GEMINI_API_KEY non trovata nelle variabili d'ambiente.")
+            print("ERRORE CRITICO: GEMINI_API_KEY non trovata nelle variabili d'ambiente di Render.")
             return {"success": False}
 
         local_client = genai.Client(api_key=api_key)
@@ -165,10 +166,11 @@ async def search_isbn(isbn: str):
         text_res = re.sub(r'\s*```$', '', text_res)
 
         data = json.loads(text_res)
+        print(f"Risultato ricerca ISBN {isbn}:", data)
         return data
 
     except Exception as e:
-        print(f"Errore critico ricerca ISBN: {e}")
+        print(f"Errore critico durante la ricerca ISBN {isbn}: {e}")
         return {"success": False}
 
 @app.get("/", response_class=HTMLResponse)
