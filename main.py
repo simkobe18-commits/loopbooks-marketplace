@@ -1,9 +1,15 @@
 import os
+import json
 import requests
 from fastapi import FastAPI, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
+from google import genai
+from google.genai import types
 
 app = FastAPI()
+
+# Inizializza il client Gemini (legge automaticamente la variabile d'ambiente GEMINI_API_KEY)
+client = genai.Client()
 
 books_db = []
 users_db = {}
@@ -69,6 +75,12 @@ def render_layout(content: str, active_page: str = "home", user: str = None):
                     return;
                 }}
                 
+                // Feedback visivo immediato di ricerca in corso
+                const searchBtn = document.getElementById('search-btn');
+                const originalText = searchBtn.innerText;
+                searchBtn.innerText = "Cerco...";
+                searchBtn.disabled = true;
+
                 try {{
                     const response = await fetch('/api/search-isbn?isbn=' + encodeURIComponent(isbn));
                     const data = await response.json();
@@ -82,11 +94,14 @@ def render_layout(content: str, active_page: str = "home", user: str = None):
                         if (data.image) document.getElementById('image').value = data.image;
                         if (data.ean) document.getElementById('ean').value = data.ean;
                     }} else {{
-                        alert("Libro non trovato tramite questo ISBN su Google Books.");
+                        alert("Libro non trovato tramite questo ISBN.");
                     }}
                 }} catch (e) {{
                     console.error("Errore di rete durante il recupero ISBN", e);
                     alert("Errore di connessione durante la ricerca.");
+                }} finally {{
+                    searchBtn.innerText = originalText;
+                    searchBtn.disabled = false;
                 }}
             }}
 
@@ -150,57 +165,41 @@ async def home(request: Request):
 
 @app.get("/api/search-isbn")
 async def search_isbn(isbn: str):
-    url = f"https://www.googleapis.com/books/v1/volumes?q=isbn:{isbn}"
     try:
-        res = requests.get(url, timeout=5)
-        data = res.json()
-        
-        items = data.get("items", [])
-        
-        if not items:
-            fallback_url = f"https://www.googleapis.com/books/v1/volumes?q={isbn}"
-            res_fb = requests.get(fallback_url, timeout=5)
-            data_fb = res_fb.json()
-            items = data_fb.get("items", [])
+        prompt = f"""
+        Cerca sul web tutte le informazioni relative al codice ISBN: {isbn}.
+        Voglio che restituisci ESCLUSIVAMENTE un oggetto JSON valido (senza blocchi di codice markdown come ```json, solo il testo JSON puro) con le seguenti chiavi esatte:
+        - "success": true (oppure false se non trovi assolutamente nulla)
+        - "title": "Titolo del libro in italiano o nella lingua originale"
+        - "author": "Nome dell'autore o degli autori"
+        - "editore": "Casa editrice"
+        - "anno_pubblicazione": "Anno di pubblicazione (solo l'anno in formato numerico o stringa es. 2001)"
+        - "descrizione": "Una breve sinossi o descrizione del libro"
+        - "image": "URL di un'immagine di copertina ufficiale del libro trovata online, oppure stringa vuota se non disponibile"
+        - "ean": "{isbn}"
+        """
 
-        if items:
-            volume_info = items[0].get("volumeInfo", {})
-            
-            title = volume_info.get("title", "")
-            authors_list = volume_info.get("authors", [])
-            authors = ", ".join(authors_list) if authors_list else "Autore Sconosciuto"
-            publisher = volume_info.get("publisher", "Editore non specificato")
-            
-            published_date = volume_info.get("publishedDate", "")
-            anno_pubblicazione = published_date[:4] if published_date else ""
-            
-            description = volume_info.get("description", "")
-            
-            image_links = volume_info.get("imageLinks", {})
-            thumbnail = image_links.get("thumbnail", image_links.get("smallThumbnail", ""))
-            if thumbnail.startswith("http://"):
-                thumbnail = thumbnail.replace("http://", "https://")
-                
-            industry_identifiers = volume_info.get("industryIdentifiers", [])
-            ean = isbn
-            for ident in industry_identifiers:
-                if ident.get("type") == "ISBN_13":
-                    ean = ident.get("identifier")
-            
-            return JSONResponse({
-                "success": True,
-                "title": title,
-                "author": authors,
-                "editore": publisher,
-                "anno_pubblicazione": anno_pubblicazione,
-                "descrizione": description,
-                "image": thumbnail,
-                "ean": ean
-            })
-    except Exception as e:
-        print("Errore Google Books API:", e)
+        response = client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                temperature=0.1,
+            ),
+        )
         
-    return JSONResponse({"success": False})
+        raw_text = response.text.strip()
+        if raw_text.startswith("```"):
+            raw_text = raw_text.split("```")[1]
+            if raw_text.startswith("json"):
+                raw_text = raw_text[4:].strip()
+            raw_text = raw_text.rstrip("`").strip()
+            
+        data = json.loads(raw_text)
+        return JSONResponse(data)
+        
+    except Exception as e:
+        print("Errore durante la ricerca ISBN con Gemini:", e)
+        return JSONResponse({"success": False})
 
 @app.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request, error: str = None):
@@ -270,14 +269,14 @@ async def aggiungi_page(request: Request):
     content = """
     <div class="card" style="max-width: 700px; margin: 0 auto;">
         <h1>Aggiungi un nuovo libro</h1>
-        <p>Inserisci l'ISBN e premi invio o clicca su "Cerca" per autocompilare i dati.</p>
+        <p>Inserisci l'ISBN e premi invio o clicca su "Cerca" per autocompilare i dati tramite IA.</p>
         <form action="/aggiungi" method="post">
             <div class="form-row">
                 <div class="form-group">
                     <label>ISBN / Codice EAN (Autocompilazione)</label>
                     <div style="display: flex; gap: 0.5rem;">
                         <input type="text" id="isbn" name="isbn" placeholder="Es. 9788845292613" onkeydown="if(event.key === 'Enter') { event.preventDefault(); fetchGoogleBooks(); }" style="flex: 1;">
-                        <button type="button" onclick="fetchGoogleBooks()" style="padding: 0.75rem 1rem; background: #0369a1; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Cerca</button>
+                        <button type="button" id="search-btn" onclick="fetchGoogleBooks()" style="padding: 0.75rem 1rem; background: #0369a1; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Cerca</button>
                     </div>
                 </div>
                 <div class="form-group">
