@@ -17,7 +17,6 @@ users_db = {}
 def render_layout(content: str, active_page: str = "home", user: str = None):
     home_cls = "active" if active_page == "home" else ""
     aggiungi_cls = "active" if active_page == "aggiungi" else ""
-    biblioteca_cls = "active" if active_page == "biblioteca" else ""
     
     if user:
         nav_right = f'<span style="color: #38bdf8; margin-left: 1rem; font-size: 0.9rem;">👤 {user}</span><a href="/logout" style="color: #f87171; text-decoration: none; margin-left: 1rem; font-size: 0.9rem;">Esci</a>'
@@ -137,25 +136,21 @@ def render_layout(content: str, active_page: str = "home", user: str = None):
 async def search_isbn(isbn: str):
     try:
         prompt = f"""
-        Cerca sul web tutte le informazioni relative al codice ISBN: {isbn}.
+        Identifica il libro corrispondente al codice ISBN: {isbn}.
         Restituisci ESCLUSIVAMENTE un oggetto JSON valido (senza blocchi di codice markdown come ```json, solo il testo JSON puro) con le seguenti chiavi esatte:
-        - "success": true (oppure false se non trovi assolutamente nulla)
-        - "title": "Titolo del libro in italiano o nella lingua originale"
+        - "success": true (oppure false se non conosci assolutamente questo ISBN)
+        - "title": "Titolo del libro"
         - "author": "Nome dell'autore o degli autori"
         - "editore": "Casa editrice"
-        - "anno_pubblicazione": "Anno di pubblicazione (solo l'anno in formato numerico o stringa es. 2001)"
+        - "anno_pubblicazione": "Anno di pubblicazione (solo l'anno es. 2001)"
         - "descrizione": "Una breve sinossi o descrizione del libro"
-        - "image": "URL di un'immagine di copertina ufficiale del libro trovata online, oppure stringa vuota se non disponibile"
+        - "image": ""
         - "ean": "{isbn}"
         """
 
         response = client.models.generate_content(
             model='gemini-2.5-flash',
             contents=prompt,
-            config=types.GenerateContentConfig(
-                temperature=0.1,
-                tools=[{"google_search": {}}],
-            ),
         )
 
         text_res = response.text.strip()
