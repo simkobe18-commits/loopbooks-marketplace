@@ -4,8 +4,9 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 
 app = FastAPI()
 
-# Database in memoria vuoto (senza libri finti)
+# Database in memoria per libri e utenti
 books_db = []
+users_db = {} # Dizionario per memorizzare email: password
 
 def render_layout(content: str, active_page: str = "home", user: str = None):
     home_cls = "active" if active_page == "home" else ""
@@ -52,6 +53,10 @@ def render_layout(content: str, active_page: str = "home", user: str = None):
             .book-price {{ color: #38bdf8; font-weight: bold; margin-bottom: 1rem; }}
             .btn-buy {{ background: #0369a1; color: white; padding: 0.5rem; text-align: center; border-radius: 4px; text-decoration: none; font-size: 0.9rem; }}
             .btn-buy:hover {{ background: #0284c7; }}
+            .auth-link {{ margin-top: 1rem; text-align: center; font-size: 0.9rem; color: #94a3b8; }}
+            .auth-link a {{ color: #38bdf8; text-decoration: none; }}
+            .auth-link a:hover {{ text-decoration: underline; }}
+            .alert-error {{ background: rgba(248, 113, 113, 0.1); border: 1px solid #f87171; color: #f87171; padding: 0.75rem; border-radius: 6px; margin-bottom: 1rem; font-size: 0.9rem; text-align: center; }}
         </style>
     </head>
     <body>
@@ -100,11 +105,13 @@ async def home(request: Request):
     return render_layout(content, "home", user)
 
 @app.get("/login", response_class=HTMLResponse)
-async def login_page(request: Request):
-    content = """
+async def login_page(request: Request, error: str = None):
+    err_html = f'<div class="alert-error">{error}</div>' if error else ''
+    content = f"""
     <div class="card" style="max-width: 400px; margin: 0 auto;">
         <h1>Accedi</h1>
         <p>Usa la tua email per accedere alla tua area personale.</p>
+        {err_html}
         <form action="/login" method="post">
             <label>Email</label>
             <input type="email" name="email" required placeholder="nome@esempio.it">
@@ -112,12 +119,50 @@ async def login_page(request: Request):
             <input type="password" name="password" required placeholder="••••••••">
             <button type="submit">Entra</button>
         </form>
+        <div class="auth-link">
+            Non hai ancora un account? <a href="/registra">Registrati ora</a>
+        </div>
     </div>
     """
     return render_layout(content, "login")
 
 @app.post("/login")
 async def login_action(email: str = Form(...), password: str = Form(...)):
+    if email not in users_db or users_db[email] != password:
+        return RedirectResponse(url="/login?error=Email+o+password+errati", status_code=303)
+    
+    response = RedirectResponse(url="/biblioteca", status_code=303)
+    response.set_cookie(key="session_user", value=email)
+    return response
+
+@app.get("/registra", response_class=HTMLResponse)
+async def registra_page(request: Request, error: str = None):
+    err_html = f'<div class="alert-error">{error}</div>' if error else ''
+    content = f"""
+    <div class="card" style="max-width: 400px; margin: 0 auto;">
+        <h1>Crea un account</h1>
+        <p>Registrati per iniziare a pubblicare e vendere i tuoi libri.</p>
+        {err_html}
+        <form action="/registra" method="post">
+            <label>Email</label>
+            <input type="email" name="email" required placeholder="nome@esempio.it">
+            <label>Password</label>
+            <input type="password" name="password" required placeholder="••••••••">
+            <button type="submit">Registrati</button>
+        </form>
+        <div class="auth-link">
+            Hai già un account? <a href="/login">Accedi</a>
+        </div>
+    </div>
+    """
+    return render_layout(content, "login")
+
+@app.post("/registra")
+async def registra_action(email: str = Form(...), password: str = Form(...)):
+    if email in users_db:
+        return RedirectResponse(url="/registra?error=Email+già+registrata.+Effettua+il+login.", status_code=303)
+    
+    users_db[email] = password
     response = RedirectResponse(url="/biblioteca", status_code=303)
     response.set_cookie(key="session_user", value=email)
     return response
