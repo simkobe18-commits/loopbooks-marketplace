@@ -64,7 +64,10 @@ def render_layout(content: str, active_page: str = "home", user: str = None):
             async function fetchGoogleBooks() {{
                 const isbnInput = document.getElementById('isbn');
                 const isbn = isbnInput.value.trim();
-                if (isbn.length < 10) return;
+                if (isbn.length < 10) {{
+                    alert("Inserisci un codice ISBN valido (almeno 10 caratteri).");
+                    return;
+                }}
                 
                 try {{
                     const response = await fetch('/api/search-isbn?isbn=' + encodeURIComponent(isbn));
@@ -79,10 +82,11 @@ def render_layout(content: str, active_page: str = "home", user: str = None):
                         if (data.image) document.getElementById('image').value = data.image;
                         if (data.ean) document.getElementById('ean').value = data.ean;
                     }} else {{
-                        console.warn("Libro non trovato tramite ISBN.");
+                        alert("Libro non trovato tramite questo ISBN su Google Books.");
                     }}
                 }} catch (e) {{
                     console.error("Errore di rete durante il recupero ISBN", e);
+                    alert("Errore di connessione durante la ricerca.");
                 }}
             }}
 
@@ -146,7 +150,6 @@ async def home(request: Request):
 
 @app.get("/api/search-isbn")
 async def search_isbn(isbn: str):
-    # Tentativo 1: ricerca mirata per ISBN esatto
     url = f"https://www.googleapis.com/books/v1/volumes?q=isbn:{isbn}"
     try:
         res = requests.get(url, timeout=5)
@@ -154,10 +157,7 @@ async def search_isbn(isbn: str):
         
         items = data.get("items", [])
         
-        # Tentativo 2: se non trova nulla con isbn:, prova una ricerca libera
         if not items:
-            fallback_url = f"https://www.googleapis.com/volumes?q={isbn}"
-            # Corretto l'endpoint standard di Google Books v1
             fallback_url = f"https://www.googleapis.com/books/v1/volumes?q={isbn}"
             res_fb = requests.get(fallback_url, timeout=5)
             data_fb = res_fb.json()
@@ -270,12 +270,15 @@ async def aggiungi_page(request: Request):
     content = """
     <div class="card" style="max-width: 700px; margin: 0 auto;">
         <h1>Aggiungi un nuovo libro</h1>
-        <p>Inserisci l'ISBN o il codice EAN e sposta il cursore fuori dal campo (o premi Invio) per autocompilare i dati.</p>
+        <p>Inserisci l'ISBN e premi invio o clicca su "Cerca" per autocompilare i dati.</p>
         <form action="/aggiungi" method="post">
             <div class="form-row">
                 <div class="form-group">
                     <label>ISBN / Codice EAN (Autocompilazione)</label>
-                    <input type="text" id="isbn" name="isbn" placeholder="Es. 9788845292613" onblur="fetchGoogleBooks()">
+                    <div style="display: flex; gap: 0.5rem;">
+                        <input type="text" id="isbn" name="isbn" placeholder="Es. 9788845292613" onkeydown="if(event.key === 'Enter') { event.preventDefault(); fetchGoogleBooks(); }" style="flex: 1;">
+                        <button type="button" onclick="fetchGoogleBooks()" style="padding: 0.75rem 1rem; background: #0369a1; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Cerca</button>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>Codice EAN confermato</label>
