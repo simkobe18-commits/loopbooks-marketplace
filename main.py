@@ -136,28 +136,31 @@ def render_layout(content: str, active_page: str = "home", user: str = None):
 async def search_isbn(isbn: str):
     try:
         prompt = f"""
-        Identifica il libro corrispondente al codice ISBN: {isbn}.
-        Restituisci ESCLUSIVAMENTE un oggetto JSON valido (senza blocchi di codice markdown come ```json, solo il testo JSON puro) con le seguenti chiavi esatte:
-        - "success": true (oppure false se non conosci assolutamente questo ISBN)
-        - "title": "Titolo del libro"
-        - "author": "Nome dell'autore o degli autori"
-        - "editore": "Casa editrice"
-        - "anno_pubblicazione": "Anno di pubblicazione (solo l'anno es. 2001)"
-        - "descrizione": "Una breve sinossi o descrizione del libro"
-        - "image": ""
-        - "ean": "{isbn}"
+        Trova i dati completi per il codice ISBN: {isbn}.
+        Restituisci ESCLUSIVAMENTE un oggetto JSON con queste chiavi esatte e nessun altro testo attorno:
+        {{
+            "success": true,
+            "title": "Titolo del libro",
+            "author": "Autore o autori",
+            "editore": "Casa editrice",
+            "anno_pubblicazione": "Anno (es. 2021)",
+            "descrizione": "Breve sinossi del libro",
+            "image": "",
+            "ean": "{isbn}"
+        }}
+        Se non trovi il libro, restituisci: {{"success": false}}
         """
 
         response = client.models.generate_content(
             model='gemini-2.5-flash',
             contents=prompt,
+            config=types.GenerateContentConfig(
+                temperature=0.1,
+                response_mime_type="application/json"
+            ),
         )
 
-        text_res = response.text.strip()
-        text_res = re.sub(r'^```json\s*', '', text_res)
-        text_res = re.sub(r'\s*```$', '', text_res)
-
-        data = json.loads(text_res)
+        data = json.loads(response.text.strip())
         return data
 
     except Exception as e:
