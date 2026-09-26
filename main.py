@@ -115,7 +115,8 @@ async def home(request: Request):
     user = request.cookies.get("session_user")
     books_html = ""
     for book in books_db:
-        img_tag = f'<img src="{book[\'image\']}" style="width:100%; height:160px; object-fit:cover; border-radius:4px; margin-bottom:0.5rem;" alt="Copertina">' if book.get('image') else ''
+        img_url = book.get('image', '')
+        img_tag = f'<img src="{img_url}" style="width:100%; height:160px; object-fit:cover; border-radius:4px; margin-bottom:0.5rem;" alt="Copertina">' if img_url else ''
         books_html += f"""
         <div class="book-card">
             <div>
@@ -152,16 +153,14 @@ async def search_isbn(isbn: str):
             title = volume_info.get("title", "")
             authors = ", ".join(volume_info.get("authors", []))
             publisher = volume_info.get("publisher", "")
-            published_date = volume_info.get("publishedDate", "")[:4] # Estrae l'anno
+            published_date = volume_info.get("publishedDate", "")[:4]
             description = volume_info.get("description", "")
             
-            # Immagine di copertina
             image_links = volume_info.get("imageLinks", {})
             thumbnail = image_links.get("thumbnail", image_links.get("smallThumbnail", ""))
             if thumbnail.startswith("http://"):
                 thumbnail = thumbnail.replace("http://", "https://")
                 
-            # Identificativi EAN/ISBN
             industry_identifiers = volume_info.get("industryIdentifiers", [])
             ean = isbn
             for ident in industry_identifiers:
