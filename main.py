@@ -1,12 +1,12 @@
 import os
+import requests
 from fastapi import FastAPI, Request, Form
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 
 app = FastAPI()
 
-# Database in memoria per libri e utenti
 books_db = []
-users_db = {} # Dizionario per memorizzare email: password
+users_db = {}
 
 def render_layout(content: str, active_page: str = "home", user: str = None):
     home_cls = "active" if active_page == "home" else ""
@@ -41,9 +41,11 @@ def render_layout(content: str, active_page: str = "home", user: str = None):
             h1 {{ color: #f8fafc; margin-bottom: 0.75rem; font-size: 1.8rem; }}
             p {{ color: #94a3b8; font-size: 0.95rem; line-height: 1.5; margin-bottom: 1.5rem; }}
             form {{ display: flex; flex-direction: column; gap: 1rem; text-align: left; }}
+            .form-row {{ display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }}
+            .form-group {{ display: flex; flex-direction: column; gap: 0.4rem; }}
             label {{ font-size: 0.9rem; color: #94a3b8; }}
-            input {{ padding: 0.75rem; border-radius: 6px; border: 1px solid #334155; background: #0f172a; color: #f8fafc; font-size: 1rem; }}
-            input:focus {{ outline: none; border-color: #38bdf8; }}
+            input, select, textarea {{ padding: 0.75rem; border-radius: 6px; border: 1px solid #334155; background: #0f172a; color: #f8fafc; font-size: 1rem; width: 100%; }}
+            input:focus, select:focus, textarea:focus {{ outline: none; border-color: #38bdf8; }}
             button {{ background: #38bdf8; color: #0f172a; border: none; padding: 0.75rem; border-radius: 6px; font-weight: bold; cursor: pointer; transition: background 0.2s; }}
             button:hover {{ background: #7dd3fc; }}
             .book-grid {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1rem; margin-top: 1.5rem; text-align: left; }}
@@ -58,6 +60,38 @@ def render_layout(content: str, active_page: str = "home", user: str = None):
             .auth-link a:hover {{ text-decoration: underline; }}
             .alert-error {{ background: rgba(248, 113, 113, 0.1); border: 1px solid #f87171; color: #f87171; padding: 0.75rem; border-radius: 6px; margin-bottom: 1rem; font-size: 0.9rem; text-align: center; }}
         </style>
+        <script>
+            async function fetchGoogleBooks() {{
+                const isbn = document.getElementById('isbn').value.trim();
+                if (isbn.length < 10) return;
+                
+                try {{
+                    const response = await fetch('/api/search-isbn?isbn=' + encodeURIComponent(isbn));
+                    const data = await response.json();
+                    
+                    if (data.success) {{
+                        if (data.title) document.getElementById('title').value = data.title;
+                        if (data.author) document.getElementById('author').value = data.author;
+                        if (data.editore) document.getElementById('editore').value = data.editore;
+                        if (data.anno_pubblicazione) document.getElementById('anno_pubblicazione').value = data.anno_pubblicazione;
+                        if (data.descrizione) document.getElementById('descrizione').value = data.descrizione;
+                        if (data.image) document.getElementById('image').value = data.image;
+                        if (data.ean) document.getElementById('ean').value = data.ean;
+                    }}
+                }} catch (e) {{
+                    console.error("Errore recupero ISBN", e);
+                }}
+            }}
+
+            function calcolaGuadagno() {{
+                const prezzo = parseFloat(document.getElementById('price').value) || 0;
+                const trattenuta = prezzo * 0.05;
+                document.getElementById('trattenuta_val').value = trattenuta.toFixed(2) + " €";
+                
+                const guadagno = prezzo - trattenuta;
+                document.getElementById('guadagno_tot').value = guadagno.toFixed(2) + " €";
+            }}
+        </script>
     </head>
     <body>
         <header>
@@ -81,12 +115,14 @@ async def home(request: Request):
     user = request.cookies.get("session_user")
     books_html = ""
     for book in books_db:
+        img_tag = f'<img src="{book[\'image\']}" style="width:100%; height:160px; object-fit:cover; border-radius:4px; margin-bottom:0.5rem;" alt="Copertina">' if book.get('image') else ''
         books_html += f"""
         <div class="book-card">
             <div>
+                {img_tag}
                 <div class="book-title">{book['title']}</div>
-                <div class="book-author">di {book['author']}</div>
-                <div class="book-price">{book['price']}</div>
+                <div class="book-author">di {book['author']} ({book['editore']})</div>
+                <div class="book-price">{book['price']} €</div>
             </div>
             <a href="/compra/{book['id']}" class="btn-buy">Acquista libro</a>
         </div>
@@ -104,6 +140,49 @@ async def home(request: Request):
     """
     return render_layout(content, "home", user)
 
+@app.get("/api/search-isbn")
+async def search_isbn(isbn: str):
+    url = f"https://www.googleapis.com/books/v1/volumes?q=isbn:{isbn}"
+    try:
+        res = requests.get(url, timeout=5)
+        data = res.json()
+        if "items" in data and len(data["items"]) > 0:
+            volume_info = data["items"][0].get("volumeInfo", {})
+            
+            title = volume_info.get("title", "")
+            authors = ", ".join(volume_info.get("authors", []))
+            publisher = volume_info.get("publisher", "")
+            published_date = volume_info.get("publishedDate", "")[:4] # Estrae l'anno
+            description = volume_info.get("description", "")
+            
+            # Immagine di copertina
+            image_links = volume_info.get("imageLinks", {})
+            thumbnail = image_links.get("thumbnail", image_links.get("smallThumbnail", ""))
+            if thumbnail.startswith("http://"):
+                thumbnail = thumbnail.replace("http://", "https://")
+                
+            # Identificativi EAN/ISBN
+            industry_identifiers = volume_info.get("industryIdentifiers", [])
+            ean = isbn
+            for ident in industry_identifiers:
+                if ident.get("type") == "ISBN_13":
+                    ean = ident.get("identifier")
+            
+            return JSONResponse({
+                "success": True,
+                "title": title,
+                "author": authors,
+                "editore": publisher,
+                "anno_pubblicazione": published_date,
+                "descrizione": description,
+                "image": thumbnail,
+                "ean": ean
+            })
+    except Exception as e:
+        print("Errore Google Books API:", e)
+        
+    return JSONResponse({"success": False})
+
 @app.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request, error: str = None):
     err_html = f'<div class="alert-error">{error}</div>' if error else ''
@@ -113,15 +192,11 @@ async def login_page(request: Request, error: str = None):
         <p>Usa la tua email per accedere alla tua area personale.</p>
         {err_html}
         <form action="/login" method="post">
-            <label>Email</label>
-            <input type="email" name="email" required placeholder="nome@esempio.it">
-            <label>Password</label>
-            <input type="password" name="password" required placeholder="••••••••">
+            <div class="form-group"><label>Email</label><input type="email" name="email" required placeholder="nome@esempio.it"></div>
+            <div class="form-group"><label>Password</label><input type="password" name="password" required placeholder="••••••••"></div>
             <button type="submit">Entra</button>
         </form>
-        <div class="auth-link">
-            Non hai ancora un account? <a href="/registra">Registrati ora</a>
-        </div>
+        <div class="auth-link">Non hai ancora un account? <a href="/registra">Registrati ora</a></div>
     </div>
     """
     return render_layout(content, "login")
@@ -130,7 +205,6 @@ async def login_page(request: Request, error: str = None):
 async def login_action(email: str = Form(...), password: str = Form(...)):
     if email not in users_db or users_db[email] != password:
         return RedirectResponse(url="/login?error=Email+o+password+errati", status_code=303)
-    
     response = RedirectResponse(url="/biblioteca", status_code=303)
     response.set_cookie(key="session_user", value=email)
     return response
@@ -144,15 +218,11 @@ async def registra_page(request: Request, error: str = None):
         <p>Registrati per iniziare a pubblicare e vendere i tuoi libri.</p>
         {err_html}
         <form action="/registra" method="post">
-            <label>Email</label>
-            <input type="email" name="email" required placeholder="nome@esempio.it">
-            <label>Password</label>
-            <input type="password" name="password" required placeholder="••••••••">
+            <div class="form-group"><label>Email</label><input type="email" name="email" required placeholder="nome@esempio.it"></div>
+            <div class="form-group"><label>Password</label><input type="password" name="password" required placeholder="••••••••"></div>
             <button type="submit">Registrati</button>
         </form>
-        <div class="auth-link">
-            Hai già un account? <a href="/login">Accedi</a>
-        </div>
+        <div class="auth-link">Hai già un account? <a href="/login">Accedi</a></div>
     </div>
     """
     return render_layout(content, "login")
@@ -160,8 +230,7 @@ async def registra_page(request: Request, error: str = None):
 @app.post("/registra")
 async def registra_action(email: str = Form(...), password: str = Form(...)):
     if email in users_db:
-        return RedirectResponse(url="/registra?error=Email+già+registrata.+Effettua+il+login.", status_code=303)
-    
+        return RedirectResponse(url="/registra?error=Email+già+registrata", status_code=303)
     users_db[email] = password
     response = RedirectResponse(url="/biblioteca", status_code=303)
     response.set_cookie(key="session_user", value=email)
@@ -180,30 +249,153 @@ async def aggiungi_page(request: Request):
         return RedirectResponse(url="/login", status_code=303)
         
     content = """
-    <div class="card" style="max-width: 500px; margin: 0 auto;">
+    <div class="card" style="max-width: 700px; margin: 0 auto;">
         <h1>Aggiungi un nuovo libro</h1>
-        <p>Inserisci i dettagli del libro che desideri mettere in vendita.</p>
+        <p>Inserisci l'ISBN o il codice EAN per autocompilare i campi tramite Google Books.</p>
         <form action="/aggiungi" method="post">
-            <label>Titolo del libro</label>
-            <input type="text" name="title" required placeholder="Es. Il Nome della Rosa">
-            <label>Autore</label>
-            <input type="text" name="author" required placeholder="Es. Umberto Eco">
-            <label>Prezzo (€)</label>
-            <input type="text" name="price" required placeholder="Es. 12.50 €">
-            <button type="submit">Pubblica annuncio</button>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>ISBN / Codice EAN (Autocompilazione)</label>
+                    <input type="text" id="isbn" name="isbn" placeholder="Es. 9788845292613" onblur="fetchGoogleBooks()">
+                </div>
+                <div class="form-group">
+                    <label>Codice EAN confermato</label>
+                    <input type="text" id="ean" name="ean" placeholder="Codice EAN">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Nome libro (Titolo)</label>
+                    <input type="text" id="title" name="title" required placeholder="Titolo del libro">
+                </div>
+                <div class="form-group">
+                    <label>Autore</label>
+                    <input type="text" id="author" name="author" required placeholder="Autore">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Editore</label>
+                    <input type="text" id="editore" name="editore" placeholder="Casa editrice">
+                </div>
+                <div class="form-group">
+                    <label>Collana</label>
+                    <input type="text" name="collana" placeholder="Nome collana">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Anno edizione</label>
+                    <input type="text" name="anno_edizione" placeholder="Es. 2021">
+                </div>
+                <div class="form-group">
+                    <label>Anno pubblicazione</label>
+                    <input type="text" id="anno_pubblicazione" name="anno_pubblicazione" placeholder="Es. 1980">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Tipologia</label>
+                    <select id="tipologia" name="tipologia">
+                        <option value="Narrativa">Narrativa</option>
+                        <option value="Saggistica">Saggistica</option>
+                        <option value="Universitario / Scolastico">Universitario / Scolastico</option>
+                        <option value="Giallo / Thriller">Giallo / Thriller</option>
+                        <option value="Fantascienza / Fantasy">Fantascienza / Fantasy</option>
+                        <option value="Altro">Altro</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Condizioni</label>
+                    <select name="condizioni">
+                        <option value="Nuovo">Nuovo</option>
+                        <option value="Ottime">Ottime condizioni</option>
+                        <option value="Buone">Buone condizioni</option>
+                        <option value="Discreto">Discreto</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>URL Immagine libro</label>
+                <input type="text" id="image" name="image" placeholder="https://...">
+            </div>
+
+            <div class="form-group">
+                <label>Descrizione</label>
+                <textarea id="descrizione" name="descrizione" rows="3" placeholder="Descrizione..."></textarea>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Metodo di consegna</label>
+                    <select name="consegna">
+                        <option value="A domicilio (Casa)">A domicilio (Casa)</option>
+                        <option value="Punto di ritiro">Punto di ritiro</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Spese a carico di:</label>
+                    <select name="spese_a_carico">
+                        <option value="Venditore">Venditore</option>
+                        <option value="Fornitore">Fornitore</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Prezzo di vendita (€)</label>
+                    <input type="number" step="0.01" id="price" name="price" required placeholder="15.00" oninput="calcolaGuadagno()">
+                </div>
+                <div class="form-group">
+                    <label>Trattenute 5% dell'app</label>
+                    <input type="text" id="trattenuta_val" readonly value="0.00 €" style="background: #111827; color: #94a3b8;">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label><b>GUADAGNO TOTALE STIMATO</b></label>
+                <input type="text" id="guadagno_tot" readonly value="0.00 €" style="background: #111827; color: #38bdf8; font-weight: bold; font-size: 1.1rem;">
+            </div>
+
+            <button type="submit" style="margin-top: 1rem;">Pubblica annuncio</button>
         </form>
     </div>
     """
     return render_layout(content, "aggiungi", user)
 
 @app.post("/aggiungi")
-async def aggiungi_action(request: Request, title: str = Form(...), author: str = Form(...), price: str = Form(...)):
+async def aggiungi_action(
+    request: Request, 
+    title: str = Form(...), 
+    author: str = Form(...), 
+    editore: str = Form(...),
+    price: float = Form(...),
+    image: str = Form(None),
+    ean: str = Form(None),
+    consegna: str = Form(...)
+):
     user = request.cookies.get("session_user")
     if not user:
         return RedirectResponse(url="/login", status_code=303)
     
     new_id = len(books_db) + 1
-    books_db.append({"id": new_id, "title": title, "author": author, "price": price, "seller": user})
+    books_db.append({
+        "id": new_id, 
+        "title": title, 
+        "author": author, 
+        "editore": editore,
+        "price": f"{price:.2f}", 
+        "image": image,
+        "ean": ean,
+        "consegna": consegna,
+        "seller": user
+    })
     return RedirectResponse(url="/biblioteca", status_code=303)
 
 @app.get("/biblioteca", response_class=HTMLResponse)
@@ -219,8 +411,8 @@ async def biblioteca_page(request: Request):
         <div class="book-card">
             <div>
                 <div class="book-title">{book['title']}</div>
-                <div class="book-author">di {book['author']}</div>
-                <div class="book-price">{book['price']}</div>
+                <div class="book-author">di {book['author']} ({book['editore']})</div>
+                <div class="book-price">{book['price']} €</div>
             </div>
             <span style="font-size: 0.8rem; color: #10b981; margin-top: 0.5rem;">In vendita</span>
         </div>
@@ -250,7 +442,8 @@ async def compra_page(request: Request, book_id: int):
     <div class="card" style="max-width: 500px; margin: 0 auto; text-align: center;">
         <h1>Conferma acquisto</h1>
         <p>Stai per acquistare <strong>{book['title']}</strong> di {book['author']}.</p>
-        <div style="font-size: 1.5rem; color: #38bdf8; margin: 1.5rem 0; font-weight: bold;">{book['price']}</div>
+        <div style="font-size: 1.5rem; color: #38bdf8; margin: 1.5rem 0; font-weight: bold;">{book['price']} €</div>
+        <p style="font-size: 0.85rem; color: #94a3b8;">Consegna: {book.get('consegna', 'A domicilio')}</p>
         <p style="font-size: 0.85rem; color: #94a3b8;">Venduto da: {book['seller']}</p>
         <a href="/grazie" style="display: block; background: #10b981; color: white; padding: 0.75rem; border-radius: 6px; text-decoration: none; font-weight: bold; margin-top: 1rem;">Conferma e paga</a>
     </div>
