@@ -8,9 +8,6 @@ from google.genai import types
 
 app = FastAPI()
 
-# Inizializza il client Gemini (legge automaticamente la variabile d'ambiente GEMINI_API_KEY)
-client = genai.Client()
-
 books_db = []
 users_db = {}
 
@@ -135,36 +132,43 @@ def render_layout(content: str, active_page: str = "home", user: str = None):
 @app.get("/api/search-isbn")
 async def search_isbn(isbn: str):
     try:
+        api_key = os.environ.get("GEMINI_API_KEY")
+        if not api_key:
+            print("ERRORE: GEMINI_API_KEY non trovata nelle variabili d'ambiente.")
+            return {"success": False}
+
+        local_client = genai.Client(api_key=api_key)
+
         prompt = f"""
-        Trova i dati completi per il codice ISBN: {isbn}.
-        Restituisci ESCLUSIVAMENTE un oggetto JSON con queste chiavi esatte e nessun altro testo attorno:
+        Restituisci i dati esatti per il codice ISBN: {isbn}.
+        Rispondi ESCLUSIVAMENTE con un JSON valido strutturato esattamente così:
         {{
             "success": true,
             "title": "Titolo del libro",
-            "author": "Autore o autori",
+            "author": "Autore",
             "editore": "Casa editrice",
-            "anno_pubblicazione": "Anno (es. 2021)",
-            "descrizione": "Breve sinossi del libro",
+            "anno_pubblicazione": "Anno",
+            "descrizione": "Descrizione",
             "image": "",
             "ean": "{isbn}"
         }}
-        Se non trovi il libro, restituisci: {{"success": false}}
+        Se non lo trovi, rispondi solo: {{"success": false}}
         """
 
-        response = client.models.generate_content(
+        response = local_client.models.generate_content(
             model='gemini-2.5-flash',
             contents=prompt,
-            config=types.GenerateContentConfig(
-                temperature=0.1,
-                response_mime_type="application/json"
-            ),
         )
 
-        data = json.loads(response.text.strip())
+        text_res = response.text.strip()
+        text_res = re.sub(r'^```json\s*', '', text_res)
+        text_res = re.sub(r'\s*```$', '', text_res)
+
+        data = json.loads(text_res)
         return data
 
     except Exception as e:
-        print(f"Errore ricerca ISBN: {e}")
+        print(f"Errore critico ricerca ISBN: {e}")
         return {"success": False}
 
 @app.get("/", response_class=HTMLResponse)
