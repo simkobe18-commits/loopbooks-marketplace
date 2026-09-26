@@ -4,11 +4,8 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 
 app = FastAPI()
 
-# Database in memoria temporaneo
-books_db = [
-    {"id": 1, "title": "Il Nome della Rosa", "author": "Umberto Eco", "price": "15.00 €", "seller": "admin@loopbooks.it"},
-    {"id": 2, "title": "1984", "author": "George Orwell", "price": "12.00 €", "seller": "admin@loopbooks.it"}
-]
+# Database in memoria vuoto (senza libri finti)
+books_db = []
 
 def render_layout(content: str, active_page: str = "home", user: str = None):
     home_cls = "active" if active_page == "home" else ""
