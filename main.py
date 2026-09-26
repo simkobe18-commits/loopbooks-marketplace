@@ -1,31 +1,24 @@
 import os
-from fastapi import FastAPI, Request, Form, Response
+from fastapi import FastAPI, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 
 app = FastAPI()
 
-# Database in memoria temporaneo per questa versione dimostrativa
-users_db = {
-    "admin@loopbooks.it": "password123"
-}
-
+# Database in memoria temporaneo
 books_db = [
     {"id": 1, "title": "Il Nome della Rosa", "author": "Umberto Eco", "price": "15.00 €", "seller": "admin@loopbooks.it"},
     {"id": 2, "title": "1984", "author": "George Orwell", "price": "12.00 €", "seller": "admin@loopbooks.it"}
 ]
 
 def render_layout(content: str, active_page: str = "home", user: str = None):
-    nav_links = f"""
-        <a href="/" class="{"active" if active_page == "home" else ""}">Home</a>
-        <a href="/aggiungi" class="{"active" if active_page == "aggiungi" else ""}">Aggiungi libro</a>
-        <a href="/biblioteca" class="{"active" if active_page == "biblioteca" else ""}">La mia biblioteca</a>
-    """
+    home_cls = "active" if active_page == "home" else ""
+    aggiungi_cls = "active" if active_page == "aggiungi" else ""
+    biblioteca_cls = "active" if active_page == "biblioteca" else ""
     
     if user:
-        nav_links += f'<span style="color: #38bdf8; margin-left: 1rem; font-size: 0.9rem;">👤 {user}</span>'
-        nav_links += '<a href="/logout" style="color: #f87171; margin-left: 1rem;">Esci</a>'
+        nav_right = f'<span style="color: #38bdf8; margin-left: 1rem; font-size: 0.9rem;">👤 {user}</span><a href="/logout" style="color: #f87171; margin-left: 1rem; text-decoration: none;">Esci</a>'
     else:
-        nav_links += '<a href="/login" class="btn-login">Log in</a>'
+        nav_right = '<a href="/login" class="btn-login">Log in</a>'
 
     return f"""
     <!DOCTYPE html>
@@ -37,7 +30,6 @@ def render_layout(content: str, active_page: str = "home", user: str = None):
         <style>
             * {{ box-sizing: border-box; margin: 0; padding: 0; }}
             body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #f8fafc; min-height: 100vh; display: flex; flex-direction: column; }}
-            
             header {{ background: #1e293b; border-bottom: 1px solid #334155; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }}
             .logo {{ font-size: 1.5rem; font-weight: bold; color: #38bdf8; text-decoration: none; letter-spacing: -0.5px; }}
             nav {{ display: flex; gap: 1.5rem; align-items: center; }}
@@ -45,20 +37,17 @@ def render_layout(content: str, active_page: str = "home", user: str = None):
             nav a:hover, nav a.active {{ color: #38bdf8; }}
             .btn-login {{ background: #0369a1; color: #e0f2fe !important; padding: 0.5rem 1rem; border-radius: 6px; font-weight: 500; }}
             .btn-login:hover {{ background: #0284c7; }}
-
             main {{ flex: 1; padding: 2rem; display: flex; justify-content: center; align-items: center; }}
             .container {{ max-width: 800px; width: 100%; }}
             .card {{ background: #1e293b; padding: 2.5rem; border-radius: 12px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3); border: 1px solid #334155; margin-bottom: 1.5rem; }}
             h1 {{ color: #f8fafc; margin-bottom: 0.75rem; font-size: 1.8rem; }}
             p {{ color: #94a3b8; font-size: 0.95rem; line-height: 1.5; margin-bottom: 1.5rem; }}
-            
             form {{ display: flex; flex-direction: column; gap: 1rem; text-align: left; }}
             label {{ font-size: 0.9rem; color: #94a3b8; }}
             input {{ padding: 0.75rem; border-radius: 6px; border: 1px solid #334155; background: #0f172a; color: #f8fafc; font-size: 1rem; }}
             input:focus {{ outline: none; border-color: #38bdf8; }}
             button {{ background: #38bdf8; color: #0f172a; border: none; padding: 0.75rem; border-radius: 6px; font-weight: bold; cursor: pointer; transition: background 0.2s; }}
             button:hover {{ background: #7dd3fc; }}
-
             .book-grid {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1rem; margin-top: 1.5rem; text-align: left; }}
             .book-card {{ background: #0f172a; border: 1px solid #334155; padding: 1.25rem; border-radius: 8px; display: flex; flex-direction: column; justify-content: space-between; }}
             .book-title {{ font-weight: bold; color: #f8fafc; font-size: 1.1rem; margin-bottom: 0.3rem; }}
@@ -71,7 +60,12 @@ def render_layout(content: str, active_page: str = "home", user: str = None):
     <body>
         <header>
             <a href="/" class="logo">LoopBooks</a>
-            <nav>{nav_links}</nav>
+            <nav>
+                <a href="/" class="{home_cls}">Home</a>
+                <a href="/aggiungi" class="{aggiungi_cls}">Aggiungi libro</a>
+                <a href="/biblioteca" class="{biblioteca_cls}">La mia biblioteca</a>
+                {nav_right}
+            </nav>
         </header>
         <main>
             <div class="container">{content}</div>
@@ -83,7 +77,6 @@ def render_layout(content: str, active_page: str = "home", user: str = None):
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
     user = request.cookies.get("session_user")
-    
     books_html = ""
     for book in books_db:
         books_html += f"""
@@ -178,7 +171,6 @@ async def biblioteca_page(request: Request):
         return RedirectResponse(url="/login", status_code=303)
         
     user_books = [b for b in books_db if b['seller'] == user]
-    
     books_html = ""
     for book in user_books:
         books_html += f"""
@@ -209,7 +201,6 @@ async def biblioteca_page(request: Request):
 async def compra_page(request: Request, book_id: int):
     user = request.cookies.get("session_user")
     book = next((b for b in books_db if b["id"] == book_id), None)
-    
     if not book:
         return RedirectResponse(url="/", status_code=303)
         
