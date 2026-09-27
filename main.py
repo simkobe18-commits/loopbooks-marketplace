@@ -4,9 +4,12 @@ import re
 from fastapi import FastAPI, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from google import genai
-from google.genai import types
 
 app = FastAPI()
+
+# Inizializzazione diretta del client Gemini con la chiave fornita
+GEMINI_KEY = "AQ.Ab8RN6KBnQWeSawg8h00lqWQgbgz-ykMXjzaWNB1ic65vOMDmg"
+client = genai.Client(api_key=GEMINI_KEY)
 
 books_db = []
 users_db = {}
@@ -78,7 +81,7 @@ def render_layout(content: str, active_page: str = "home", user: str = None):
             try {{
                 const response = await fetch('/api/search-isbn?isbn=' + encodeURIComponent(isbn));
                 const data = await response.json();
-                console.log("Risposta ricevuta dal server:", data);
+                console.log("Risposta server:", data);
                 
                 if (data.success) {{
                     if (data.title) document.getElementById('title').value = data.title;
@@ -89,11 +92,11 @@ def render_layout(content: str, active_page: str = "home", user: str = None):
                     if (data.image) document.getElementById('image').value = data.image;
                     if (data.ean) document.getElementById('ean').value = data.ean;
                 }} else {{
-                    alert("Il server ha risposto: Libro non trovato o chiave API mancante.");
+                    alert("Libro non trovato tramite questo ISBN.");
                 }}
             }} catch (e) {{
-                console.error("Errore di rete o eccezione JS:", e);
-                alert("Errore tecnico: " + e.message);
+                console.error("Errore durante la ricerca:", e);
+                alert("Errore di connessione durante la ricerca.");
             }} finally {{
                 searchBtn.innerText = originalText;
                 searchBtn.disabled = false;
@@ -133,30 +136,23 @@ def render_layout(content: str, active_page: str = "home", user: str = None):
 @app.get("/api/search-isbn")
 async def search_isbn(isbn: str):
     try:
-        api_key = os.environ.get("GEMINI_API_KEY")
-        if not api_key:
-            print("ERRORE CRITICO: GEMINI_API_KEY non trovata nelle variabili d'ambiente di Render.")
-            return {"success": False}
-
-        local_client = genai.Client(api_key=api_key)
-
         prompt = f"""
-        Restituisci i dati esatti per il codice ISBN: {isbn}.
-        Rispondi ESCLUSIVAMENTE con un JSON valido strutturato esattamente così:
+        Fornisci i dati bibliografici per il codice ISBN: {isbn}.
+        Rispondi unicamente con un oggetto JSON valido (senza backticks markdown o testo extra) con esattamente queste chiavi:
         {{
             "success": true,
             "title": "Titolo del libro",
             "author": "Autore",
             "editore": "Casa editrice",
             "anno_pubblicazione": "Anno",
-            "descrizione": "Descrizione",
+            "descrizione": "Breve sinossi",
             "image": "",
             "ean": "{isbn}"
         }}
-        Se non lo trovi, rispondi solo: {{"success": false}}
+        Se non trovi il libro, restituisci: {{"success": false}}
         """
 
-        response = local_client.models.generate_content(
+        response = client.models.generate_content(
             model='gemini-2.5-flash',
             contents=prompt,
         )
@@ -166,11 +162,10 @@ async def search_isbn(isbn: str):
         text_res = re.sub(r'\s*```$', '', text_res)
 
         data = json.loads(text_res)
-        print(f"Risultato ricerca ISBN {isbn}:", data)
         return data
 
     except Exception as e:
-        print(f"Errore critico durante la ricerca ISBN {isbn}: {e}")
+        print(f"Errore API Gemini per ISBN {isbn}: {e}")
         return {"success": False}
 
 @app.get("/", response_class=HTMLResponse)
