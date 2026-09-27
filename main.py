@@ -2,141 +2,112 @@ import os
 import json
 import re
 from fastapi import FastAPI, Request, Form
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse
 from google import genai
-from google.genai import types
 
 app = FastAPI()
 
-# Configurazione client Gemini (legge la chiave dalle variabili d'ambiente di Render o usa il fallback)
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "TUA_CHIAVE_API_GEMINI_QUI")
-client = genai.Client(api_key=GEMINI_API_KEY) if GEMINI_API_KEY and GEMINI_API_KEY != "TUA_CHIAVE_API_GEMINI_QUI" else genai.Client()
+# Chiave API di Gemini
+GEMINI_API_KEY = "AQ.Ab8RN6KY_3CAtTnmc-F5tPCANTkYuIJWvXPuXFrAyraEXqIuWQ"
+client = genai.Client(api_key=GEMINI_API_KEY)
 
-books_db = []
-users_db = {}
-
-def render_layout(content: str, active_page: str = "home", user: str = None):
-    home_cls = "active" if active_page == "home" else ""
-    aggiungi_cls = "active" if active_page == "aggiungi" else ""
-    
-    if user:
-        nav_right = f'<span style="color: #38bdf8; margin-left: 1rem; font-size: 0.9rem;">👤 {user}</span><a href="/logout" style="color: #f87171; text-decoration: none; margin-left: 1rem; font-size: 0.9rem;">Esci</a>'
-    else:
-        nav_right = '<a href="/login" class="btn-login">Log in</a>'
-
-    return f"""<!DOCTYPE html>
-<html lang="it">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LoopBooks - Marketplace & IA</title>
-    <style>
-        * {{ box-sizing: border-box; margin: 0; padding: 0; }}
-        body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #f8fafc; min-height: 100vh; display: flex; flex-direction: column; }}
-        header {{ background: #1e293b; border-bottom: 1px solid #334155; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }}
-        .logo {{ font-size: 1.5rem; font-weight: bold; color: #38bdf8; text-decoration: none; letter-spacing: -0.5px; }}
-        nav {{ display: flex; gap: 1.5rem; align-items: center; }}
-        nav a {{ color: #94a3b8; text-decoration: none; font-size: 0.95rem; transition: color 0.2s; }}
-        nav a:hover, nav a.active {{ color: #38bdf8; }}
-        .btn-login {{ background: #0369a1; color: #e0f2fe !important; padding: 0.5rem 1rem; border-radius: 6px; font-weight: 500; }}
-        .btn-login:hover {{ background: #0284c7; }}
-        main {{ flex: 1; padding: 2rem; display: flex; justify-content: center; }}
-        .container {{ max-width: 1000px; width: 100%; }}
-        .card {{ background: #1e293b; padding: 2.5rem; border-radius: 12px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3); border: 1px solid #334155; margin-bottom: 1.5rem; }}
-        h1 {{ color: #f8fafc; margin-bottom: 0.75rem; font-size: 1.8rem; }}
-        h2 {{ color: #38bdf8; margin-bottom: 1rem; font-size: 1.4rem; }}
-        p {{ color: #94a3b8; font-size: 0.95rem; line-height: 1.5; margin-bottom: 1.5rem; }}
-        form {{ display: flex; flex-direction: column; gap: 1rem; text-align: left; }}
-        .form-row {{ display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }}
-        .form-group {{ display: flex; flex-direction: column; gap: 0.4rem; }}
-        label {{ font-size: 0.9rem; color: #94a3b8; }}
-        input, select, textarea {{ padding: 0.75rem; border-radius: 6px; border: 1px solid #334155; background: #0f172a; color: #f8fafc; font-size: 1rem; width: 100%; }}
-        input:focus, select:focus, textarea:focus {{ outline: none; border-color: #38bdf8; }}
-        button {{ background: #38bdf8; color: #0f172a; border: none; padding: 0.75rem; border-radius: 6px; font-weight: bold; cursor: pointer; transition: background 0.2s; }}
-        button:hover {{ background: #7dd3fc; }}
-        .book-grid {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1rem; margin-top: 1rem; text-align: left; }}
-        .book-card {{ background: #0f172a; border: 1px solid #334155; padding: 1.25rem; border-radius: 8px; display: flex; flex-direction: column; justify-content: space-between; }}
-        .book-title {{ font-weight: bold; color: #f8fafc; font-size: 1.1rem; margin-bottom: 0.3rem; }}
-        .book-author {{ color: #94a3b8; font-size: 0.9rem; margin-bottom: 0.8rem; }}
-        .book-price {{ color: #38bdf8; font-weight: bold; margin-bottom: 1rem; }}
-        .btn-buy {{ background: #0369a1; color: white; padding: 0.5rem; text-align: center; border-radius: 4px; text-decoration: none; font-size: 0.9rem; }}
-        .ai-banner {{ background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border: 1px solid #38bdf8; padding: 1.5rem; border-radius: 10px; margin-bottom: 2rem; }}
-        .ai-banner h3 {{ color: #38bdf8; margin-bottom: 0.5rem; }}
-        .alert-error {{ background: rgba(248, 113, 113, 0.1); border: 1px solid #f87171; color: #f87171; padding: 0.75rem; border-radius: 6px; margin-bottom: 1rem; font-size: 0.9rem; text-align: center; }}
-    </style>
-    <script>
-        async function fetchGoogleBooks() {{
-            const isbnInput = document.getElementById('isbn');
-            const isbn = isbnInput.value.trim();
-            if (isbn.length < 10) {{
-                alert("Inserisci un codice ISBN valido (almeno 10 caratteri).");
-                return;
-            }}
-            
-            const searchBtn = document.getElementById('search-btn');
-            const originalText = searchBtn.innerText;
-            searchBtn.innerText = "Gemini sta cercando...";
-            searchBtn.disabled = true;
-
-            try {{
-                const response = await fetch('/api/search-isbn?isbn=' + encodeURIComponent(isbn));
-                const data = await response.json();
+@app.get("/", response_class=HTMLResponse)
+async def home():
+    return """
+    <!DOCTYPE html>
+    <html lang="it">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Cerca Libro con ISBN & Gemini</title>
+        <style>
+            * { box-sizing: border-box; margin: 0; padding: 0; }
+            body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #f8fafc; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 1rem; }
+            .card { background: #1e293b; padding: 2.5rem; border-radius: 12px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3); border: 1px solid #334155; width: 100%; max-width: 600px; }
+            h1 { color: #f8fafc; margin-bottom: 0.5rem; font-size: 1.6rem; text-align: center; }
+            p { color: #94a3b8; font-size: 0.95rem; text-align: center; margin-bottom: 1.5rem; }
+            .input-group { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
+            input { padding: 0.75rem; border-radius: 6px; border: 1px solid #334155; background: #0f172a; color: #f8fafc; font-size: 1rem; flex: 1; }
+            input:focus { outline: none; border-color: #38bdf8; }
+            button { background: #38bdf8; color: #0f172a; border: none; padding: 0.75rem 1.25rem; border-radius: 6px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+            button:hover { background: #7dd3fc; }
+            #result { background: #0f172a; border: 1px solid #334155; padding: 1.5rem; border-radius: 8px; display: none; margin-top: 1rem; }
+            .result-item { margin-bottom: 0.75rem; font-size: 0.95rem; }
+            .result-label { color: #38bdf8; font-weight: bold; }
+        </style>
+        <script>
+            async function searchBook() {
+                const isbn = document.getElementById('isbn').value.trim();
+                const btn = document.getElementById('search-btn');
+                const resultDiv = document.getElementById('result');
                 
-                if (data.success) {{
-                    if (data.title) document.getElementById('title').value = data.title;
-                    if (data.author) document.getElementById('author').value = data.author;
-                    if (data.editore) document.getElementById('editore').value = data.editore;
-                    if (data.anno_pubblicazione) document.getElementById('anno_pubblicazione').value = data.anno_pubblicazione;
-                    if (data.descrizione) document.getElementById('descrizione').value = data.descrizione;
-                    if (data.image) document.getElementById('image').value = data.image;
-                    if (data.ean) document.getElementById('ean').value = data.ean;
-                }} else {{
-                    alert("Libro non trovato tramite questo ISBN.");
-                }}
-            }} catch (e) {{
-                console.error("Errore:", e);
-                alert("Errore di connessione durante la ricerca.");
-            }} finally {{
-                searchBtn.innerText = originalText;
-                searchBtn.disabled = false;
-            }}
-        }}
-    </script>
-</head>
-<body>
-    <header>
-        <a href="/" class="logo">LoopBooks & IA</a>
-        <nav>
-            <a href="/" class="{home_cls}">Home & Consigli IA</a>
-            <a href="/aggiungi" class="{aggiungi_cls}">Metti in vendita</a>
-            {nav_right}
-        </nav>
-    </header>
-    <main>
-        <div class="container">
-            {content}
-        </div>
-    </main>
-</body>
-</html>"""
+                if (!isbn) {
+                    alert("Inserisci un codice ISBN.");
+                    return;
+                }
 
-@app.get("/api/search-isbn")
-async def search_isbn(isbn: str):
+                btn.innerText = "Gemini sta analizzando...";
+                btn.disabled = true;
+                resultDiv.style.display = 'none';
+
+                try {
+                    const response = await fetch('/api/search?isbn=' + encodeURIComponent(isbn));
+                    const data = await response.json();
+
+                    if (data.success) {
+                        document.getElementById('res-title').innerText = data.title || "-";
+                        document.getElementById('res-author').innerText = data.author || "-";
+                        document.getElementById('res-publisher').innerText = data.editore || "-";
+                        document.getElementById('res-year').innerText = data.anno_pubblicazione || "-";
+                        document.getElementById('res-desc').innerText = data.descrizione || "-";
+                        resultDiv.style.display = 'block';
+                    } else {
+                        alert("Libro non trovato o codice ISBN non valido.");
+                    }
+                } catch (e) {
+                    alert("Errore di connessione.");
+                } finally {
+                    btn.innerText = "Cerca";
+                    btn.disabled = false;
+                }
+            }
+        </script>
+    </head>
+    <body>
+        <div class="card">
+            <h1>Cerca Libro con ISBN</h1>
+            <p>Inserisci il codice ISBN per estrarre le informazioni tramite Gemini.</p>
+            <div class="input-group">
+                <input type="text" id="isbn" placeholder="Es. 9788869183157">
+                <button id="search-btn" onclick="searchBook()">Cerca</button>
+            </div>
+            <div id="result">
+                <div class="result-item"><span class="result-label">Titolo:</span> <span id="res-title"></span></div>
+                <div class="result-item"><span class="result-label">Autore:</span> <span id="res-author"></span></div>
+                <div class="result-item"><span class="result-label">Editore:</span> <span id="res-publisher"></span></div>
+                <div class="result-item"><span class="result-label">Anno:</span> <span id="res-year"></span></div>
+                <div class="result-item"><span class="result-label">Descrizione:</span> <span id="res-desc"></span></div>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+
+@app.get("/api/search")
+async def api_search(isbn: str):
     try:
         prompt = f"""
-        Restituisci i dati bibliografici per il codice ISBN: {isbn}.
-        Rispondi ESCLUSIVAMENTE con un oggetto JSON valido (senza markdown o backticks) con queste esatte chiavi:
+        Fornisci le informazioni bibliografiche per il codice ISBN: {isbn}.
+        Rispondi ESCLUSIVAMENTE con un oggetto JSON valido (senza blocchi di codice markdown o backticks) con queste chiavi:
         {{
             "success": true,
             "title": "Titolo del libro",
             "author": "Autore",
             "editore": "Casa editrice",
             "anno_pubblicazione": "Anno",
-            "descrizione": "Sinossi",
-            "image": "",
-            "ean": "{isbn}"
+            "descrizione": "Breve sinossi o descrizione"
         }}
-        Se non lo trovi, restituisci: {{"success": false}}
+        Se non trovi il libro, restituisci: {{"success": false}}
         """
         response = client.models.generate_content(model='gemini-2.5-flash', contents=prompt)
         text_res = response.text.strip()
@@ -144,227 +115,4 @@ async def search_isbn(isbn: str):
         text_res = re.sub(r'\s*```$', '', text_res)
         return json.loads(text_res)
     except Exception as e:
-        print(f"Errore ISBN: {e}")
         return {"success": False}
-
-@app.get("/", response_class=HTMLResponse)
-async def home(request: Request):
-    user = request.cookies.get("session_user")
-    
-    # Generazione consigli e tendenze tramite Gemini IA
-    ai_recommendations = ""
-    try:
-        ai_prompt = """
-        Genera 3 consigli di lettura di tendenza attuali sotto forma di breve elenco HTML con questa struttura esatta per ciascuno:
-        <div style="margin-bottom: 0.8rem;"><strong>Titolo del Libro</strong> di Autore - <em>Breve motivazione del perché è di tendenza.</em></div>
-        Non aggiungere altro testo fuori dall'HTML.
-        """
-        ai_response = client.models.generate_content(model='gemini-2.5-flash', contents=ai_prompt)
-        ai_recommendations = ai_response.text.strip()
-    except:
-        ai_recommendations = "<p>I consigli di tendenza della nostra IA saranno disponibili a breve.</p>"
-
-    books_html = ""
-    if not books_db:
-        books_html = "<p style='color: #64748b; text-align: center; grid-column: 1/-1;'>Nessun libro in vendita al momento. Sii il primo ad aggiungerne uno!</p>"
-    else:
-        for book in books_db:
-            books_html += f"""
-            <div class="book-card">
-                <div>
-                    <div class="book-title">{book.get('title')}</div>
-                    <div class="book-author">di {book.get('author')} ({book.get('editore', 'N/D')})</div>
-                    <div style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 0.5rem;">Condizioni: {book.get('condizioni')}</div>
-                </div>
-                <div>
-                    <div class="book-price">€ {book.get('prezzo')}</div>
-                    <a href="#" class="btn-buy" onclick="alert('Contatta il venditore per procedere.'); return false;">Acquista</a>
-                </div>
-            </div>
-            """
-
-    content = f"""
-    <div class="ai-banner">
-        <h3>🤖 Libreria Consigliata & Tendenze (Powered by Gemini)</h3>
-        <p style="margin-bottom: 0.5rem; color: #f8fafc;">Ecco i libri del momento selezionati dalla nostra intelligenza artificiale per ispirare i tuoi acquisti:</p>
-        <div style="color: #94a3b8; font-size: 0.95rem;">
-            {ai_recommendations}
-        </div>
-    </div>
-
-    <div class="card" style="text-align: center;">
-        <h1>Marketplace Libri Usati</h1>
-        <p>Sfoglia gli annunci inseriti dai lettori della community.</p>
-        <div class="book-grid">
-            {books_html}
-        </div>
-    </div>
-    """
-    return render_layout(content, active_page="home", user=user)
-
-@app.get("/aggiungi", response_class=HTMLResponse)
-async def aggiungi_form(request: Request):
-    user = request.cookies.get("session_user")
-    if not user:
-        return RedirectResponse(url="/login", status_code=303)
-
-    content = """
-    <div class="card">
-        <h1>Aggiungi un nuovo libro</h1>
-        <p>Inserisci il codice ISBN e clicca su "Cerca con IA" per autocompilare tutti i campi all'istante.</p>
-        <form action="/aggiungi" method="POST">
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="isbn">ISBN / Codice EAN</label>
-                    <div style="display: flex; gap: 0.5rem;">
-                        <input type="text" id="isbn" name="isbn" placeholder="Es. 9788869183157" style="flex: 1;">
-                        <button type="button" id="search-btn" onclick="fetchGoogleBooks()" style="padding: 0.75rem 1rem;">Cerca con IA</button>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="ean">Codice EAN confermato</label>
-                    <input type="text" id="ean" name="ean" placeholder="Codice EAN" readonly>
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="title">Titolo</label>
-                    <input type="text" id="title" name="title" required placeholder="Titolo del libro">
-                </div>
-                <div class="form-group">
-                    <label for="author">Autore</label>
-                    <input type="text" id="author" name="author" required placeholder="Autore">
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="editore">Editore</label>
-                    <input type="text" id="editore" name="editore" placeholder="Casa editrice">
-                </div>
-                <div class="form-group">
-                    <label for="condizioni">Condizioni</label>
-                    <select id="condizioni" name="condizioni">
-                        <option value="Nuovo">Nuovo</option>
-                        <option value="Ottime">Ottime</option>
-                        <option value="Buone">Buone</option>
-                        <option value="Discrete">Discrete</option>
-                    </select>
-                </div>
-            </div>
-            <div class="form-group">
-                <label for="image">URL Immagine</label>
-                <input type="url" id="image" name="image" placeholder="https://...">
-            </div>
-            <div class="form-group">
-                <label for="descrizione">Descrizione</label>
-                <textarea id="descrizione" name="descrizione" rows="3" placeholder="Descrizione..."></textarea>
-            </div>
-            <div class="form-group">
-                <label for="prezzo">Prezzo (€)</label>
-                <input type="number" step="0.01" id="prezzo" name="prezzo" required placeholder="15.00">
-            </div>
-            <button type="submit">Pubblica Annuncio</button>
-        </form>
-    </div>
-    """
-    return render_layout(content, active_page="aggiungi", user=user)
-
-@app.post("/aggiungi")
-async def aggiungi_post(
-    request: Request,
-    isbn: str = Form(""),
-    ean: str = Form(""),
-    title: str = Form(...),
-    author: str = Form(...),
-    editore: str = Form(""),
-    condizioni: str = Form(""),
-    image: str = Form(""),
-    descrizione: str = Form(""),
-    prezzo: float = Form(...)
-):
-    user = request.cookies.get("session_user")
-    if not user:
-        return RedirectResponse(url="/login", status_code=303)
-
-    book = {
-        "isbn": isbn, "ean": ean, "title": title, "author": author,
-        "editore": editore, "condizioni": condizioni, "image": image,
-        "descrizione": descrizione, "prezzo": prezzo, "seller": user
-    }
-    books_db.append(book)
-    return RedirectResponse(url="/", status_code=303)
-
-@app.get("/login", response_class=HTMLResponse)
-async def login_get(error: str = None):
-    err_html = f'<div class="alert-error">{error}</div>' if error else ''
-    content = f"""
-    <div class="card" style="max-width: 400px; margin: 0 auto; text-align: center;">
-        <h1>Accedi</h1>
-        <p>Entra nel tuo account LoopBooks</p>
-        {err_html}
-        <form action="/login" method="POST">
-            <div class="form-group">
-                <label for="email">Email</label>
-                <input type="email" id="email" name="email" required placeholder="tu@email.com">
-            </div>
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" required placeholder="••••••••">
-            </div>
-            <button type="submit" style="margin-top: 0.5rem;">Accedi</button>
-        </form>
-        <div style="margin-top: 1rem; font-size: 0.9rem; color: #94a3b8;">
-            Non hai un account? <a href="/register" style="color: #38bdf8; text-decoration: none;">Registrati</a>
-        </div>
-    </div>
-    """
-    return render_layout(content, active_page="login")
-
-@app.post("/login")
-async def login_post(email: str = Form(...), password: str = Form(...)):
-    if email in users_db and users_db[email] == password:
-        response = RedirectResponse(url="/", status_code=303)
-        response.set_cookie(key="session_user", value=email)
-        return response
-    return RedirectResponse(url="/login?error=Credenziali+non+valide", status_code=303)
-
-@app.get("/register", response_class=HTMLResponse)
-async def register_get(error: str = None):
-    err_html = f'<div class="alert-error">{error}</div>' if error else ''
-    content = f"""
-    <div class="card" style="max-width: 400px; margin: 0 auto; text-align: center;">
-        <h1>Registrati</h1>
-        <p>Crea un nuovo account su LoopBooks</p>
-        {err_html}
-        <form action="/register" method="POST">
-            <div class="form-group">
-                <label for="email">Email</label>
-                <input type="email" id="email" name="email" required placeholder="tu@email.com">
-            </div>
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" required placeholder="••••••••">
-            </div>
-            <button type="submit" style="margin-top: 0.5rem;">Registrati</button>
-        </form>
-        <div style="margin-top: 1rem; font-size: 0.9rem; color: #94a3b8;">
-            Hai già un account? <a href="/login" style="color: #38bdf8; text-decoration: none;">Accedi</a>
-        </div>
-    </div>
-    """
-    return render_layout(content, active_page="register")
-
-@app.post("/register")
-async def register_post(email: str = Form(...), password: str = Form(...)):
-    if email in users_db:
-        return RedirectResponse(url="/register?error=Utente+gia+esistente", status_code=303)
-    users_db[email] = password
-    response = RedirectResponse(url="/", status_code=303)
-    response.set_cookie(key="session_user", value=email)
-    return response
-
-@app.get("/logout")
-async def logout():
-    response = RedirectResponse(url="/", status_code=303)
-    response.delete_cookie(key="session_user")
-    return response
