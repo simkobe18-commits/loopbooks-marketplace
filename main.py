@@ -2,14 +2,15 @@ import os
 import json
 import re
 from fastapi import FastAPI, Request, Form
-from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from google import genai
+from google.genai import types
 
 app = FastAPI()
 
-# Inizializzazione diretta del client Gemini con la chiave fornita
-GEMINI_KEY = "AQ.Ab8RN6KBnQWeSawg8h00lqWQgbgz-ykMXjzaWNB1ic65vOMDmg"
-client = genai.Client(api_key=GEMINI_KEY)
+# Configurazione client Gemini (legge la chiave dalle variabili d'ambiente di Render o usa il fallback)
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "TUA_CHIAVE_API_GEMINI_QUI")
+client = genai.Client(api_key=GEMINI_API_KEY) if GEMINI_API_KEY and GEMINI_API_KEY != "TUA_CHIAVE_API_GEMINI_QUI" else genai.Client()
 
 books_db = []
 users_db = {}
@@ -28,7 +29,7 @@ def render_layout(content: str, active_page: str = "home", user: str = None):
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LoopBooks - Marketplace</title>
+    <title>LoopBooks - Marketplace & IA</title>
     <style>
         * {{ box-sizing: border-box; margin: 0; padding: 0; }}
         body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #f8fafc; min-height: 100vh; display: flex; flex-direction: column; }}
@@ -39,10 +40,11 @@ def render_layout(content: str, active_page: str = "home", user: str = None):
         nav a:hover, nav a.active {{ color: #38bdf8; }}
         .btn-login {{ background: #0369a1; color: #e0f2fe !important; padding: 0.5rem 1rem; border-radius: 6px; font-weight: 500; }}
         .btn-login:hover {{ background: #0284c7; }}
-        main {{ flex: 1; padding: 2rem; display: flex; justify-content: center; align-items: center; }}
-        .container {{ max-width: 800px; width: 100%; }}
+        main {{ flex: 1; padding: 2rem; display: flex; justify-content: center; }}
+        .container {{ max-width: 1000px; width: 100%; }}
         .card {{ background: #1e293b; padding: 2.5rem; border-radius: 12px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3); border: 1px solid #334155; margin-bottom: 1.5rem; }}
         h1 {{ color: #f8fafc; margin-bottom: 0.75rem; font-size: 1.8rem; }}
+        h2 {{ color: #38bdf8; margin-bottom: 1rem; font-size: 1.4rem; }}
         p {{ color: #94a3b8; font-size: 0.95rem; line-height: 1.5; margin-bottom: 1.5rem; }}
         form {{ display: flex; flex-direction: column; gap: 1rem; text-align: left; }}
         .form-row {{ display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }}
@@ -52,16 +54,14 @@ def render_layout(content: str, active_page: str = "home", user: str = None):
         input:focus, select:focus, textarea:focus {{ outline: none; border-color: #38bdf8; }}
         button {{ background: #38bdf8; color: #0f172a; border: none; padding: 0.75rem; border-radius: 6px; font-weight: bold; cursor: pointer; transition: background 0.2s; }}
         button:hover {{ background: #7dd3fc; }}
-        .book-grid {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1rem; margin-top: 1.5rem; text-align: left; }}
+        .book-grid {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1rem; margin-top: 1rem; text-align: left; }}
         .book-card {{ background: #0f172a; border: 1px solid #334155; padding: 1.25rem; border-radius: 8px; display: flex; flex-direction: column; justify-content: space-between; }}
         .book-title {{ font-weight: bold; color: #f8fafc; font-size: 1.1rem; margin-bottom: 0.3rem; }}
         .book-author {{ color: #94a3b8; font-size: 0.9rem; margin-bottom: 0.8rem; }}
         .book-price {{ color: #38bdf8; font-weight: bold; margin-bottom: 1rem; }}
         .btn-buy {{ background: #0369a1; color: white; padding: 0.5rem; text-align: center; border-radius: 4px; text-decoration: none; font-size: 0.9rem; }}
-        .btn-buy:hover {{ background: #0284c7; }}
-        .auth-link {{ margin-top: 1rem; text-align: center; font-size: 0.9rem; color: #94a3b8; }}
-        .auth-link a {{ color: #38bdf8; text-decoration: none; }}
-        .auth-link a:hover {{ text-decoration: underline; }}
+        .ai-banner {{ background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border: 1px solid #38bdf8; padding: 1.5rem; border-radius: 10px; margin-bottom: 2rem; }}
+        .ai-banner h3 {{ color: #38bdf8; margin-bottom: 0.5rem; }}
         .alert-error {{ background: rgba(248, 113, 113, 0.1); border: 1px solid #f87171; color: #f87171; padding: 0.75rem; border-radius: 6px; margin-bottom: 1rem; font-size: 0.9rem; text-align: center; }}
     </style>
     <script>
@@ -75,13 +75,12 @@ def render_layout(content: str, active_page: str = "home", user: str = None):
             
             const searchBtn = document.getElementById('search-btn');
             const originalText = searchBtn.innerText;
-            searchBtn.innerText = "Cerco...";
+            searchBtn.innerText = "Gemini sta cercando...";
             searchBtn.disabled = true;
 
             try {{
                 const response = await fetch('/api/search-isbn?isbn=' + encodeURIComponent(isbn));
                 const data = await response.json();
-                console.log("Risposta server:", data);
                 
                 if (data.success) {{
                     if (data.title) document.getElementById('title').value = data.title;
@@ -95,32 +94,20 @@ def render_layout(content: str, active_page: str = "home", user: str = None):
                     alert("Libro non trovato tramite questo ISBN.");
                 }}
             }} catch (e) {{
-                console.error("Errore durante la ricerca:", e);
+                console.error("Errore:", e);
                 alert("Errore di connessione durante la ricerca.");
             }} finally {{
                 searchBtn.innerText = originalText;
                 searchBtn.disabled = false;
             }}
         }}
-
-        window.addEventListener('DOMContentLoaded', () => {{
-            const isbnInput = document.getElementById('isbn');
-            if (isbnInput) {{
-                isbnInput.addEventListener('keydown', function(event) {{
-                    if (event.key === 'Enter') {{
-                        event.preventDefault();
-                        fetchGoogleBooks();
-                    }}
-                }});
-            }}
-        }});
     </script>
 </head>
 <body>
     <header>
-        <a href="/" class="logo">LoopBooks</a>
+        <a href="/" class="logo">LoopBooks & IA</a>
         <nav>
-            <a href="/" class="{home_cls}">Home</a>
+            <a href="/" class="{home_cls}">Home & Consigli IA</a>
             <a href="/aggiungi" class="{aggiungi_cls}">Metti in vendita</a>
             {nav_right}
         </nav>
@@ -137,41 +124,46 @@ def render_layout(content: str, active_page: str = "home", user: str = None):
 async def search_isbn(isbn: str):
     try:
         prompt = f"""
-        Fornisci i dati bibliografici per il codice ISBN: {isbn}.
-        Rispondi unicamente con un oggetto JSON valido (senza backticks markdown o testo extra) con esattamente queste chiavi:
+        Restituisci i dati bibliografici per il codice ISBN: {isbn}.
+        Rispondi ESCLUSIVAMENTE con un oggetto JSON valido (senza markdown o backticks) con queste esatte chiavi:
         {{
             "success": true,
             "title": "Titolo del libro",
             "author": "Autore",
             "editore": "Casa editrice",
             "anno_pubblicazione": "Anno",
-            "descrizione": "Breve sinossi",
+            "descrizione": "Sinossi",
             "image": "",
             "ean": "{isbn}"
         }}
-        Se non trovi il libro, restituisci: {{"success": false}}
+        Se non lo trovi, restituisci: {{"success": false}}
         """
-
-        response = client.models.generate_content(
-            model='gemini-2.5-flash',
-            contents=prompt,
-        )
-
+        response = client.models.generate_content(model='gemini-2.5-flash', contents=prompt)
         text_res = response.text.strip()
         text_res = re.sub(r'^```json\s*', '', text_res)
         text_res = re.sub(r'\s*```$', '', text_res)
-
-        data = json.loads(text_res)
-        return data
-
+        return json.loads(text_res)
     except Exception as e:
-        print(f"Errore API Gemini per ISBN {isbn}: {e}")
+        print(f"Errore ISBN: {e}")
         return {"success": False}
 
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
     user = request.cookies.get("session_user")
     
+    # Generazione consigli e tendenze tramite Gemini IA
+    ai_recommendations = ""
+    try:
+        ai_prompt = """
+        Genera 3 consigli di lettura di tendenza attuali sotto forma di breve elenco HTML con questa struttura esatta per ciascuno:
+        <div style="margin-bottom: 0.8rem;"><strong>Titolo del Libro</strong> di Autore - <em>Breve motivazione del perché è di tendenza.</em></div>
+        Non aggiungere altro testo fuori dall'HTML.
+        """
+        ai_response = client.models.generate_content(model='gemini-2.5-flash', contents=ai_prompt)
+        ai_recommendations = ai_response.text.strip()
+    except:
+        ai_recommendations = "<p>I consigli di tendenza della nostra IA saranno disponibili a breve.</p>"
+
     books_html = ""
     if not books_db:
         books_html = "<p style='color: #64748b; text-align: center; grid-column: 1/-1;'>Nessun libro in vendita al momento. Sii il primo ad aggiungerne uno!</p>"
@@ -192,9 +184,17 @@ async def home(request: Request):
             """
 
     content = f"""
+    <div class="ai-banner">
+        <h3>🤖 Libreria Consigliata & Tendenze (Powered by Gemini)</h3>
+        <p style="margin-bottom: 0.5rem; color: #f8fafc;">Ecco i libri del momento selezionati dalla nostra intelligenza artificiale per ispirare i tuoi acquisti:</p>
+        <div style="color: #94a3b8; font-size: 0.95rem;">
+            {ai_recommendations}
+        </div>
+    </div>
+
     <div class="card" style="text-align: center;">
-        <h1>Marketplace di Libri Usati</h1>
-        <p>Acquista e vendi libri in modo semplice e veloce tra lettori.</p>
+        <h1>Marketplace Libri Usati</h1>
+        <p>Sfoglia gli annunci inseriti dai lettori della community.</p>
         <div class="book-grid">
             {books_html}
         </div>
@@ -211,14 +211,14 @@ async def aggiungi_form(request: Request):
     content = """
     <div class="card">
         <h1>Aggiungi un nuovo libro</h1>
-        <p>Inserisci l'ISBN e premi invio o clicca su "Cerca" per autocompilare i dati tramite IA.</p>
+        <p>Inserisci il codice ISBN e clicca su "Cerca con IA" per autocompilare tutti i campi all'istante.</p>
         <form action="/aggiungi" method="POST">
             <div class="form-row">
                 <div class="form-group">
-                    <label for="isbn">ISBN / Codice EAN (Autocompilazione)</label>
+                    <label for="isbn">ISBN / Codice EAN</label>
                     <div style="display: flex; gap: 0.5rem;">
                         <input type="text" id="isbn" name="isbn" placeholder="Es. 9788869183157" style="flex: 1;">
-                        <button type="button" id="search-btn" onclick="fetchGoogleBooks()" style="padding: 0.75rem 1rem;">Cerca...</button>
+                        <button type="button" id="search-btn" onclick="fetchGoogleBooks()" style="padding: 0.75rem 1rem;">Cerca con IA</button>
                     </div>
                 </div>
                 <div class="form-group">
@@ -228,7 +228,7 @@ async def aggiungi_form(request: Request):
             </div>
             <div class="form-row">
                 <div class="form-group">
-                    <label for="title">Nome libro (Titolo)</label>
+                    <label for="title">Titolo</label>
                     <input type="text" id="title" name="title" required placeholder="Titolo del libro">
                 </div>
                 <div class="form-group">
@@ -242,32 +242,6 @@ async def aggiungi_form(request: Request):
                     <input type="text" id="editore" name="editore" placeholder="Casa editrice">
                 </div>
                 <div class="form-group">
-                    <label for="collana">Collana</label>
-                    <input type="text" id="collana" name="collana" placeholder="Nome collana">
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="anno_edizione">Anno edizione</label>
-                    <input type="text" id="anno_edizione" name="anno_edizione" placeholder="Es. 2021">
-                </div>
-                <div class="form-group">
-                    <label for="anno_pubblicazione">Anno pubblicazione</label>
-                    <input type="text" id="anno_pubblicazione" name="anno_pubblicazione" placeholder="Es. 1980">
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="tipologia">Tipologia</label>
-                    <select id="tipologia" name="tipologia">
-                        <option value="Narrativa">Narrativa</option>
-                        <option value="Saggistica">Saggistica</option>
-                        <option value="Universitario">Universitario</option>
-                        <option value="Fumetti / Manga">Fumetti / Manga</option>
-                        <option value="Altro">Altro</option>
-                    </select>
-                </div>
-                <div class="form-group">
                     <label for="condizioni">Condizioni</label>
                     <select id="condizioni" name="condizioni">
                         <option value="Nuovo">Nuovo</option>
@@ -278,7 +252,7 @@ async def aggiungi_form(request: Request):
                 </div>
             </div>
             <div class="form-group">
-                <label for="image">URL Immagine libro</label>
+                <label for="image">URL Immagine</label>
                 <input type="url" id="image" name="image" placeholder="https://...">
             </div>
             <div class="form-group">
@@ -303,10 +277,6 @@ async def aggiungi_post(
     title: str = Form(...),
     author: str = Form(...),
     editore: str = Form(""),
-    collana: str = Form(""),
-    anno_edizione: str = Form(""),
-    anno_pubblicazione: str = Form(""),
-    tipologia: str = Form(""),
     condizioni: str = Form(""),
     image: str = Form(""),
     descrizione: str = Form(""),
@@ -317,20 +287,9 @@ async def aggiungi_post(
         return RedirectResponse(url="/login", status_code=303)
 
     book = {
-        "isbn": isbn,
-        "ean": ean,
-        "title": title,
-        "author": author,
-        "editore": editore,
-        "collana": collana,
-        "anno_edizione": anno_edizione,
-        "anno_pubblicazione": anno_pubblicazione,
-        "tipologia": tipologia,
-        "condizioni": condizioni,
-        "image": image,
-        "descrizione": descrizione,
-        "prezzo": prezzo,
-        "seller": user
+        "isbn": isbn, "ean": ean, "title": title, "author": author,
+        "editore": editore, "condizioni": condizioni, "image": image,
+        "descrizione": descrizione, "prezzo": prezzo, "seller": user
     }
     books_db.append(book)
     return RedirectResponse(url="/", status_code=303)
@@ -354,8 +313,8 @@ async def login_get(error: str = None):
             </div>
             <button type="submit" style="margin-top: 0.5rem;">Accedi</button>
         </form>
-        <div class="auth-link">
-            Non hai un account? <a href="/register">Registrati</a>
+        <div style="margin-top: 1rem; font-size: 0.9rem; color: #94a3b8;">
+            Non hai un account? <a href="/register" style="color: #38bdf8; text-decoration: none;">Registrati</a>
         </div>
     </div>
     """
@@ -388,8 +347,8 @@ async def register_get(error: str = None):
             </div>
             <button type="submit" style="margin-top: 0.5rem;">Registrati</button>
         </form>
-        <div class="auth-link">
-            Hai già un account? <a href="/login">Accedi</a>
+        <div style="margin-top: 1rem; font-size: 0.9rem; color: #94a3b8;">
+            Hai già un account? <a href="/login" style="color: #38bdf8; text-decoration: none;">Accedi</a>
         </div>
     </div>
     """
