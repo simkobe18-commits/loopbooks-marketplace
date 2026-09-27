@@ -2,11 +2,12 @@ import os
 import json
 import re
 import httpx
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 
 app = FastAPI()
 
+# Chiave API di fallback o presa dall'ambiente
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "AQ.Ab8RN6KY_3CAtTnmc-F5tPCANTkYuIJWvXPuXFrAyraEXqIuWQ")
 
 @app.get("/", response_class=HTMLResponse)
@@ -17,7 +18,7 @@ async def home():
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Cerca Libro con ISBN & Gemini</title>
+        <title>LoopBooks - Cerca Libro con ISBN & Gemini</title>
         <style>
             * { box-sizing: border-box; margin: 0; padding: 0; }
             body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #f8fafc; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 1rem; }
@@ -73,7 +74,7 @@ async def home():
     </head>
     <body>
         <div class="card">
-            <h1>Cerca Libro con ISBN</h1>
+            <h1>LoopBooks - Cerca Libro</h1>
             <p>Inserisci il codice ISBN per estrarre le informazioni tramite Gemini.</p>
             <div class="input-group">
                 <input type="text" id="isbn" placeholder="Es. 9788869183157">
@@ -96,7 +97,7 @@ async def api_search(isbn: str):
     try:
         prompt = f"""
         Fornisci le informazioni bibliografiche per il codice ISBN: {isbn}.
-        Rispondi ESCLUSIVAMENTE con un oggetto JSON valido (senza blocchi di codice markdown o backticks) con queste chiavi esatte:
+        Restituisci la risposta ESCLUSIVAMENTE in formato JSON puro (senza alcun blocco di codice markdown o backticks) con queste chiavi esatte:
         {{
             "success": true,
             "title": "Titolo del libro",
@@ -108,8 +109,8 @@ async def api_search(isbn: str):
         Se non trovi il libro o il codice non è valido, restituisci: {{"success": false}}
         """
         
-        # Aggiornato al modello stabile gemini-1.5-flash
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
+        # Endpoint corretto con il modello gemini-2.5-flash
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GEMINI_API_KEY}"
         payload = {
             "contents": [{
                 "parts": [{"text": prompt}]
@@ -124,9 +125,22 @@ async def api_search(isbn: str):
                 
             data = resp.json()
             text_res = data["candidates"][0]["content"]["parts"][0]["text"].strip()
-            text_res = re.sub(r'^```json\s*', '', text_res)
-            text_res = re.sub(r'\s*```$', '', text_res)
-            return json.loads(text_res)
+            
+            # Pulizia sicura del markdown
+            text_res = text_res.replace("```json", "").replace("```", "").strip()
+            
+            try:
+                return json.loads(text_res)
+            except json.JSONDecodeError:
+                print(f"JSON non valido ricevuto da Gemini: {text_res}")
+                return {
+                    "success": True,
+                    "title": "Risultato estratto",
+                    "author": "-",
+                    "editore": "-",
+                    "anno_pubblicazione": "-",
+                    "descrizione": text_res
+                }
             
     except Exception as e:
         print(f"ERRORE CRITICO: {e}")
