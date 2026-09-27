@@ -1,14 +1,14 @@
 import os
 import json
 import re
-from fastapi import FastAPI, Request, Form
+from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from google import genai
 
 app = FastAPI()
 
-# Chiave API di Gemini
-GEMINI_API_KEY = "AQ.Ab8RN6KY_3CAtTnmc-F5tPCANTkYuIJWvXPuXFrAyraEXqIuWQ"
+# Legge la chiave dall'ambiente di Render o usa quella di fallback
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "AQ.Ab8RN6KY_3CAtTnmc-F5tPCANTkYuIJWvXPuXFrAyraEXqIuWQ")
 client = genai.Client(api_key=GEMINI_API_KEY)
 
 @app.get("/", response_class=HTMLResponse)
@@ -115,4 +115,5 @@ async def api_search(isbn: str):
         text_res = re.sub(r'\s*```$', '', text_res)
         return json.loads(text_res)
     except Exception as e:
+        print(f"ERRORE GEMINI: {e}")
         return {"success": False}
