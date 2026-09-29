@@ -7,7 +7,7 @@ from google import genai
 
 app = FastAPI()
 
-# Database locale di riserva per ISBN frequenti[cite: 14]
+# Database locale di riserva per ISBN frequenti
 BOOKS_DB = {
     "9788804668237": {
         "success": True,
@@ -50,7 +50,7 @@ def get_navbar(active_page="home"):
 @app.get("/", response_class=HTMLResponse)
 async def home_page():
     navbar = get_navbar('home')
-    return f"""
+    html_content = """
     <!DOCTYPE html>
     <html lang="it">
     <head>
@@ -60,7 +60,7 @@ async def home_page():
         <script src="https://cdn.tailwindcss.com"></script>
     </head>
     <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col items-center p-4 md:p-8">
-        {navbar}
+        NAVBAR_PLACEHOLDER
         
         <div class="w-full max-w-6xl space-y-10">
             <!-- Banner Principale: Crea la tua biblioteca -->
@@ -325,6 +325,7 @@ async def home_page():
     </body>
     </html>
     """
+    return html_content.replace("NAVBAR_PLACEHOLDER", navbar)
 
 # --- 2. LA MIA BIBLIOTECA ---
 @app.get("/biblioteca", response_class=HTMLResponse)
@@ -371,10 +372,10 @@ async def metti_in_vendita_page():
         NAVBAR_PLACEHOLDER
         <div class="w-full max-w-4xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-6 md:p-8">
             <h1 class="text-2xl md:text-3xl font-extrabold text-center mb-2 bg-gradient-to-r from-sky-400 to-indigo-500 bg-clip-text text-transparent">
-                LoopBooks Intelligence[cite: 14]
+                LoopBooks Intelligence
             </h1>
             <p class="text-slate-400 text-center text-sm mb-6">
-                Inserisci il codice ISBN per estrarre la scheda tecnica completa e il grafico storico dei prezzi[cite: 14].
+                Inserisci il codice ISBN per estrarre la scheda tecnica completa e il grafico storico dei prezzi.
             </p>
             <div class="flex gap-3 mb-6">
                 <input type="text" id="isbn" value="9788804668237" placeholder="Es. 9788804668237" 
@@ -385,7 +386,7 @@ async def metti_in_vendita_page():
                 </button>
             </div>
             <div id="loader" class="hidden text-center py-8 text-sky-400 font-medium animate-pulse">
-                Estrazione dati del libro in corso con Gemini[cite: 14]...
+                Estrazione dati del libro in corso con Gemini...
             </div>
             <div id="error-box" class="hidden bg-red-950/50 border border-red-800 text-red-200 p-4 rounded-xl mb-6 text-sm">
                 <strong class="font-bold">Errore di sistema:</strong> <span id="error-text">-</span>
@@ -404,7 +405,7 @@ async def metti_in_vendita_page():
                 </div>
                 <div class="bg-slate-950 p-5 rounded-xl border border-slate-800">
                     <h3 class="text-sm font-semibold text-slate-400 mb-3 flex items-center justify-between">
-                        <span>Grafico delle vendite e prezzo medio nel tempo[cite: 14]</span>
+                        <span>Grafico delle vendite e prezzo medio nel tempo</span>
                         <span class="text-xs text-sky-400 bg-sky-950 px-2 py-1 rounded border border-sky-800">Trend CardMarket Style</span>
                     </h3>
                     <div class="relative h-64 w-full">
