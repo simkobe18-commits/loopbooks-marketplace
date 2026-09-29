@@ -23,8 +23,7 @@ BOOKS_DB = {
     }
 }
 
-# --- TEMPLATE COMUNE PER LA NAVBAR ---
-def navbar_html(active_page="home"):
+def get_navbar(active_page="home"):
     home_class = 'text-sky-400 font-bold' if active_page == 'home' else 'text-slate-300 hover:text-sky-400'
     biblio_class = 'text-sky-400 font-bold' if active_page == 'biblioteca' else 'text-slate-300 hover:text-sky-400'
     vendita_class = 'text-sky-400 font-bold' if active_page == 'metti-in-vendita' else 'text-slate-300 hover:text-sky-400'
@@ -47,9 +46,10 @@ def navbar_html(active_page="home"):
     </nav>
     """
 
-# --- 1. HOME PAGE RICCA DI SEZIONI ---
+# --- 1. HOME PAGE ---
 @app.get("/", response_class=HTMLResponse)
 async def home_page():
+    navbar = get_navbar('home')
     return f"""
     <!DOCTYPE html>
     <html lang="it">
@@ -60,7 +60,7 @@ async def home_page():
         <script src="https://cdn.tailwindcss.com"></script>
     </head>
     <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col items-center p-4 md:p-8">
-        {navbar_html('home')}
+        {navbar}
         
         <div class="w-full max-w-6xl space-y-10">
             <!-- Banner Principale: Crea la tua biblioteca -->
@@ -143,9 +143,9 @@ async def home_page():
                 </div>
             </section>
 
-            <!-- Sezione: Migliori venditori (con collegamento alla pagina del venditore) -->
+            <!-- Sezione: Migliori venditori -->
             <section class="space-y-4">
-                <h2 class="text-xl font-bold border-l-4 border-indigo-505 pl-3">Migliori venditori</h2>
+                <h2 class="text-xl font-bold border-l-4 border-indigo-500 pl-3">Migliori venditori</h2>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl flex items-center justify-between">
                         <div>
@@ -243,6 +243,7 @@ async def home_page():
 # --- 2. LA MIA BIBLIOTECA ---
 @app.get("/biblioteca", response_class=HTMLResponse)
 async def biblioteca_page():
+    navbar = get_navbar('biblioteca')
     return f"""
     <!DOCTYPE html>
     <html lang="it">
@@ -253,7 +254,7 @@ async def biblioteca_page():
         <script src="https://cdn.tailwindcss.com"></script>
     </head>
     <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col items-center p-4 md:p-8">
-        {navbar_html('biblioteca')}
+        {navbar}
         <div class="w-full max-w-4xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-6 md:p-8">
             <h1 class="text-2xl font-extrabold mb-2 text-slate-100">La mia biblioteca</h1>
             <p class="text-slate-400 text-sm mb-6">I tuoi libri salvati e la panoramica della tua collezione personale.</p>
@@ -266,9 +267,10 @@ async def biblioteca_page():
     </html>
     """
 
-# --- 3. METTI IN VENDITA (PAGINA INTEGRATA CON L'ESPERIENZA ISBN & GEMINI) ---
+# --- 3. METTI IN VENDITA (ISBN & GEMINI) ---
 @app.get("/metti-in-vendita", response_class=HTMLResponse)
 async def metti_in_vendita_page():
+    navbar = get_navbar('metti-in-vendita')
     return f"""
     <!DOCTYPE html>
     <html lang="it">
@@ -280,13 +282,13 @@ async def metti_in_vendita_page():
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     </head>
     <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col items-center p-4 md:p-8">
-        {navbar_html('metti-in-vendita')}
+        {navbar}
         <div class="w-full max-w-4xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-6 md:p-8">
             <h1 class="text-2xl md:text-3xl font-extrabold text-center mb-2 bg-gradient-to-r from-sky-400 to-indigo-500 bg-clip-text text-transparent">
-                LoopBooks Intelligence
+                LoopBooks Intelligence[cite: 14]
             </h1>
             <p class="text-slate-400 text-center text-sm mb-6">
-                Inserisci il codice ISBN per estrarre la scheda tecnica completa e il grafico storico dei prezzi.
+                Inserisci il codice ISBN per estrarre la scheda tecnica completa e il grafico storico dei prezzi[cite: 14].
             </p>
             <div class="flex gap-3 mb-6">
                 <input type="text" id="isbn" value="9788804668237" placeholder="Es. 9788804668237" 
@@ -297,7 +299,7 @@ async def metti_in_vendita_page():
                 </button>
             </div>
             <div id="loader" class="hidden text-center py-8 text-sky-400 font-medium animate-pulse">
-                Estrazione dati del libro in corso con Gemini...
+                Estrazione dati del libro in corso con Gemini[cite: 14]...
             </div>
             <div id="error-box" class="hidden bg-red-950/50 border border-red-800 text-red-200 p-4 rounded-xl mb-6 text-sm">
                 <strong class="font-bold">Errore di sistema:</strong> <span id="error-text">-</span>
@@ -316,7 +318,7 @@ async def metti_in_vendita_page():
                 </div>
                 <div class="bg-slate-950 p-5 rounded-xl border border-slate-800">
                     <h3 class="text-sm font-semibold text-slate-400 mb-3 flex items-center justify-between">
-                        <span>Grafico delle vendite e prezzo medio nel tempo</span>
+                        <span>Grafico delle vendite e prezzo medio nel tempo[cite: 14]</span>
                         <span class="text-xs text-sky-400 bg-sky-950 px-2 py-1 rounded border border-sky-800">Trend CardMarket Style</span>
                     </h3>
                     <div class="relative h-64 w-full">
@@ -407,6 +409,7 @@ async def metti_in_vendita_page():
 # --- 4. PAGINA PROFILO VENDITORE ---
 @app.get("/venditore/{venditore_id}", response_class=HTMLResponse)
 async def venditore_page(venditore_id: str):
+    navbar = get_navbar('')
     nome_venditore = venditore_id.replace("-", " ").title()
     return f"""
     <!DOCTYPE html>
@@ -418,7 +421,7 @@ async def venditore_page(venditore_id: str):
         <script src="https://cdn.tailwindcss.com"></script>
     </head>
     <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col items-center p-4 md:p-8">
-        {navbar_html('')}
+        {navbar}
         <div class="w-full max-w-4xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-6 md:p-8">
             <a href="/" class="text-xs text-sky-400 hover:underline mb-4 inline-block">← Torna alla Home</a>
             <h1 class="text-3xl font-extrabold text-slate-100 mb-2">{nome_venditore}</h1>
@@ -449,7 +452,6 @@ async def api_search(isbn: str):
     if not clean_isbn:
         return {"success": False, "error": "ISBN non valido."}
     
-    # Controllo nel database locale di riserva
     if clean_isbn in BOOKS_DB:
         res = BOOKS_DB[clean_isbn].copy()
         res["storico_prezzi"] = {
@@ -458,7 +460,6 @@ async def api_search(isbn: str):
         }
         return res
     
-    # Generazione tramite Gemini API basata sui campi richiesti
     try:
         api_key = os.environ.get("GEMINI_API_KEY")
         if not api_key:
