@@ -46,7 +46,7 @@ def get_navbar(active_page="home"):
     </nav>
     """
 
-# --- 1. HOME PAGE CON FILTRI PER GENERE E PREZZO REGOLABILE ---
+# --- 1. HOME PAGE ---
 @app.get("/", response_class=HTMLResponse)
 async def home_page():
     navbar = get_navbar('home')
@@ -307,7 +307,6 @@ async def home_page():
                 document.getElementById('priceValue').innerText = val + " €";
                 const maxPrice = parseFloat(val);
                 
-                // Filtra dinamicamente tutti gli elementi con attributo data-price
                 const items = document.querySelectorAll('[data-price]');
                 items.forEach(item => {
                     const price = parseFloat(item.getAttribute('data-price'));
@@ -320,7 +319,6 @@ async def home_page():
             }
 
             function filterCategory(category) {
-                // Interazione logica per i generi
                 console.log("Filtro categoria selezionato: ", category);
             }
         </script>
@@ -359,7 +357,7 @@ async def biblioteca_page():
 @app.get("/metti-in-vendita", response_class=HTMLResponse)
 async def metti_in_vendita_page():
     navbar = get_navbar('metti-in-vendita')
-    html_content = f"""
+    html_content = """
     <!DOCTYPE html>
     <html lang="it">
     <head>
@@ -370,7 +368,7 @@ async def metti_in_vendita_page():
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     </head>
     <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col items-center p-4 md:p-8">
-        {navbar}
+        NAVBAR_PLACEHOLDER
         <div class="w-full max-w-4xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-6 md:p-8">
             <h1 class="text-2xl md:text-3xl font-extrabold text-center mb-2 bg-gradient-to-r from-sky-400 to-indigo-500 bg-clip-text text-transparent">
                 LoopBooks Intelligence[cite: 14]
@@ -417,25 +415,25 @@ async def metti_in_vendita_page():
         </div>
         <script>
             let myChart = null;
-            async function searchBook() {{
+            async function searchBook() {
                 const isbn = document.getElementById('isbn').value.trim();
                 const btn = document.getElementById('search-btn');
                 const loader = document.getElementById('loader');
                 const resultDiv = document.getElementById('result');
                 const errorBox = document.getElementById('error-box');
                 
-                if (!isbn) {{
+                if (!isbn) {
                     alert("Inserisci un codice ISBN valido.");
                     return;
-                }}
+                }
                 btn.disabled = true;
                 loader.classList.remove('hidden');
                 resultDiv.classList.add('hidden');
                 errorBox.classList.add('hidden');
-                try {{
+                try {
                     const response = await fetch('/api/search?isbn=' + encodeURIComponent(isbn));
                     const data = await response.json();
-                    if (data.success) {{
+                    if (data.success) {
                         document.getElementById('res-nome').innerText = data.nome_libro || "-";
                         document.getElementById('res-prezzo').innerText = data.prezzo_medio || "-";
                         document.getElementById('res-ean').innerText = data.codice_ean || "-";
@@ -447,27 +445,27 @@ async def metti_in_vendita_page():
                         document.getElementById('res-desc').innerText = data.descrizione || "-";
                         resultDiv.classList.remove('hidden');
                         renderChart(data.storico_prezzi);
-                    }} else {{
+                    } else {
                         document.getElementById('error-text').innerText = data.error || "Libro non trovato o codice ISBN non valido.";
                         errorBox.classList.remove('hidden');
-                    }}
-                }} catch (e) {{
+                    }
+                } catch (e) {
                     alert("Errore di connessione al server.");
-                }} finally {{
+                } finally {
                     btn.disabled = false;
                     loader.classList.add('hidden');
-                }}
-            }}
-            function renderChart(storico) {{
+                }
+            }
+            function renderChart(storico) {
                 const ctx = document.getElementById('priceChart').getContext('2d');
                 if (myChart) myChart.destroy();
                 const labels = storico?.labels || ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set'];
                 const prices = storico?.prices || [14.0, 14.5, 15.0, 14.8, 15.5, 16.0, 15.8, 16.2, 16.5];
-                myChart = new Chart(ctx, {{
+                myChart = new Chart(ctx, {
                     type: 'line',
-                    data: {{
+                    data: {
                         labels: labels,
-                        datasets: [{{
+                        datasets: [{
                             label: 'Prezzo Medio (€)',
                             data: prices,
                             borderColor: '#38bdf8',
@@ -476,24 +474,24 @@ async def metti_in_vendita_page():
                             fill: true,
                             tension: 0.3,
                             pointBackgroundColor: '#38bdf8'
-                        }}]
+                        }]
                     },
-                    options: {{
+                    options: {
                         responsive: true,
                         maintainAspectRatio: false,
-                        plugins: {{ legend: {{ display: false }} }},
-                        scales: {{
-                            x: {{ grid: {{ color: '#1e293b' }}, ticks: {{ color: '#94a3b8' }} }},
-                            y: {{ grid: {{ color: '#1e293b' }}, ticks: {{ color: '#94a3b8' }} }}
-                        }}
-                    }}
-                }});
-            }}
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { grid: { color: '#1e293b' }, ticks: { color: '#94a3b8' } },
+                            y: { grid: { color: '#1e293b' }, ticks: { color: '#94a3b8' } }
+                        }
+                    }
+                });
+            }
         </script>
     </body>
     </html>
     """
-    return html_content
+    return html_content.replace("NAVBAR_PLACEHOLDER", navbar)
 
 # --- 4. PAGINA PROFILO VENDITORE ---
 @app.get("/venditore/{venditore_id}", response_class=HTMLResponse)
