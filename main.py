@@ -7,7 +7,7 @@ from google import genai
 
 app = FastAPI()
 
-# Database locale di riserva per ISBN frequenti
+# Database locale di riserva per ISBN frequenti[cite: 14]
 BOOKS_DB = {
     "9788804668237": {
         "success": True,
@@ -23,27 +23,100 @@ BOOKS_DB = {
     }
 }
 
+# --- TEMPLATE COMUNE PER LA NAVBAR ---
+def navbar_html(active_page="home"):
+    return f"""
+    <nav class="w-full max-w-4xl bg-slate-900 border border-slate-800 rounded-2xl mb-6 px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4 shadow-xl">
+        <div class="font-extrabold text-xl bg-gradient-to-r from-sky-400 to-indigo-500 bg-clip-text text-transparent">
+            LoopBooks Marketplace
+        </div>
+        <div class="flex items-center gap-2 md:gap-4 text-sm font-medium">
+            <a href="/" class="px-4 py-2 rounded-xl transition {'bg-sky-500/10 text-sky-400 border border-sky-500/30' if active_page == 'home' else 'text-slate-400 hover:text-slate-100'}">Home</a>
+            <a href="/biblioteca" class="px-4 py-2 rounded-xl transition {'bg-sky-500/10 text-sky-400 border border-sky-500/30' if active_page == 'biblioteca' else 'text-slate-400 hover:text-slate-100'}">La mia biblioteca</a>
+            <a href="/metti-in-vendita" class="px-4 py-2 rounded-xl transition {'bg-sky-500/10 text-sky-400 border border-sky-500/30' if active_page == 'metti-in-vendita' else 'text-slate-400 hover:text-slate-100'}">Metti in vendita</a>
+        </div>
+    </nav>
+    """
+
+# --- 1. HOME PAGE ---
 @app.get("/", response_class=HTMLResponse)
-async def home():
-    return """
+async def home_page():
+    return f"""
     <!DOCTYPE html>
     <html lang="it">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>LoopBooks - Analisi ISBN & Trend Prezzi</title>
+        <title>LoopBooks - Home</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+    </head>
+    <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col items-center p-4 md:p-8">
+        {navbar_html('home')}
+        <div class="w-full max-w-4xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-6 md:p-10 text-center">
+            <h1 class="text-3xl md:text-4xl font-extrabold mb-4 bg-gradient-to-r from-sky-400 to-indigo-500 bg-clip-text text-transparent">
+                Benvenuto su LoopBooks
+            </h1>
+            <p class="text-slate-400 text-base max-w-xl mx-auto mb-8">
+                Il marketplace intelligente per la gestione e la compravendita di libri con analisi di mercato in tempo reale stile CardMarket.
+            </p>
+            <div class="flex justify-center gap-4">
+                <a href="/metti-in-vendita" class="bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold px-6 py-3 rounded-xl transition shadow-lg shadow-sky-500/20">
+                    Metti in vendita un libro →
+                </a>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+
+# --- 2. LA MIA BIBLIOTECA ---
+@app.get("/biblioteca", response_class=HTMLResponse)
+async def biblioteca_page():
+    return f"""
+    <!DOCTYPE html>
+    <html lang="it">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>LoopBooks - La mia biblioteca</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+    </head>
+    <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col items-center p-4 md:p-8">
+        {navbar_html('biblioteca')}
+        <div class="w-full max-w-4xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-6 md:p-8">
+            <h1 class="text-2xl font-extrabold mb-2 text-slate-100">La mia biblioteca</h1>
+            <p class="text-slate-400 text-sm mb-6">I tuoi libri salvati e la panoramica della tua collezione personale.</p>
+            
+            <div class="bg-slate-950 border border-slate-800 rounded-xl p-8 text-center text-slate-500">
+                Non hai ancora aggiunto libri alla tua biblioteca personale. Vai su <a href="/metti-in-vendita" class="text-sky-400 underline">Metti in vendita</a> per iniziare.
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+
+# --- 3. METTI IN VENDITA (PAGINA INTEGRATA CON L'ESPERIENZA ISBN & GEMINI) ---
+@app.get("/metti-in-vendita", response_class=HTMLResponse)
+async def metti_in_vendita_page():
+    return f"""
+    <!DOCTYPE html>
+    <html lang="it">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>LoopBooks - Metti in vendita</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     </head>
     <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col items-center p-4 md:p-8">
-        <div class="w-full max-w-3xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-6 md:p-8">
+        {navbar_html('metti-in-vendita')}
+        <div class="w-full max-w-4xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-6 md:p-8">
             <h1 class="text-2xl md:text-3xl font-extrabold text-center mb-2 bg-gradient-to-r from-sky-400 to-indigo-500 bg-clip-text text-transparent">
-                LoopBooks Intelligence
+                LoopBooks Intelligence[cite: 14]
             </h1>
             <p class="text-slate-400 text-center text-sm mb-6">
-                Inserisci il codice ISBN per estrarre la scheda tecnica completa e il grafico storico dei prezzi.
+                Inserisci il codice ISBN per estrarre la scheda tecnica completa e il grafico storico dei prezzi[cite: 14].
             </p>
-
             <div class="flex gap-3 mb-6">
                 <input type="text" id="isbn" value="9788804668237" placeholder="Es. 9788804668237" 
                     class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-slate-100 focus:outline-none focus:border-sky-500 transition">
@@ -52,15 +125,12 @@ async def home():
                     Cerca
                 </button>
             </div>
-
             <div id="loader" class="hidden text-center py-8 text-sky-400 font-medium animate-pulse">
-                Estrazione dati del libro in corso con Gemini...
+                Estrazione dati del libro in corso con Gemini[cite: 14]...
             </div>
-
             <div id="error-box" class="hidden bg-red-950/50 border border-red-800 text-red-200 p-4 rounded-xl mb-6 text-sm">
                 <strong class="font-bold">Errore di sistema:</strong> <span id="error-text">-</span>
             </div>
-
             <div id="result" class="hidden space-y-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-950 p-5 rounded-xl border border-slate-800 text-sm">
                     <div><span class="text-sky-400 font-semibold">Nome del libro:</span> <span id="res-nome">-</span></div>
@@ -73,10 +143,9 @@ async def home():
                     <div><span class="text-sky-400 font-semibold">Collana:</span> <span id="res-collana">-</span></div>
                     <div class="md:col-span-2"><span class="text-sky-400 font-semibold">Descrizione (riassunto):</span> <p id="res-desc" class="text-slate-300 mt-1 leading-relaxed">-</p></div>
                 </div>
-
                 <div class="bg-slate-950 p-5 rounded-xl border border-slate-800">
                     <h3 class="text-sm font-semibold text-slate-400 mb-3 flex items-center justify-between">
-                        <span>Grafico delle vendite e prezzo medio nel tempo</span>
+                        <span>Grafico delle vendite e prezzo medio nel tempo[cite: 14]</span>
                         <span class="text-xs text-sky-400 bg-sky-950 px-2 py-1 rounded border border-sky-800">Trend CardMarket Style</span>
                     </h3>
                     <div class="relative h-64 w-full">
@@ -85,32 +154,27 @@ async def home():
                 </div>
             </div>
         </div>
-
         <script>
             let myChart = null;
-
-            async function searchBook() {
+            async function searchBook() {{
                 const isbn = document.getElementById('isbn').value.trim();
                 const btn = document.getElementById('search-btn');
                 const loader = document.getElementById('loader');
                 const resultDiv = document.getElementById('result');
                 const errorBox = document.getElementById('error-box');
                 
-                if (!isbn) {
+                if (!isbn) {{
                     alert("Inserisci un codice ISBN valido.");
                     return;
-                }
-
+                }}
                 btn.disabled = true;
                 loader.classList.remove('hidden');
                 resultDiv.classList.add('hidden');
                 errorBox.classList.add('hidden');
-
-                try {
+                try {{
                     const response = await fetch('/api/search?isbn=' + encodeURIComponent(isbn));
                     const data = await response.json();
-
-                    if (data.success) {
+                    if (data.success) {{
                         document.getElementById('res-nome').innerText = data.nome_libro || "-";
                         document.getElementById('res-prezzo').innerText = data.prezzo_medio || "-";
                         document.getElementById('res-ean').innerText = data.codice_ean || "-";
@@ -120,33 +184,29 @@ async def home():
                         document.getElementById('res-edizione').innerText = data.edizione || "-";
                         document.getElementById('res-collana').innerText = data.collana || "-";
                         document.getElementById('res-desc').innerText = data.descrizione || "-";
-
                         resultDiv.classList.remove('hidden');
                         renderChart(data.storico_prezzi);
-                    } else {
+                    }} else {{
                         document.getElementById('error-text').innerText = data.error || "Libro non trovato o codice ISBN non valido.";
                         errorBox.classList.remove('hidden');
-                    }
-                } catch (e) {
+                    }}
+                }} catch (e) {{
                     alert("Errore di connessione al server.");
-                } finally {
+                }} finally {{
                     btn.disabled = false;
                     loader.classList.add('hidden');
-                }
-            }
-
-            function renderChart(storico) {
+                }}
+            }}
+            function renderChart(storico) {{
                 const ctx = document.getElementById('priceChart').getContext('2d');
                 if (myChart) myChart.destroy();
-
                 const labels = storico?.labels || ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set'];
                 const prices = storico?.prices || [14.0, 14.5, 15.0, 14.8, 15.5, 16.0, 15.8, 16.2, 16.5];
-
-                myChart = new Chart(ctx, {
+                myChart = new Chart(ctx, {{
                     type: 'line',
-                    data: {
+                    data: {{
                         labels: labels,
-                        datasets: [{
+                        datasets: [{{
                             label: 'Prezzo Medio (€)',
                             data: prices,
                             borderColor: '#38bdf8',
@@ -155,31 +215,32 @@ async def home():
                             fill: true,
                             tension: 0.3,
                             pointBackgroundColor: '#38bdf8'
-                        }]
+                        }}]
                     },
-                    options: {
+                    options: {{
                         responsive: true,
                         maintainAspectRatio: false,
-                        plugins: { legend: { display: false } },
-                        scales: {
-                            x: { grid: { color: '#1e293b' }, ticks: { color: '#94a3b8' } },
-                            y: { grid: { color: '#1e293b' }, ticks: { color: '#94a3b8' } }
-                        }
-                    }
-                });
-            }
+                        plugins: {{ legend: {{ display: false }} }},
+                        scales: {{
+                            x: {{ grid: {{ color: '#1e293b' }}, ticks: {{ color: '#94a3b8' }} }},
+                            y: {{ grid: {{ color: '#1e293b' }}, ticks: {{ color: '#94a3b8' }} }}
+                        }}
+                    }}
+                }});
+            }}
         </script>
     </body>
     </html>
     """
 
+# --- 4. API DI RICERCA ISBN / GEMINI ---
 @app.get("/api/search")
 async def api_search(isbn: str):
     clean_isbn = re.sub(r'[^\dxX]', '', isbn)
     if not clean_isbn:
         return {"success": False, "error": "ISBN non valido."}
-
-    # Controllo nel database locale di riserva
+    
+    # Controllo nel database locale di riserva[cite: 14]
     if clean_isbn in BOOKS_DB:
         res = BOOKS_DB[clean_isbn].copy()
         res["storico_prezzi"] = {
@@ -187,16 +248,16 @@ async def api_search(isbn: str):
             "prices": [16.0, 16.5, 17.0, 16.8, 17.2, 17.8, 18.0, 18.2, 18.5]
         }
         return res
-
-    # Generazione tramite Gemini API basata sui campi richiesti
+    
+    # Generazione tramite Gemini API basata sui campi richiesti[cite: 14]
     try:
         api_key = os.environ.get("GEMINI_API_KEY")
         if not api_key:
             return {"success": False, "error": "Chiave GEMINI_API_KEY non configurata su Render."}
-
+        
         client = genai.Client(api_key=api_key)
         prompt = f"""
-        Analizza il codice ISBN: {clean_isbn}. Restituisci ESCLUSIVAMENTE un oggetto JSON valido (senza blocchi di codice markdown se possibile, o racchiuso in ```json) con esattamente queste chiavi e informazioni accurate:
+        Analizza il codice ISBN: {clean_isbn}. Restituisci ESCLUSIVAMENTE un oggetto JSON valido con queste chiavi e informazioni accurate:
         {{
             "success": true,
             "nome_libro": "Titolo completo del libro",
@@ -224,8 +285,7 @@ async def api_search(isbn: str):
         text_res = re.sub(r'^```json\s*', '', text_res)
         text_res = re.sub(r'\s*```$', '', text_res)
         
-        data = json.loads(text_res)
-        return data
+        return json.loads(text_res)
     except Exception as e:
         print(f"Errore durante l'interrogazione di Gemini: {e}")
         return {"success": False, "error": "Impossibile recuperare i dati per questo ISBN tramite l'intelligenza artificiale."}
