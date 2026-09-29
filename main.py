@@ -7,7 +7,6 @@ from google import genai
 
 app = FastAPI()
 
-# Inizializzazione del client con la libreria ufficiale google-genai
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "AQ.Ab8RN6KY_3CAtTnmc-F5tPCANTkYuIJWvXPuXFrAyraEXqIuWQ")
 client = genai.Client(api_key=GEMINI_API_KEY)
 
@@ -178,9 +177,9 @@ async def api_search(isbn: str):
         Se non trovi il libro o l'ISBN è errato, restituisci: {{"success": false}}
         """
         
-        # Chiamata pulita tramite l'SDK ufficiale genai
+        # Utilizzo del modello aggiornato e stabile gemini-flash-latest
         response = client.models.generate_content(
-            model='gemini-2.5-flash',
+            model='gemini-flash-latest',
             contents=prompt
         )
         
