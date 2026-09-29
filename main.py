@@ -187,17 +187,25 @@ async def api_search(isbn: str):
         Se non trovi il libro o l'ISBN è errato, restituisci: {{"success": false, "error": "Libro non trovato nel database"}}
         """
         
-        # Aggiornato al modello corretto indicato dall'errore
-        response = client.models.generate_content(
-            model='gemini-3.8-flash',
-            contents=prompt
-        )
+        # Tentativi multipli su diversi modelli in caso di sovraccarico temporaneo
+        models_to_try = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-2.0-flash']
+        last_error = ""
         
-        text_res = response.text.strip()
-        text_res = re.sub(r'^```json\s*', '', text_res)
-        text_res = re.sub(r'\s*```$', '', text_res)
-        
-        return json.loads(text_res)
+        for model_name in models_to_try:
+            try:
+                response = client.models.generate_content(
+                    model=model_name,
+                    contents=prompt
+                )
+                text_res = response.text.strip()
+                text_res = re.sub(r'^```json\s*', '', text_res)
+                text_res = re.sub(r'\s*```$', '', text_res)
+                return json.loads(text_res)
+            except Exception as model_err:
+                last_error = str(model_err)
+                continue
+                
+        return {"success": False, "error": f"Servizio temporaneamente occupato. Riprova tra pochi secondi. (Dettaglio: {last_error})"}
         
     except Exception as e:
         return {"success": False, "error": str(e)}
