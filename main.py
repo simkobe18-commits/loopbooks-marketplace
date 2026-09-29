@@ -7,7 +7,7 @@ from google import genai
 
 app = FastAPI()
 
-# Database locale di riserva per ISBN frequenti[cite: 14]
+# Database locale di riserva per ISBN frequenti
 BOOKS_DB = {
     "9788804668237": {
         "success": True,
@@ -25,24 +25,29 @@ BOOKS_DB = {
 
 # --- TEMPLATE COMUNE PER LA NAVBAR ---
 def navbar_html(active_page="home"):
-    home_class = 'bg-sky-500/10 text-sky-400 border border-sky-500/30' if active_page == 'home' else 'text-slate-400 hover:text-slate-100'
-    biblio_class = 'bg-sky-500/10 text-sky-400 border border-sky-500/30' if active_page == 'biblioteca' else 'text-slate-400 hover:text-slate-100'
-    vendita_class = 'bg-sky-500/10 text-sky-400 border border-sky-500/30' if active_page == 'metti-in-vendita' else 'text-slate-400 hover:text-slate-100'
+    home_class = 'text-sky-400 font-bold' if active_page == 'home' else 'text-slate-300 hover:text-sky-400'
+    biblio_class = 'text-sky-400 font-bold' if active_page == 'biblioteca' else 'text-slate-300 hover:text-sky-400'
+    vendita_class = 'text-sky-400 font-bold' if active_page == 'metti-in-vendita' else 'text-slate-300 hover:text-sky-400'
     
     return f"""
-    <nav class="w-full max-w-4xl bg-slate-900 border border-slate-800 rounded-2xl mb-6 px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4 shadow-xl">
+    <nav class="w-full max-w-6xl bg-slate-900/90 backdrop-blur border border-slate-800 rounded-2xl mb-8 px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4 shadow-xl sticky top-4 z-50">
         <div class="font-extrabold text-xl bg-gradient-to-r from-sky-400 to-indigo-500 bg-clip-text text-transparent">
-            LoopBooks Marketplace
+            LoopBooks
         </div>
-        <div class="flex items-center gap-2 md:gap-4 text-sm font-medium">
-            <a href="/" class="px-4 py-2 rounded-xl transition {home_class}">Home</a>
-            <a href="/biblioteca" class="px-4 py-2 rounded-xl transition {biblio_class}">La mia biblioteca</a>
-            <a href="/metti-in-vendita" class="px-4 py-2 rounded-xl transition {vendita_class}">Metti in vendita</a>
+        <div class="flex items-center gap-6 text-sm font-medium">
+            <a href="/" class="{home_class}">HOME</a>
+            <a href="/biblioteca" class="{biblio_class}">LA MIA BIBLIOTECA</a>
+            <a href="/metti-in-vendita" class="{vendita_class}">METTI IN VENDITA</a>
+        </div>
+        <div>
+            <a href="#login" class="bg-slate-800 hover:bg-slate-700 text-sky-400 border border-slate-700 font-semibold px-4 py-2 rounded-xl text-xs transition">
+                LOG IN
+            </a>
         </div>
     </nav>
     """
 
-# --- 1. HOME PAGE ---
+# --- 1. HOME PAGE RICCA DI SEZIONI ---
 @app.get("/", response_class=HTMLResponse)
 async def home_page():
     return f"""
@@ -51,23 +56,185 @@ async def home_page():
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>LoopBooks - Home</title>
+        <title>LoopBooks - Marketplace</title>
         <script src="https://cdn.tailwindcss.com"></script>
     </head>
     <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col items-center p-4 md:p-8">
         {navbar_html('home')}
-        <div class="w-full max-w-4xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-6 md:p-10 text-center">
-            <h1 class="text-3xl md:text-4xl font-extrabold mb-4 bg-gradient-to-r from-sky-400 to-indigo-500 bg-clip-text text-transparent">
-                Benvenuto su LoopBooks
-            </h1>
-            <p class="text-slate-400 text-base max-w-xl mx-auto mb-8">
-                Il marketplace intelligente per la gestione e la compravendita di libri con analisi di mercato in tempo reale stile CardMarket.
-            </p>
-            <div class="flex justify-center gap-4">
-                <a href="/metti-in-vendita" class="bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold px-6 py-3 rounded-xl transition shadow-lg shadow-sky-500/20">
-                    Metti in vendita un libro →
-                </a>
+        
+        <div class="w-full max-w-6xl space-y-10">
+            <!-- Banner Principale: Crea la tua biblioteca -->
+            <div class="relative bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 border border-slate-800 rounded-3xl p-8 md:p-12 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-8 overflow-hidden">
+                <div class="space-y-4 max-w-xl">
+                    <span class="bg-sky-500/10 text-sky-400 border border-sky-500/30 text-xs font-bold px-3 py-1 rounded-full">LoopBooks Marketplace</span>
+                    <h1 class="text-3xl md:text-5xl font-extrabold tracking-tight">CREA LA TUA BIBLIOTECA</h1>
+                    <p class="text-slate-400 text-sm md:text-base leading-relaxed">
+                        Gestisci la tua collezione, analizza i trend di mercato in tempo reale e metti in vendita i tuoi libri in pochi secondi grazie all'intelligenza artificiale.
+                    </p>
+                    <div class="pt-2">
+                        <a href="/metti-in-vendita" class="inline-block bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold px-6 py-3.5 rounded-xl transition shadow-lg shadow-sky-500/25">
+                            Inserisci i tuoi libri ora →
+                        </a>
+                    </div>
+                </div>
+                <div class="w-full md:w-80 h-48 bg-slate-950 border border-slate-800 rounded-2xl flex items-center justify-center p-6 text-center text-slate-500 text-sm italic shadow-inner">
+                    [ Immagine Vetrina / Libreria Digitale ]
+                </div>
             </div>
+
+            <!-- Filtri di ricerca -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-wrap items-center gap-3">
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider mr-2">Filtri:</span>
+                <button class="bg-slate-950 hover:bg-slate-800 text-sky-400 border border-slate-700 px-3.5 py-1.5 rounded-lg text-xs transition">Tutti i generi</button>
+                <button class="bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 px-3.5 py-1.5 rounded-lg text-xs transition">Narrativa</button>
+                <button class="bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 px-3.5 py-1.5 rounded-lg text-xs transition">Saggistica</button>
+                <button class="bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 px-3.5 py-1.5 rounded-lg text-xs transition">Rari & Collezionismo</button>
+                <button class="bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 px-3.5 py-1.5 rounded-lg text-xs transition">Meno di 15€</button>
+            </div>
+
+            <!-- Sezione: Libri di tendenza -->
+            <section class="space-y-4">
+                <h2 class="text-xl font-bold border-l-4 border-sky-500 pl-3">Libri di tendenza</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl flex flex-col justify-between hover:border-sky-500/50 transition">
+                        <div>
+                            <div class="h-32 bg-slate-950 rounded-lg mb-3 flex items-center justify-center text-xs text-slate-600">Copertina</div>
+                            <h3 class="font-bold text-sm">Le otto montagne</h3>
+                            <p class="text-xs text-slate-400 mt-1">Paolo Cognetti</p>
+                        </div>
+                        <div class="mt-4 flex items-center justify-between">
+                            <span class="text-emerald-400 font-bold text-sm">18.50 €</span>
+                            <a href="/metti-in-vendita" class="text-xs bg-sky-500/10 text-sky-400 px-2.5 py-1 rounded border border-sky-500/20">Dettagli</a>
+                        </div>
+                    </div>
+                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl flex flex-col justify-between hover:border-sky-500/50 transition">
+                        <div>
+                            <div class="h-32 bg-slate-950 rounded-lg mb-3 flex items-center justify-center text-xs text-slate-600">Copertina</div>
+                            <h3 class="font-bold text-sm">Il nome della rosa</h3>
+                            <p class="text-xs text-slate-400 mt-1">Umberto Eco</p>
+                        </div>
+                        <div class="mt-4 flex items-center justify-between">
+                            <span class="text-emerald-400 font-bold text-sm">14.00 €</span>
+                            <a href="/metti-in-vendita" class="text-xs bg-sky-500/10 text-sky-400 px-2.5 py-1 rounded border border-sky-500/20">Dettagli</a>
+                        </div>
+                    </div>
+                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl flex flex-col justify-between hover:border-sky-500/50 transition">
+                        <div>
+                            <div class="h-32 bg-slate-950 rounded-lg mb-3 flex items-center justify-center text-xs text-slate-600">Copertina</div>
+                            <h3 class="font-bold text-sm">Omero, Iliade</h3>
+                            <p class="text-xs text-slate-400 mt-1">Alessandro Baricco</p>
+                        </div>
+                        <div class="mt-4 flex items-center justify-between">
+                            <span class="text-emerald-400 font-bold text-sm">16.50 €</span>
+                            <a href="/metti-in-vendita" class="text-xs bg-sky-500/10 text-sky-400 px-2.5 py-1 rounded border border-sky-500/20">Dettagli</a>
+                        </div>
+                    </div>
+                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl flex flex-col justify-between hover:border-sky-500/50 transition">
+                        <div>
+                            <div class="h-32 bg-slate-950 rounded-lg mb-3 flex items-center justify-center text-xs text-slate-600">Copertina</div>
+                            <h3 class="font-bold text-sm">L'amica geniale</h3>
+                            <p class="text-xs text-slate-400 mt-1">Elena Ferrante</p>
+                        </div>
+                        <div class="mt-4 flex items-center justify-between">
+                            <span class="text-emerald-400 font-bold text-sm">15.00 €</span>
+                            <a href="/metti-in-vendita" class="text-xs bg-sky-500/10 text-sky-400 px-2.5 py-1 rounded border border-sky-500/20">Dettagli</a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sezione: Migliori venditori (con collegamento alla pagina del venditore) -->
+            <section class="space-y-4">
+                <h2 class="text-xl font-bold border-l-4 border-indigo-505 pl-3">Migliori venditori</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl flex items-center justify-between">
+                        <div>
+                            <h4 class="font-bold text-slate-200">Libreria Antiquaria Duomo</h4>
+                            <p class="text-xs text-slate-400 mt-0.5">1.240 vendite • 4.9 ★</p>
+                        </div>
+                        <a href="/venditore/antiquaria-duomo" class="bg-slate-800 hover:bg-slate-700 text-sky-400 text-xs font-semibold px-3 py-2 rounded-lg transition">Visita profilo →</a>
+                    </div>
+                    <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl flex items-center justify-between">
+                        <div>
+                            <h4 class="font-bold text-slate-200">Brera Bookshop Milano</h4>
+                            <p class="text-xs text-slate-400 mt-0.5">980 vendite • 4.8 ★</p>
+                        </div>
+                        <a href="/venditore/brera-bookshop" class="bg-slate-800 hover:bg-slate-700 text-sky-400 text-xs font-semibold px-3 py-2 rounded-lg transition">Visita profilo →</a>
+                    </div>
+                    <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl flex items-center justify-between">
+                        <div>
+                            <h4 class="font-bold text-slate-200">Porteno Books & Rare</h4>
+                            <p class="text-xs text-slate-400 mt-0.5">650 vendite • 5.0 ★</p>
+                        </div>
+                        <a href="/venditore/porteno-books" class="bg-slate-800 hover:bg-slate-700 text-sky-400 text-xs font-semibold px-3 py-2 rounded-lg transition">Visita profilo →</a>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sezione: Libri per te -->
+            <section class="space-y-4">
+                <h2 class="text-xl font-bold border-l-4 border-sky-400 pl-3">Libri per te</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
+                        <h3 class="font-bold text-sm">Così parlò Bellavista</h3>
+                        <p class="text-xs text-slate-400 mt-1">Luciano De Crescenzo</p>
+                        <span class="text-emerald-400 font-bold text-xs mt-3 block">12.00 €</span>
+                    </div>
+                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
+                        <h3 class="font-bold text-sm">Fontamara</h3>
+                        <p class="text-xs text-slate-400 mt-1">Ignazio Silone</p>
+                        <span class="text-emerald-400 font-bold text-xs mt-3 block">11.50 €</span>
+                    </div>
+                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
+                        <h3 class="font-bold text-sm">Se questo è un uomo</h3>
+                        <p class="text-xs text-slate-400 mt-1">Primo Levi</p>
+                        <span class="text-emerald-400 font-bold text-xs mt-3 block">13.00 €</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sezione: Libri rari -->
+            <section class="space-y-4">
+                <h2 class="text-xl font-bold border-l-4 border-amber-500 pl-3">Libri rari</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl flex justify-between items-center">
+                        <div>
+                            <span class="text-[10px] bg-amber-950 text-amber-400 border border-amber-800 px-2 py-0.5 rounded font-mono">Edizione Limitata 1952</span>
+                            <h3 class="font-bold text-sm mt-2">I Promessi Sposi (Prima Ed. Illustrata)</h3>
+                        </div>
+                        <span class="text-emerald-400 font-bold">145.00 €</span>
+                    </div>
+                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl flex justify-between items-center">
+                        <div>
+                            <span class="text-[10px] bg-amber-950 text-amber-400 border border-amber-800 px-2 py-0.5 rounded font-mono">Collezione Rara</span>
+                            <h3 class="font-bold text-sm mt-2">Divina Commedia (Commento del '300)</h3>
+                        </div>
+                        <span class="text-emerald-400 font-bold">290.00 €</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sezione: Oggettistica per consegne -->
+            <section class="space-y-4 pb-12">
+                <h2 class="text-xl font-bold border-l-4 border-emerald-500 pl-3">Oggettistica per consegne</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
+                        <h3 class="font-bold text-sm">Scatole protettive rigide per libri (Pack da 5)</h3>
+                        <p class="text-xs text-slate-400 mt-1">Cartone rinforzato anti-urto</p>
+                        <span class="text-sky-400 font-bold text-xs mt-3 block">8.50 €</span>
+                    </div>
+                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
+                        <h3 class="font-bold text-sm">Buste imbottite in carta ecologica</h3>
+                        <p class="text-xs text-slate-400 mt-1">Formato Standard (Pack da 10)</p>
+                        <span class="text-sky-400 font-bold text-xs mt-3 block">6.00 €</span>
+                    </div>
+                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
+                        <h3 class="font-bold text-sm">Nastro adesivo personalizzato LoopBooks</h3>
+                        <p class="text-xs text-slate-400 mt-1">Alta tenuta di sicurezza</p>
+                        <span class="text-sky-400 font-bold text-xs mt-3 block">4.50 €</span>
+                    </div>
+                </div>
+            </section>
         </div>
     </body>
     </html>
@@ -116,10 +283,10 @@ async def metti_in_vendita_page():
         {navbar_html('metti-in-vendita')}
         <div class="w-full max-w-4xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-6 md:p-8">
             <h1 class="text-2xl md:text-3xl font-extrabold text-center mb-2 bg-gradient-to-r from-sky-400 to-indigo-500 bg-clip-text text-transparent">
-                LoopBooks Intelligence[cite: 14]
+                LoopBooks Intelligence
             </h1>
             <p class="text-slate-400 text-center text-sm mb-6">
-                Inserisci il codice ISBN per estrarre la scheda tecnica completa e il grafico storico dei prezzi[cite: 14].
+                Inserisci il codice ISBN per estrarre la scheda tecnica completa e il grafico storico dei prezzi.
             </p>
             <div class="flex gap-3 mb-6">
                 <input type="text" id="isbn" value="9788804668237" placeholder="Es. 9788804668237" 
@@ -130,7 +297,7 @@ async def metti_in_vendita_page():
                 </button>
             </div>
             <div id="loader" class="hidden text-center py-8 text-sky-400 font-medium animate-pulse">
-                Estrazione dati del libro in corso con Gemini[cite: 14]...
+                Estrazione dati del libro in corso con Gemini...
             </div>
             <div id="error-box" class="hidden bg-red-950/50 border border-red-800 text-red-200 p-4 rounded-xl mb-6 text-sm">
                 <strong class="font-bold">Errore di sistema:</strong> <span id="error-text">-</span>
@@ -149,7 +316,7 @@ async def metti_in_vendita_page():
                 </div>
                 <div class="bg-slate-950 p-5 rounded-xl border border-slate-800">
                     <h3 class="text-sm font-semibold text-slate-400 mb-3 flex items-center justify-between">
-                        <span>Grafico delle vendite e prezzo medio nel tempo[cite: 14]</span>
+                        <span>Grafico delle vendite e prezzo medio nel tempo</span>
                         <span class="text-xs text-sky-400 bg-sky-950 px-2 py-1 rounded border border-sky-800">Trend CardMarket Style</span>
                     </h3>
                     <div class="relative h-64 w-full">
@@ -220,7 +387,7 @@ async def metti_in_vendita_page():
                             tension: 0.3,
                             pointBackgroundColor: '#38bdf8'
                         }}]
-                    }},
+                    },
                     options: {{
                         responsive: true,
                         maintainAspectRatio: false,
@@ -237,14 +404,52 @@ async def metti_in_vendita_page():
     </html>
     """
 
-# --- 4. API DI RICERCA ISBN / GEMINI ---
+# --- 4. PAGINA PROFILO VENDITORE ---
+@app.get("/venditore/{venditore_id}", response_class=HTMLResponse)
+async def venditore_page(venditore_id: str):
+    nome_venditore = venditore_id.replace("-", " ").title()
+    return f"""
+    <!DOCTYPE html>
+    <html lang="it">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>LoopBooks - Profilo Venditore</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+    </head>
+    <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col items-center p-4 md:p-8">
+        {navbar_html('')}
+        <div class="w-full max-w-4xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-6 md:p-8">
+            <a href="/" class="text-xs text-sky-400 hover:underline mb-4 inline-block">← Torna alla Home</a>
+            <h1 class="text-3xl font-extrabold text-slate-100 mb-2">{nome_venditore}</h1>
+            <p class="text-slate-400 text-sm mb-6">Venditore verificato • Valutazione 4.9/5 (1.200+ recensioni positive)</p>
+            
+            <h3 class="text-lg font-bold mb-4 text-sky-400">Catalogo Libri in Vendita</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl">
+                    <h4 class="font-bold text-sm">Le otto montagne</h4>
+                    <p class="text-xs text-slate-400">Condizioni: Ottime</p>
+                    <span class="text-emerald-400 font-bold text-sm mt-2 block">18.50 €</span>
+                </div>
+                <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl">
+                    <h4 class="font-bold text-sm">Il nome della rosa</h4>
+                    <p class="text-xs text-slate-400">Condizioni: Come nuovo</p>
+                    <span class="text-emerald-400 font-bold text-sm mt-2 block">14.00 €</span>
+                </div>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+
+# --- 5. API DI RICERCA ISBN / GEMINI ---
 @app.get("/api/search")
 async def api_search(isbn: str):
     clean_isbn = re.sub(r'[^\dxX]', '', isbn)
     if not clean_isbn:
         return {"success": False, "error": "ISBN non valido."}
     
-    # Controllo nel database locale di riserva[cite: 14]
+    # Controllo nel database locale di riserva
     if clean_isbn in BOOKS_DB:
         res = BOOKS_DB[clean_isbn].copy()
         res["storico_prezzi"] = {
@@ -253,7 +458,7 @@ async def api_search(isbn: str):
         }
         return res
     
-    # Generazione tramite Gemini API basata sui campi richiesti[cite: 14]
+    # Generazione tramite Gemini API basata sui campi richiesti
     try:
         api_key = os.environ.get("GEMINI_API_KEY")
         if not api_key:
