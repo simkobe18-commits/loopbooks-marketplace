@@ -25,15 +25,19 @@ BOOKS_DB = {
 
 # --- TEMPLATE COMUNE PER LA NAVBAR ---
 def navbar_html(active_page="home"):
+    home_class = 'bg-sky-500/10 text-sky-400 border border-sky-500/30' if active_page == 'home' else 'text-slate-400 hover:text-slate-100'
+    biblio_class = 'bg-sky-500/10 text-sky-400 border border-sky-500/30' if active_page == 'biblioteca' else 'text-slate-400 hover:text-slate-100'
+    vendita_class = 'bg-sky-500/10 text-sky-400 border border-sky-500/30' if active_page == 'metti-in-vendita' else 'text-slate-400 hover:text-slate-100'
+    
     return f"""
     <nav class="w-full max-w-4xl bg-slate-900 border border-slate-800 rounded-2xl mb-6 px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4 shadow-xl">
         <div class="font-extrabold text-xl bg-gradient-to-r from-sky-400 to-indigo-500 bg-clip-text text-transparent">
             LoopBooks Marketplace
         </div>
         <div class="flex items-center gap-2 md:gap-4 text-sm font-medium">
-            <a href="/" class="px-4 py-2 rounded-xl transition {'bg-sky-500/10 text-sky-400 border border-sky-500/30' if active_page == 'home' else 'text-slate-400 hover:text-slate-100'}">Home</a>
-            <a href="/biblioteca" class="px-4 py-2 rounded-xl transition {'bg-sky-500/10 text-sky-400 border border-sky-500/30' if active_page == 'biblioteca' else 'text-slate-400 hover:text-slate-100'}">La mia biblioteca</a>
-            <a href="/metti-in-vendita" class="px-4 py-2 rounded-xl transition {'bg-sky-500/10 text-sky-400 border border-sky-500/30' if active_page == 'metti-in-vendita' else 'text-slate-400 hover:text-slate-100'}">Metti in vendita</a>
+            <a href="/" class="px-4 py-2 rounded-xl transition {home_class}">Home</a>
+            <a href="/biblioteca" class="px-4 py-2 rounded-xl transition {biblio_class}">La mia biblioteca</a>
+            <a href="/metti-in-vendita" class="px-4 py-2 rounded-xl transition {vendita_class}">Metti in vendita</a>
         </div>
     </nav>
     """
@@ -216,7 +220,7 @@ async def metti_in_vendita_page():
                             tension: 0.3,
                             pointBackgroundColor: '#38bdf8'
                         }}]
-                    },
+                    }},
                     options: {{
                         responsive: true,
                         maintainAspectRatio: false,
