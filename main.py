@@ -7,9 +7,6 @@ from google import genai
 
 app = FastAPI()
 
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "AQ.Ab8RN6KY_3CAtTnmc-F5tPCANTkYuIJWvXPuXFrAyraEXqIuWQ")
-client = genai.Client(api_key=GEMINI_API_KEY)
-
 @app.get("/", response_class=HTMLResponse)
 async def home():
     return """
@@ -42,6 +39,10 @@ async def home():
 
             <div id="loader" class="hidden text-center py-8 text-sky-400 font-medium animate-pulse">
                 Analisi del libro e generazione trend di mercato in corso...
+            </div>
+
+            <div id="error-box" class="hidden bg-red-950/50 border border-red-800 text-red-200 p-4 rounded-xl mb-6 text-sm">
+                <strong class="font-bold">Errore di sistema:</strong> <span id="error-text">-</span>
             </div>
 
             <div id="result" class="hidden space-y-6">
@@ -77,6 +78,7 @@ async def home():
                 const btn = document.getElementById('search-btn');
                 const loader = document.getElementById('loader');
                 const resultDiv = document.getElementById('result');
+                const errorBox = document.getElementById('error-box');
                 
                 if (!isbn) {
                     alert("Inserisci un codice ISBN valido.");
@@ -86,6 +88,7 @@ async def home():
                 btn.disabled = true;
                 loader.classList.remove('hidden');
                 resultDiv.classList.add('hidden');
+                errorBox.classList.add('hidden');
 
                 try {
                     const response = await fetch('/api/search?isbn=' + encodeURIComponent(isbn));
@@ -105,7 +108,8 @@ async def home():
                         resultDiv.classList.remove('hidden');
                         renderChart(data.storico_prezzi);
                     } else {
-                        alert("Libro non trovato o codice ISBN non valido.");
+                        document.getElementById('error-text').innerText = data.error || "Libro non trovato o codice ISBN non valido.";
+                        errorBox.classList.remove('hidden');
                     }
                 } catch (e) {
                     alert("Errore di connessione al server.");
@@ -156,6 +160,12 @@ async def home():
 @app.get("/api/search")
 async def api_search(isbn: str):
     try:
+        api_key = os.environ.get("GEMINI_API_KEY")
+        if not api_key:
+            return {"success": False, "error": "Variabile d'ambiente GEMINI_API_KEY non impostata su Render!"}
+            
+        client = genai.Client(api_key=api_key)
+        
         prompt = f"""
         Analizza il codice ISBN: {isbn} e restituisci un oggetto JSON puro (senza blocchi markdown o backticks) con esattamente queste chiavi:
         {{
@@ -174,12 +184,11 @@ async def api_search(isbn: str):
                 "prices": [14.0, 14.5, 15.0, 14.8, 15.5, 16.0, 15.8, 16.2, 16.5]
             }}
         }}
-        Se non trovi il libro o l'ISBN è errato, restituisci: {{"success": false}}
+        Se non trovi il libro o l'ISBN è errato, restituisci: {{"success": false, "error": "Libro non trovato nel database"}}
         """
         
-        # Utilizzo del modello aggiornato e stabile gemini-flash-latest
         response = client.models.generate_content(
-            model='gemini-flash-latest',
+            model='gemini-2.5-flash',
             contents=prompt
         )
         
@@ -190,5 +199,4 @@ async def api_search(isbn: str):
         return json.loads(text_res)
         
     except Exception as e:
-        print(f"Errore SDK Gemini: {e}")
-        return {"success": False}
+        return {"success": False, "error": str(e)}
