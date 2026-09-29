@@ -12,7 +12,7 @@ BOOKS_DB = {
     "9788804668237": {
         "success": True,
         "nome_libro": "Le otto montagne",
-        "prezzo_medio": "18.50 €",
+        "prezzo_medio": "18.50 Sesterzi",
         "descrizione": "Un romanzo profondo e intenso che racconta la storia di un'amicizia fraterna tra due ragazzi cresciuti in montagna.",
         "anno_pubblicazione": "2016",
         "anno_edizione": "2016",
@@ -32,16 +32,16 @@ def get_navbar(active_page="home"):
     return f"""
     <nav class="w-full fixed top-0 z-50 bg-[#12100e]/95 border-b border-[#d4af37]/30 px-6 md:px-12 py-4 flex justify-between items-center backdrop-blur-md shadow-2xl">
         <div class="flex items-center gap-8">
-            <span id="nav-logo" class="text-2xl md:text-3xl font-serif tracking-widest text-[#d4af37] uppercase font-bold drop-shadow">BIBLIOTHECA</span>
+            <span class="text-2xl md:text-3xl font-serif tracking-widest text-[#d4af37] uppercase font-bold drop-shadow">BIBLIOTECA IMPERIALE</span>
             <div class="hidden md:flex items-center gap-8 text-sm font-serif tracking-wider">
-                <a href="/" class="{home_class} transition pb-1">Tablinum (Home)</a>
-                <a href="/biblioteca" class="{biblio_class} transition pb-1">Volumina (Biblioteca)</a>
-                <a href="/metti-in-vendita" class="{vendita_class} transition pb-1">Taberna (Vendi)</a>
+                <a href="/" class="{home_class} transition pb-1">Portico Principale</a>
+                <a href="/biblioteca" class="{biblio_class} transition pb-1">La Mia Biblioteca</a>
+                <a href="/metti-in-vendita" class="{vendita_class} transition pb-1">Bottega dei Libri</a>
             </div>
         </div>
         <div class="flex items-center gap-4">
-            <a href="#login" id="nav-btn" class="bg-[#7a1c1c] hover:bg-[#992424] text-[#d4af37] border border-[#d4af37]/50 font-serif font-bold px-5 py-2 rounded text-xs transition uppercase tracking-widest shadow-lg">
-                Entrare
+            <a href="#login" class="bg-[#7a1c1c] hover:bg-[#992424] text-[#d4af37] border border-[#d4af37]/50 font-serif font-bold px-5 py-2 rounded text-xs transition uppercase tracking-widest shadow-lg">
+                Accesso Patrizi
             </a>
         </div>
     </nav>
@@ -57,7 +57,7 @@ async def home_page():
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Bibliotheca Imperiale - LoopBooks</title>
+        <title>Biblioteca Imperiale di Roma</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <style>
             .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -65,20 +65,20 @@ async def home_page():
             body { background-color: #12100e; color: #e2d9c5; font-family: 'Georgia', serif; }
         </style>
     </head>
-    <body id="site-body" class="min-h-screen selection:bg-[#7a1c1c] selection:text-[#d4af37] pb-20 transition-colors duration-700">
+    <body class="min-h-screen selection:bg-[#7a1c1c] selection:text-[#d4af37] pb-20">
         NAVBAR_PLACEHOLDER
         
-        <!-- HERO IMPERIALE -->
+        <!-- HERO / BANNER IMPERIALE -->
         <div class="relative h-[75vh] w-full flex items-center px-6 md:px-16 overflow-hidden border-b border-[#d4af37]/20">
             <div class="absolute inset-0 bg-cover bg-center opacity-25 scale-105 transition duration-1000" style="background-image: url('https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=1600&auto=format&fit=crop');"></div>
             <div class="absolute inset-0 bg-gradient-to-t from-[#12100e] via-[#12100e]/50 to-black/80"></div>
             <div class="absolute inset-0 bg-gradient-to-r from-[#12100e] via-transparent to-transparent"></div>
 
             <div class="relative z-10 max-w-2xl space-y-4 pt-20">
-                <span id="hero-badge" class="bg-[#7a1c1c] text-[#d4af37] border border-[#d4af37]/40 text-[10px] font-serif font-black uppercase px-3 py-1 rounded tracking-widest transition-colors duration-500">Archivio dei Saggi</span>
-                <h1 class="text-4xl md:text-6xl font-serif font-black tracking-wide text-[#f3ead8] drop-shadow-lg">COLLECTIO VOLUMINUM</h1>
+                <span class="bg-[#7a1c1c] text-[#d4af37] border border-[#d4af37]/40 text-[10px] font-serif font-black uppercase px-3 py-1 rounded tracking-widest">Collezione Augustea</span>
+                <h1 class="text-4xl md:text-6xl font-serif font-black tracking-wide text-[#f3ead8] drop-shadow-lg">IL TEMPO DEI LIBRI SACRI</h1>
                 <p class="text-slate-300 text-sm md:text-base leading-relaxed font-serif italic">
-                    "Il sapere di Roma antica e moderna racchiuso in pergamene digitali. Esplora i generi imperiali e gestisci la tua collezione."
+                    "Custodisci il sapere del mondo antico e moderno. Esplora i generi letterari, consulta i rotoli preziosi e metti a disposizione i tuoi volumi nell'Urbe."
                 </p>
                 <div class="flex items-center gap-4 pt-4">
                     <a href="/metti-in-vendita" class="bg-[#d4af37] hover:bg-[#e6c250] text-[#12100e] font-serif font-bold px-8 py-3 rounded-md flex items-center gap-2 transition shadow-xl text-sm md:text-base uppercase tracking-wider">
@@ -88,59 +88,57 @@ async def home_page():
             </div>
         </div>
 
-        <!-- SELETTORE GENERI E SOTTOGENERI (STILE CLASSICO) -->
+        <!-- SELETTORE DEI GENERI E SOTTOGENERI -->
         <div class="relative z-20 max-w-7xl mx-auto px-6 md:px-16 -mt-16 mb-12">
             <div class="bg-[#1a1714] border-2 border-[#d4af37]/40 rounded-xl p-6 shadow-2xl space-y-6">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-[#d4af37]/20 pb-4">
-                    <div>
-                        <h3 id="selected-title" class="text-xl font-serif font-bold text-[#d4af37]">Ordini e Generi Letterari</h3>
-                        <p id="selected-subtitle" class="text-xs text-slate-400 font-serif italic mt-1">Seleziona una provincia culturale per filtrare i testi.</p>
-                    </div>
+                <div class="border-b border-[#d4af37]/20 pb-4">
+                    <h3 id="selected-title" class="text-xl font-serif font-bold text-[#d4af37]">Catalogo delle Arti e delle Lettere</h3>
+                    <p id="selected-subtitle" class="text-xs text-slate-400 font-serif italic mt-1">Scegli un genere letterario per esplorare le sezioni.</p>
                 </div>
 
                 <!-- Macro-generi -->
                 <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-                    <button onclick="selectGenre('narrativa', 'Narrativa e Letteratura', 'imperial-red')" class="genre-btn bg-[#12100e] border border-[#d4af37]/30 hover:border-[#d4af37] p-3 rounded-lg text-left transition group">
+                    <button onclick="selectGenre('narrativa', 'Narrativa e Letteratura')" class="bg-[#12100e] border border-[#d4af37]/30 hover:border-[#d4af37] p-3 rounded-lg text-left transition group">
                         <span class="text-lg block mb-1">📜</span>
                         <span class="font-serif font-bold text-xs text-[#f3ead8] group-hover:text-[#d4af37] block">Narrativa & Lettere</span>
                     </button>
-                    <button onclick="selectGenre('saggistica', 'Saggistica e Cultura', 'imperial-gold')" class="genre-btn bg-[#12100e] border border-[#d4af37]/30 hover:border-[#d4af37] p-3 rounded-lg text-left transition group">
-                        <span class="text-lg block mb-1">🏛️️</span>
+                    <button onclick="selectGenre('saggistica', 'Saggistica e Cultura')" class="bg-[#12100e] border border-[#d4af37]/30 hover:border-[#d4af37] p-3 rounded-lg text-left transition group">
+                        <span class="text-lg block mb-1">🏛</span>
                         <span class="font-serif font-bold text-xs text-[#f3ead8] group-hover:text-[#d4af37] block">Saggistica & Cultura</span>
                     </button>
-                    <button onclick="selectGenre('crescita', 'Crescita Personale e Lifestyle', 'imperial-green')" class="genre-btn bg-[#12100e] border border-[#d4af37]/30 hover:border-[#d4af37] p-3 rounded-lg text-left transition group">
+                    <button onclick="selectGenre('crescita', 'Crescita Personale e Lifestyle')" class="bg-[#12100e] border border-[#d4af37]/30 hover:border-[#d4af37] p-3 rounded-lg text-left transition group">
                         <span class="text-lg block mb-1">🌿</span>
                         <span class="font-serif font-bold text-xs text-[#f3ead8] group-hover:text-[#d4af37] block">Crescita & Spirito</span>
                     </button>
-                    <button onclick="selectGenre('passioni', 'Passioni, Hobby e Creatività', 'imperial-purple')" class="genre-btn bg-[#12100e] border border-[#d4af37]/30 hover:border-[#d4af37] p-3 rounded-lg text-left transition group">
+                    <button onclick="selectGenre('passioni', 'Passioni, Hobby e Creatività')" class="bg-[#12100e] border border-[#d4af37]/30 hover:border-[#d4af37] p-3 rounded-lg text-left transition group">
                         <span class="text-lg block mb-1">🏺</span>
                         <span class="font-serif font-bold text-xs text-[#f3ead8] group-hover:text-[#d4af37] block">Arti & Passioni</span>
                     </button>
-                    <button onclick="selectGenre('bambini', 'Bambini e Ragazzi (Young Adult)', 'imperial-blue')" class="genre-btn bg-[#12100e] border border-[#d4af37]/30 hover:border-[#d4af37] p-3 rounded-lg text-left transition group">
+                    <button onclick="selectGenre('bambini', 'Bambini e Ragazzi (Young Adult)')" class="bg-[#12100e] border border-[#d4af37]/30 hover:border-[#d4af37] p-3 rounded-lg text-left transition group">
                         <span class="text-lg block mb-1">🛡️</span>
                         <span class="font-serif font-bold text-xs text-[#f3ead8] group-hover:text-[#d4af37] block">Giovani & Eroi</span>
                     </button>
                 </div>
 
-                <!-- Sottogeneri (Dinamici) -->
+                <!-- Sottogeneri -->
                 <div id="subgenres-container" class="hidden pt-4 border-t border-[#d4af37]/20">
-                    <span class="text-xs font-serif font-bold text-[#d4af37] uppercase tracking-widest block mb-3">Sottogeneri della Provincia:</span>
+                    <span class="text-xs font-serif font-bold text-[#d4af37] uppercase tracking-widest block mb-3">Sottogeneri della sezione:</span>
                     <div id="subgenres-list" class="flex flex-wrap gap-2"></div>
                 </div>
             </div>
         </div>
 
-        <!-- SEZIONI SCORREVOLI -->
+        <!-- SEZIONI IN EVIDENZA -->
         <div class="space-y-10 pl-6 md:pl-16 z-20 relative font-serif">
             
             <div class="space-y-3">
-                <h2 class="text-xl md:text-2xl font-bold tracking-wide text-[#d4af37] border-l-4 border-[#7a1c1c] pl-3">Volumina in Primo Piano</h2>
+                <h2 class="text-xl md:text-2xl font-bold tracking-wide text-[#d4af37] border-l-4 border-[#7a1c1c] pl-3">Volumi più letti nell'Impero</h2>
                 <div class="flex gap-4 overflow-x-auto no-scrollbar pr-12 pb-4">
                     <div class="min-w-[180px] md:min-w-[220px] bg-[#1a1714] rounded-lg overflow-hidden border border-[#d4af37]/30 hover:border-[#d4af37] transition duration-300 cursor-pointer shadow-2xl group">
                         <div class="h-64 bg-black relative">
                             <img src="https://covers.openlibrary.org/b/isbn/9788804668237-L.jpg" class="w-full h-full object-cover opacity-90">
                             <div class="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition flex items-center justify-center p-4 text-center">
-                                <span class="accent-text text-xs font-bold text-[#d4af37]">18.50 Sesterzi • Esamina</span>
+                                <span class="text-xs font-bold text-[#d4af37]">18.50 Sesterzi • Esamina</span>
                             </div>
                         </div>
                         <div class="p-3">
@@ -157,7 +155,7 @@ async def home_page():
                     <a href="/venditore/antiquaria-duomo" class="min-w-[260px] bg-gradient-to-br from-[#1a1714] to-[#12100e] p-5 rounded-lg border border-[#d4af37]/30 hover:border-[#d4af37] transition shadow-xl block">
                         <h4 class="font-bold text-base text-[#f3ead8]">Officina Libraria Senatoria</h4>
                         <p class="text-xs text-slate-400 mt-1 italic">1.240 scambi • 4.9 ★</p>
-                        <span class="accent-text text-xs text-[#d4af37] font-bold mt-4 inline-block">Visita bottega →</span>
+                        <span class="text-xs text-[#d4af37] font-bold mt-4 inline-block">Visita bottega →</span>
                     </a>
                 </div>
             </div>
@@ -173,9 +171,9 @@ async def home_page():
                 'bambini': ['Prima infanzia (0-3 anni)', 'Narrativa per bambini (4-8 anni)', 'Narrativa per ragazzi (9-13 anni)', 'Young Adult e Fantasy per giovani (14+)']
             };
 
-            function selectGenre(key, label, styleTheme) {
-                document.getElementById('selected-title').innerText = "Provincia: " + label;
-                document.getElementById('selected-subtitle').innerText = "Scegli il volume desiderato negli annali.";
+            function selectGenre(key, label) {
+                document.getElementById('selected-title').innerText = "Sezione: " + label;
+                document.getElementById('selected-subtitle').innerText = "Seleziona un sottogenere per consultare i rotoli.";
                 
                 const container = document.getElementById('subgenres-container');
                 const list = document.getElementById('subgenres-list');
@@ -186,7 +184,7 @@ async def home_page():
                     const btn = document.createElement('button');
                     btn.className = "bg-[#12100e] hover:bg-[#26211c] text-[#d4af37] border border-[#d4af37]/30 px-3 py-1.5 rounded text-xs font-serif transition cursor-pointer";
                     btn.innerText = sub;
-                    btn.onclick = () => alert("Consultando il tomo: " + sub);
+                    btn.onclick = () => alert("Hai scelto la categoria: " + sub);
                     list.appendChild(btn);
                 });
             }
@@ -206,25 +204,25 @@ async def biblioteca_page():
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Bibliotheca Privata - LoopBooks</title>
+        <title>La Mia Biblioteca Privata</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <style>body {{ background-color: #12100e; color: #e2d9c5; font-family: 'Georgia', serif; }}</style>
     </head>
     <body class="min-h-screen pt-28 px-6 md:px-16">
         {navbar}
         <div class="max-w-4xl mx-auto bg-[#1a1714] border-2 border-[#d4af37]/30 rounded-xl p-8 shadow-2xl">
-            <h1 class="text-3xl font-serif font-black mb-2 text-[#d4af37]">La Tua Bibliotheca Privata</h1>
-            <p class="text-slate-400 text-sm mb-8 italic">I tuoi manoscritti e rotoli custoditi nell'archivio personale.</p>
+            <h1 class="text-3xl font-serif font-black mb-2 text-[#d4af37]">La Tua Collezione Privata</h1>
+            <p class="text-slate-400 text-sm mb-8 italic">I tuoi manoscritti e rotoli custoditi nel caveau della domus.</p>
             
             <div class="bg-[#12100e] border border-[#d4af37]/20 rounded-lg p-12 text-center text-slate-500 italic">
-                Nessun volume registrato nel tuo tablinum. Recati alla <a href="/metti-in-vendita" class="text-[#d4af37] underline font-bold">Taberna</a> per catalogarne uno.
+                Nessun volume registrato nella tua biblioteca. Recati alla <a href="/metti-in-vendita" class="text-[#d4af37] underline font-bold">Bottega dei Libri</a> per aggiungerne uno.
             </div>
         </div>
     </body>
     </html>
     """
 
-# --- 3. METTI IN VENDITA (TABERNA / ISBN & GEMINI) ---
+# --- 3. METTI IN VENDITA (ISBN & GEMINI) ---
 @app.get("/metti-in-vendita", response_class=HTMLResponse)
 async def metti_in_vendita_page():
     navbar = get_navbar('metti-in-vendita')
@@ -234,7 +232,7 @@ async def metti_in_vendita_page():
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Taberna Mercatoria - LoopBooks</title>
+        <title>Bottega dei Libri e Stime</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <style>body { background-color: #12100e; color: #e2d9c5; font-family: 'Georgia', serif; }</style>
     </head>
@@ -242,10 +240,10 @@ async def metti_in_vendita_page():
         NAVBAR_PLACEHOLDER
         <div class="max-w-4xl mx-auto bg-[#1a1714] border-2 border-[#d4af37]/30 rounded-xl p-8 shadow-2xl">
             <h1 class="text-3xl font-serif font-black text-center mb-2 text-[#d4af37]">
-                Taberna Mercatoria & Intellectus
+                Archivio e Valutazione Volumi
             </h1>
             <p class="text-slate-400 text-center text-sm mb-8 italic">
-                Immetti il codice ISBN del tomo per estrarre la copertina e le stime imperiali di mercato.
+                Immetti il codice ISBN del tomo per estrarre la copertina e le stime di mercato imperiali.
             </p>
             <div class="flex gap-3 mb-8">
                 <input type="text" id="isbn" value="9788804668237" placeholder="Es. 9788804668237" 
@@ -264,7 +262,7 @@ async def metti_in_vendita_page():
             <div id="result" class="hidden grid grid-cols-1 md:grid-cols-3 gap-6 bg-[#12100e] p-6 rounded-lg border border-[#d4af37]/30">
                 <div class="flex flex-col items-center justify-center">
                     <img id="res-copertina" src="" alt="Copertina" class="w-40 h-56 object-cover rounded border border-[#d4af37]/40 shadow-xl mb-2">
-                    <span class="text-[10px] text-slate-400 uppercase tracking-widest italic">Imago Voluminis</span>
+                    <span class="text-[10px] text-slate-400 uppercase tracking-widest italic">Immagine del Volume</span>
                 </div>
                 <div class="md:col-span-2 space-y-3 text-sm">
                     <div><span class="text-[#d4af37] font-semibold">Titolo:</span> <span id="res-nome" class="font-bold text-lg text-white block font-serif">-</span></div>
@@ -312,7 +310,7 @@ async def metti_in_vendita_page():
                         errorBox.classList.remove('hidden');
                     }
                 } catch (e) {
-                    alert("Errore di connessione con l'Urbe.");
+                    alert("Errore di connessione con la bottega.");
                 } finally {
                     btn.disabled = false;
                     loader.classList.add('hidden');
@@ -335,14 +333,14 @@ async def venditore_page(venditore_id: str):
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Bottega di {nome_venditore} - LoopBooks</title>
+        <title>Bottega di {nome_venditore}</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <style>body {{ background-color: #12100e; color: #e2d9c5; font-family: 'Georgia', serif; }}</style>
     </head>
     <body class="min-h-screen pt-28 px-6 md:px-16">
         {navbar}
         <div class="max-w-4xl mx-auto bg-[#1a1714] border-2 border-[#d4af37]/30 rounded-xl p-8 shadow-2xl">
-            <a href="/" class="text-xs text-[#d4af37] hover:underline mb-4 inline-block font-bold">← Torna al Tablinum</a>
+            <a href="/" class="text-xs text-[#d4af37] hover:underline mb-4 inline-block font-bold">← Torna al Portico Principale</a>
             <h1 class="text-3xl font-serif font-black mb-1 text-[#f3ead8]">{nome_venditore}</h1>
             <p class="text-slate-400 text-sm mb-8 italic">Magistrato Mercante • Approvato dal Senato (4.9/5)</p>
             
