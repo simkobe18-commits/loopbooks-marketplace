@@ -1,14 +1,15 @@
 import os
 import json
 import re
-import httpx
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
+from google import genai
 
 app = FastAPI()
 
-# Chiave API di fallback o presa dall'ambiente di Render
+# Inizializzazione del client con la libreria ufficiale google-genai
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "AQ.Ab8RN6KY_3CAtTnmc-F5tPCANTkYuIJWvXPuXFrAyraEXqIuWQ")
+client = genai.Client(api_key=GEMINI_API_KEY)
 
 @app.get("/", response_class=HTMLResponse)
 async def home():
@@ -19,13 +20,10 @@ async def home():
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>LoopBooks - Analisi ISBN & Trend Prezzi</title>
-        <!-- Tailwind CSS per un design pulito e professionale -->
         <script src="https://cdn.tailwindcss.com"></script>
-        <!-- Chart.js per il grafico stile CardMarket -->
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     </head>
     <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col items-center p-4 md:p-8">
-        
         <div class="w-full max-w-3xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-6 md:p-8">
             <h1 class="text-2xl md:text-3xl font-extrabold text-center mb-2 bg-gradient-to-r from-sky-400 to-indigo-500 bg-clip-text text-transparent">
                 LoopBooks Intelligence
@@ -34,7 +32,6 @@ async def home():
                 Inserisci il codice ISBN per estrarre la scheda tecnica completa e il grafico storico dei prezzi.
             </p>
 
-            <!-- Barra di ricerca -->
             <div class="flex gap-3 mb-6">
                 <input type="text" id="isbn" placeholder="Es. 9788804668237" 
                     class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-slate-100 focus:outline-none focus:border-sky-500 transition">
@@ -44,14 +41,11 @@ async def home():
                 </button>
             </div>
 
-            <!-- Loader -->
             <div id="loader" class="hidden text-center py-8 text-sky-400 font-medium animate-pulse">
                 Analisi del libro e generazione trend di mercato in corso...
             </div>
 
-            <!-- Risultati -->
             <div id="result" class="hidden space-y-6">
-                <!-- Griglia Informazioni -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-950 p-5 rounded-xl border border-slate-800 text-sm">
                     <div><span class="text-sky-400 font-semibold">Nome del libro:</span> <span id="res-nome">-</span></div>
                     <div><span class="text-sky-400 font-semibold">Prezzo medio:</span> <span id="res-prezzo" class="text-emerald-400 font-bold">-</span></div>
@@ -64,7 +58,6 @@ async def home():
                     <div class="md:col-span-2"><span class="text-sky-400 font-semibold">Descrizione (riassunto):</span> <p id="res-desc" class="text-slate-300 mt-1 leading-relaxed">-</p></div>
                 </div>
 
-                <!-- Sezione Grafico Storico Prezzi (Stile CardMarket) -->
                 <div class="bg-slate-950 p-5 rounded-xl border border-slate-800">
                     <h3 class="text-sm font-semibold text-slate-400 mb-3 flex items-center justify-between">
                         <span>Grafico delle vendite e prezzo medio nel tempo</span>
@@ -125,12 +118,8 @@ async def home():
 
             function renderChart(storico) {
                 const ctx = document.getElementById('priceChart').getContext('2d');
-                
-                if (myChart) {
-                    myChart.destroy();
-                }
+                if (myChart) myChart.destroy();
 
-                // Fallback dati se non forniti dall'AI
                 const labels = storico?.labels || ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set'];
                 const prices = storico?.prices || [15.0, 15.5, 16.0, 15.8, 16.5, 17.0, 16.8, 17.5, 18.0];
 
@@ -152,9 +141,7 @@ async def home():
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
-                        plugins: {
-                            legend: { display: false }
-                        },
+                        plugins: { legend: { display: false } },
                         scales: {
                             x: { grid: { color: '#1e293b' }, ticks: { color: '#94a3b8' } },
                             y: { grid: { color: '#1e293b' }, ticks: { color: '#94a3b8' } }
@@ -191,24 +178,18 @@ async def api_search(isbn: str):
         Se non trovi il libro o l'ISBN è errato, restituisci: {{"success": false}}
         """
         
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GEMINI_API_KEY}"
-        payload = {
-            "contents": [{
-                "parts": [{"text": prompt}]
-            }]
-        }
+        # Chiamata pulita tramite l'SDK ufficiale genai
+        response = client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=prompt
+        )
         
-        async with httpx.AsyncClient() as client:
-            resp = await client.post(url, json=payload, timeout=20.0)
-            if resp.status_code != 200:
-                return {"success": False}
-                
-            data = resp.json()
-            text_res = data["candidates"][0]["content"]["parts"][0]["text"].strip()
-            text_res = text_res.replace("```json", "").replace("```", "").strip()
-            
-            return json.loads(text_res)
-            
+        text_res = response.text.strip()
+        text_res = re.sub(r'^```json\s*', '', text_res)
+        text_res = re.sub(r'\s*```$', '', text_res)
+        
+        return json.loads(text_res)
+        
     except Exception as e:
-        print(f"Errore: {e}")
+        print(f"Errore SDK Gemini: {e}")
         return {"success": False}
