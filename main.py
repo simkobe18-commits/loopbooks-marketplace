@@ -7,7 +7,7 @@ from fastapi.responses import HTMLResponse
 
 app = FastAPI()
 
-# Chiave API di fallback o presa dall'ambiente
+# Chiave API di fallback o presa dall'ambiente di Render
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "AQ.Ab8RN6KY_3CAtTnmc-F5tPCANTkYuIJWvXPuXFrAyraEXqIuWQ")
 
 @app.get("/", response_class=HTMLResponse)
@@ -18,76 +18,151 @@ async def home():
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>LoopBooks - Cerca Libro con ISBN & Gemini</title>
-        <style>
-            * { box-sizing: border-box; margin: 0; padding: 0; }
-            body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #f8fafc; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 1rem; }
-            .card { background: #1e293b; padding: 2.5rem; border-radius: 12px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3); border: 1px solid #334155; width: 100%; max-width: 600px; }
-            h1 { color: #f8fafc; margin-bottom: 0.5rem; font-size: 1.6rem; text-align: center; }
-            p { color: #94a3b8; font-size: 0.95rem; text-align: center; margin-bottom: 1.5rem; }
-            .input-group { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
-            input { padding: 0.75rem; border-radius: 6px; border: 1px solid #334155; background: #0f172a; color: #f8fafc; font-size: 1rem; flex: 1; }
-            input:focus { outline: none; border-color: #38bdf8; }
-            button { background: #38bdf8; color: #0f172a; border: none; padding: 0.75rem 1.25rem; border-radius: 6px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
-            button:hover { background: #7dd3fc; }
-            #result { background: #0f172a; border: 1px solid #334155; padding: 1.5rem; border-radius: 8px; display: none; margin-top: 1rem; }
-            .result-item { margin-bottom: 0.75rem; font-size: 0.95rem; }
-            .result-label { color: #38bdf8; font-weight: bold; }
-        </style>
+        <title>LoopBooks - Analisi ISBN & Trend Prezzi</title>
+        <!-- Tailwind CSS per un design pulito e professionale -->
+        <script src="https://cdn.tailwindcss.com"></script>
+        <!-- Chart.js per il grafico stile CardMarket -->
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    </head>
+    <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col items-center p-4 md:p-8">
+        
+        <div class="w-full max-w-3xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-6 md:p-8">
+            <h1 class="text-2xl md:text-3xl font-extrabold text-center mb-2 bg-gradient-to-r from-sky-400 to-indigo-500 bg-clip-text text-transparent">
+                LoopBooks Intelligence
+            </h1>
+            <p class="text-slate-400 text-center text-sm mb-6">
+                Inserisci il codice ISBN per estrarre la scheda tecnica completa e il grafico storico dei prezzi.
+            </p>
+
+            <!-- Barra di ricerca -->
+            <div class="flex gap-3 mb-6">
+                <input type="text" id="isbn" placeholder="Es. 9788804668237" 
+                    class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-slate-100 focus:outline-none focus:border-sky-500 transition">
+                <button id="search-btn" onclick="searchBook()" 
+                    class="bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold px-6 py-3 rounded-xl transition shadow-lg shadow-sky-500/20">
+                    Cerca
+                </button>
+            </div>
+
+            <!-- Loader -->
+            <div id="loader" class="hidden text-center py-8 text-sky-400 font-medium animate-pulse">
+                Analisi del libro e generazione trend di mercato in corso...
+            </div>
+
+            <!-- Risultati -->
+            <div id="result" class="hidden space-y-6">
+                <!-- Griglia Informazioni -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-950 p-5 rounded-xl border border-slate-800 text-sm">
+                    <div><span class="text-sky-400 font-semibold">Nome del libro:</span> <span id="res-nome">-</span></div>
+                    <div><span class="text-sky-400 font-semibold">Prezzo medio:</span> <span id="res-prezzo" class="text-emerald-400 font-bold">-</span></div>
+                    <div><span class="text-sky-400 font-semibold">Codice EAN:</span> <span id="res-ean">-</span></div>
+                    <div><span class="text-sky-400 font-semibold">Anno pubblicazione:</span> <span id="res-anno-pub">-</span></div>
+                    <div><span class="text-sky-400 font-semibold">Anno edizione:</span> <span id="res-anno-ed">-</span></div>
+                    <div><span class="text-sky-400 font-semibold">Rilegatura:</span> <span id="res-rilegatura">-</span></div>
+                    <div><span class="text-sky-400 font-semibold">Edizione:</span> <span id="res-edizione">-</span></div>
+                    <div><span class="text-sky-400 font-semibold">Collana:</span> <span id="res-collana">-</span></div>
+                    <div class="md:col-span-2"><span class="text-sky-400 font-semibold">Descrizione (riassunto):</span> <p id="res-desc" class="text-slate-300 mt-1 leading-relaxed">-</p></div>
+                </div>
+
+                <!-- Sezione Grafico Storico Prezzi (Stile CardMarket) -->
+                <div class="bg-slate-950 p-5 rounded-xl border border-slate-800">
+                    <h3 class="text-sm font-semibold text-slate-400 mb-3 flex items-center justify-between">
+                        <span>Grafico delle vendite e prezzo medio nel tempo</span>
+                        <span class="text-xs text-sky-400 bg-sky-950 px-2 py-1 rounded border border-sky-800">Trend CardMarket Style</span>
+                    </h3>
+                    <div class="relative h-64 w-full">
+                        <canvas id="priceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <script>
+            let myChart = null;
+
             async function searchBook() {
                 const isbn = document.getElementById('isbn').value.trim();
                 const btn = document.getElementById('search-btn');
+                const loader = document.getElementById('loader');
                 const resultDiv = document.getElementById('result');
                 
                 if (!isbn) {
-                    alert("Inserisci un codice ISBN.");
+                    alert("Inserisci un codice ISBN valido.");
                     return;
                 }
 
-                btn.innerText = "Gemini sta analizzando...";
                 btn.disabled = true;
-                resultDiv.style.display = 'none';
+                loader.classList.remove('hidden');
+                resultDiv.classList.add('hidden');
 
                 try {
                     const response = await fetch('/api/search?isbn=' + encodeURIComponent(isbn));
                     const data = await response.json();
 
                     if (data.success) {
-                        document.getElementById('res-title').innerText = data.title || "-";
-                        document.getElementById('res-author').innerText = data.author || "-";
-                        document.getElementById('res-publisher').innerText = data.editore || "-";
-                        document.getElementById('res-year').innerText = data.anno_pubblicazione || "-";
+                        document.getElementById('res-nome').innerText = data.nome_libro || "-";
+                        document.getElementById('res-prezzo').innerText = data.prezzo_medio || "-";
+                        document.getElementById('res-ean').innerText = data.codice_ean || "-";
+                        document.getElementById('res-anno-pub').innerText = data.anno_pubblicazione || "-";
+                        document.getElementById('res-anno-ed').innerText = data.anno_edizione || "-";
+                        document.getElementById('res-rilegatura').innerText = data.rilegatura || "-";
+                        document.getElementById('res-edizione').innerText = data.edizione || "-";
+                        document.getElementById('res-collana').innerText = data.collana || "-";
                         document.getElementById('res-desc').innerText = data.descrizione || "-";
-                        resultDiv.style.display = 'block';
+
+                        resultDiv.classList.remove('hidden');
+                        renderChart(data.storico_prezzi);
                     } else {
                         alert("Libro non trovato o codice ISBN non valido.");
                     }
                 } catch (e) {
-                    alert("Errore di connessione.");
+                    alert("Errore di connessione al server.");
                 } finally {
-                    btn.innerText = "Cerca";
                     btn.disabled = false;
+                    loader.classList.add('hidden');
                 }
             }
+
+            function renderChart(storico) {
+                const ctx = document.getElementById('priceChart').getContext('2d');
+                
+                if (myChart) {
+                    myChart.destroy();
+                }
+
+                // Fallback dati se non forniti dall'AI
+                const labels = storico?.labels || ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set'];
+                const prices = storico?.prices || [15.0, 15.5, 16.0, 15.8, 16.5, 17.0, 16.8, 17.5, 18.0];
+
+                myChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Prezzo Medio (€)',
+                            data: prices,
+                            borderColor: '#38bdf8',
+                            backgroundColor: 'rgba(56, 189, 248, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.3,
+                            pointBackgroundColor: '#38bdf8'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            x: { grid: { color: '#1e293b' }, ticks: { color: '#94a3b8' } },
+                            y: { grid: { color: '#1e293b' }, ticks: { color: '#94a3b8' } }
+                        }
+                    }
+                });
+            }
         </script>
-    </head>
-    <body>
-        <div class="card">
-            <h1>LoopBooks - Cerca Libro</h1>
-            <p>Inserisci il codice ISBN per estrarre le informazioni tramite Gemini.</p>
-            <div class="input-group">
-                <input type="text" id="isbn" placeholder="Es. 9788869183157">
-                <button id="search-btn" onclick="searchBook()">Cerca</button>
-            </div>
-            <div id="result">
-                <div class="result-item"><span class="result-label">Titolo:</span> <span id="res-title"></span></div>
-                <div class="result-item"><span class="result-label">Autore:</span> <span id="res-author"></span></div>
-                <div class="result-item"><span class="result-label">Editore:</span> <span id="res-publisher"></span></div>
-                <div class="result-item"><span class="result-label">Anno:</span> <span id="res-year"></span></div>
-                <div class="result-item"><span class="result-label">Descrizione:</span> <span id="res-desc"></span></div>
-            </div>
-        </div>
     </body>
     </html>
     """
@@ -96,20 +171,26 @@ async def home():
 async def api_search(isbn: str):
     try:
         prompt = f"""
-        Fornisci le informazioni bibliografiche per il codice ISBN: {isbn}.
-        Restituisci la risposta ESCLUSIVAMENTE in formato JSON puro (senza alcun blocco di codice markdown o backticks) con queste chiavi esatte:
+        Analizza il codice ISBN: {isbn} e restituisci un oggetto JSON puro (senza blocchi markdown o backticks) con esattamente queste chiavi:
         {{
             "success": true,
-            "title": "Titolo del libro",
-            "author": "Autore",
-            "editore": "Casa editrice",
-            "anno_pubblicazione": "Anno",
-            "descrizione": "Breve sinossi o descrizione"
+            "nome_libro": "Titolo completo",
+            "prezzo_medio": "Prezzo stimato di mercato in formato es. 16.50 €",
+            "descrizione": "Breve sinossi o riassunto del libro",
+            "anno_pubblicazione": "Anno della prima pubblicazione",
+            "anno_edizione": "Anno di questa specifica edizione",
+            "codice_ean": "Codice EAN corrispondente all'ISBN",
+            "rilegatura": "Es. Cartonato o Brossura",
+            "edizione": "Numero o tipo di edizione",
+            "collana": "Nome della collana editoriale (se presente, altrimenti -)",
+            "storico_prezzi": {{
+                "labels": ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set"],
+                "prices": [14.0, 14.5, 15.0, 14.8, 15.5, 16.0, 15.8, 16.2, 16.5]
+            }}
         }}
-        Se non trovi il libro o il codice non è valido, restituisci: {{"success": false}}
+        Se non trovi il libro o l'ISBN è errato, restituisci: {{"success": false}}
         """
         
-        # Endpoint corretto con il modello gemini-2.5-flash
         url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GEMINI_API_KEY}"
         payload = {
             "contents": [{
@@ -118,30 +199,16 @@ async def api_search(isbn: str):
         }
         
         async with httpx.AsyncClient() as client:
-            resp = await client.post(url, json=payload, timeout=15.0)
+            resp = await client.post(url, json=payload, timeout=20.0)
             if resp.status_code != 200:
-                print(f"Errore API Google: {resp.text}")
                 return {"success": False}
                 
             data = resp.json()
             text_res = data["candidates"][0]["content"]["parts"][0]["text"].strip()
-            
-            # Pulizia sicura del markdown
             text_res = text_res.replace("```json", "").replace("```", "").strip()
             
-            try:
-                return json.loads(text_res)
-            except json.JSONDecodeError:
-                print(f"JSON non valido ricevuto da Gemini: {text_res}")
-                return {
-                    "success": True,
-                    "title": "Risultato estratto",
-                    "author": "-",
-                    "editore": "-",
-                    "anno_pubblicazione": "-",
-                    "descrizione": text_res
-                }
+            return json.loads(text_res)
             
     except Exception as e:
-        print(f"ERRORE CRITICO: {e}")
+        print(f"Errore: {e}")
         return {"success": False}
