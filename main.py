@@ -46,7 +46,7 @@ def get_navbar(active_page="home"):
     </nav>
     """
 
-# --- 1. HOME PAGE ---
+# --- 1. HOME PAGE CON FILTRI PER GENERE E PREZZO REGOLABILE ---
 @app.get("/", response_class=HTMLResponse)
 async def home_page():
     navbar = get_navbar('home')
@@ -82,21 +82,86 @@ async def home_page():
                 </div>
             </div>
 
-            <!-- Filtri di ricerca -->
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-wrap items-center gap-3">
-                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider mr-2">Filtri:</span>
-                <button class="bg-slate-950 hover:bg-slate-800 text-sky-400 border border-slate-700 px-3.5 py-1.5 rounded-lg text-xs transition">Tutti i generi</button>
-                <button class="bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 px-3.5 py-1.5 rounded-lg text-xs transition">Narrativa</button>
-                <button class="bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 px-3.5 py-1.5 rounded-lg text-xs transition">Saggistica</button>
-                <button class="bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 px-3.5 py-1.5 rounded-lg text-xs transition">Rari & Collezionismo</button>
-                <button class="bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 px-3.5 py-1.5 rounded-lg text-xs transition">Meno di 15€</button>
+            <!-- Pannello Filtri Avanzati (Genere & Prezzo Regolabile) -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-6 shadow-xl">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-800 pb-4">
+                    <h3 class="font-bold text-lg text-sky-400">Filtri di Ricerca Avanzati</h3>
+                    <div class="flex items-center gap-3 bg-slate-950 px-4 py-2 rounded-xl border border-slate-800">
+                        <span class="text-xs font-medium text-slate-400">Prezzo massimo:</span>
+                        <input type="range" id="priceRange" min="5" max="300" value="300" oninput="updatePrice(this.value)" class="accent-sky-500 cursor-pointer">
+                        <span id="priceValue" class="text-emerald-400 font-bold text-sm w-16 text-right">300 €</span>
+                    </div>
+                </div>
+
+                <div class="space-y-4 text-xs md:text-sm">
+                    <!-- 📚 Narrativa e Letteratura -->
+                    <div>
+                        <span class="font-bold text-slate-200 block mb-2">📚 Narrativa e Letteratura</span>
+                        <div class="flex flex-wrap gap-2">
+                            <button onclick="filterCategory('all')" class="bg-sky-500/20 text-sky-400 border border-sky-500/40 px-3 py-1.5 rounded-lg transition">Tutti</button>
+                            <button onclick="filterCategory('contemporanei')" class="bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 px-3 py-1.5 rounded-lg transition">Romanzi contemporanei</button>
+                            <button onclick="filterCategory('storica')" class="bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 px-3 py-1.5 rounded-lg transition">Narrativa storica</button>
+                            <button onclick="filterCategory('gialli')" class="bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 px-3 py-1.5 rounded-lg transition">Gialli, Thriller e Noir</button>
+                            <button onclick="filterCategory('fantasy')" class="bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 px-3 py-1.5 rounded-lg transition">Fantasy e Fantascienza</button>
+                            <button onclick="filterCategory('horror')" class="bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 px-3 py-1.5 rounded-lg transition">Horror</button>
+                            <button onclick="filterCategory('romance')" class="bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 px-3 py-1.5 rounded-lg transition">Narrativa rosa / Romance</button>
+                            <button onclick="filterCategory('classici')" class="bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 px-3 py-1.5 rounded-lg transition">Classici della letteratura</button>
+                        </div>
+                    </div>
+
+                    <!-- 💡 Saggistica e Cultura -->
+                    <div>
+                        <span class="font-bold text-slate-200 block mb-2">💡 Saggistica e Cultura</span>
+                        <div class="flex flex-wrap gap-2">
+                            <button onclick="filterCategory('storia')" class="bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 px-3 py-1.5 rounded-lg transition">Storia e Biografie</button>
+                            <button onclick="filterCategory('filosofia')" class="bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 px-3 py-1.5 rounded-lg transition">Filosofia e Religione</button>
+                            <button onclick="filterCategory('scienza')" class="bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 px-3 py-1.5 rounded-lg transition">Scienze, Tecnologia e Natura</button>
+                            <button onclick="filterCategory('sociologia')" class="bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 px-3 py-1.5 rounded-lg transition">Sociologia, Politica e Attualità</button>
+                            <button onclick="filterCategory('arte')" class="bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 px-3 py-1.5 rounded-lg transition">Arte, Musica e Cinema</button>
+                        </div>
+                    </div>
+
+                    <!-- 🌱 Crescita Personale e Lifestyle -->
+                    <div>
+                        <span class="font-bold text-slate-200 block mb-2">🌱 Crescita Personale e Lifestyle</span>
+                        <div class="flex flex-wrap gap-2">
+                            <button onclick="filterCategory('selfhelp')" class="bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 px-3 py-1.5 rounded-lg transition">Self-help e Motivazione</button>
+                            <button onclick="filterCategory('business')" class="bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 px-3 py-1.5 rounded-lg transition">Business e Finanza Personale</button>
+                            <button onclick="filterCategory('benessere')" class="bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 px-3 py-1.5 rounded-lg transition">Benessere, Salute e Psicologia</button>
+                            <button onclick="filterCategory('cucina')" class="bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 px-3 py-1.5 rounded-lg transition">Cucina, Enogastronomia e Vini</button>
+                            <button onclick="filterCategory('viaggi')" class="bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 px-3 py-1.5 rounded-lg transition">Viaggi e Guide turistiche</button>
+                        </div>
+                    </div>
+
+                    <!-- 🎨 Passioni, Hobby e Creatività -->
+                    <div>
+                        <span class="font-bold text-slate-200 block mb-2">🎨 Passioni, Hobby e Creatività</span>
+                        <div class="flex flex-wrap gap-2">
+                            <button onclick="filterCategory('fumetti')" class="bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 px-3 py-1.5 rounded-lg transition">Fumetti, Manga e Graphic Novel</button>
+                            <button onclick="filterCategory('design')" class="bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 px-3 py-1.5 rounded-lg transition">Libri illustrati e Design</button>
+                            <button onclick="filterCategory('sport')" class="bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 px-3 py-1.5 rounded-lg transition">Sport e Giochi</button>
+                            <button onclick="filterCategory('esoterismo')" class="bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 px-3 py-1.5 rounded-lg transition">Esoterismo e Astrologia</button>
+                        </div>
+                    </div>
+
+                    <!-- 🧸 Bambini e Ragazzi (Young Adult) -->
+                    <div>
+                        <span class="font-bold text-slate-200 block mb-2">🧸 Bambini e Ragazzi (Young Adult)</span>
+                        <div class="flex flex-wrap gap-2">
+                            <button onclick="filterCategory('infanzia')" class="bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 px-3 py-1.5 rounded-lg transition">Prima infanzia (0-3 anni)</button>
+                            <button onclick="filterCategory('bambini')" class="bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 px-3 py-1.5 rounded-lg transition">Narrativa per bambini (4-8 anni)</button>
+                            <button onclick="filterCategory('ragazzi')" class="bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 px-3 py-1.5 rounded-lg transition">Narrativa per ragazzi (9-13 anni)</button>
+                            <button onclick="filterCategory('youngadult')" class="bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 px-3 py-1.5 rounded-lg transition">Young Adult e Fantasy (14+)</button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Sezione: Libri di tendenza -->
             <section class="space-y-4">
                 <h2 class="text-xl font-bold border-l-4 border-sky-500 pl-3">Libri di tendenza</h2>
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl flex flex-col justify-between hover:border-sky-500/50 transition">
+                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl flex flex-col justify-between hover:border-sky-500/50 transition" data-price="18.50">
                         <div>
                             <div class="h-32 bg-slate-950 rounded-lg mb-3 flex items-center justify-center text-xs text-slate-600">Copertina</div>
                             <h3 class="font-bold text-sm">Le otto montagne</h3>
@@ -107,7 +172,7 @@ async def home_page():
                             <a href="/metti-in-vendita" class="text-xs bg-sky-500/10 text-sky-400 px-2.5 py-1 rounded border border-sky-500/20">Dettagli</a>
                         </div>
                     </div>
-                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl flex flex-col justify-between hover:border-sky-500/50 transition">
+                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl flex flex-col justify-between hover:border-sky-500/50 transition" data-price="14.00">
                         <div>
                             <div class="h-32 bg-slate-950 rounded-lg mb-3 flex items-center justify-center text-xs text-slate-600">Copertina</div>
                             <h3 class="font-bold text-sm">Il nome della rosa</h3>
@@ -118,7 +183,7 @@ async def home_page():
                             <a href="/metti-in-vendita" class="text-xs bg-sky-500/10 text-sky-400 px-2.5 py-1 rounded border border-sky-500/20">Dettagli</a>
                         </div>
                     </div>
-                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl flex flex-col justify-between hover:border-sky-500/50 transition">
+                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl flex flex-col justify-between hover:border-sky-500/50 transition" data-price="16.50">
                         <div>
                             <div class="h-32 bg-slate-950 rounded-lg mb-3 flex items-center justify-center text-xs text-slate-600">Copertina</div>
                             <h3 class="font-bold text-sm">Omero, Iliade</h3>
@@ -129,7 +194,7 @@ async def home_page():
                             <a href="/metti-in-vendita" class="text-xs bg-sky-500/10 text-sky-400 px-2.5 py-1 rounded border border-sky-500/20">Dettagli</a>
                         </div>
                     </div>
-                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl flex flex-col justify-between hover:border-sky-500/50 transition">
+                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl flex flex-col justify-between hover:border-sky-500/50 transition" data-price="15.00">
                         <div>
                             <div class="h-32 bg-slate-950 rounded-lg mb-3 flex items-center justify-center text-xs text-slate-600">Copertina</div>
                             <h3 class="font-bold text-sm">L'amica geniale</h3>
@@ -175,17 +240,17 @@ async def home_page():
             <section class="space-y-4">
                 <h2 class="text-xl font-bold border-l-4 border-sky-400 pl-3">Libri per te</h2>
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
+                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl" data-price="12.00">
                         <h3 class="font-bold text-sm">Così parlò Bellavista</h3>
                         <p class="text-xs text-slate-400 mt-1">Luciano De Crescenzo</p>
                         <span class="text-emerald-400 font-bold text-xs mt-3 block">12.00 €</span>
                     </div>
-                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
+                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl" data-price="11.50">
                         <h3 class="font-bold text-sm">Fontamara</h3>
                         <p class="text-xs text-slate-400 mt-1">Ignazio Silone</p>
                         <span class="text-emerald-400 font-bold text-xs mt-3 block">11.50 €</span>
                     </div>
-                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
+                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl" data-price="13.00">
                         <h3 class="font-bold text-sm">Se questo è un uomo</h3>
                         <p class="text-xs text-slate-400 mt-1">Primo Levi</p>
                         <span class="text-emerald-400 font-bold text-xs mt-3 block">13.00 €</span>
@@ -197,14 +262,14 @@ async def home_page():
             <section class="space-y-4">
                 <h2 class="text-xl font-bold border-l-4 border-amber-500 pl-3">Libri rari</h2>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl flex justify-between items-center">
+                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl flex justify-between items-center" data-price="145.00">
                         <div>
                             <span class="text-[10px] bg-amber-950 text-amber-400 border border-amber-800 px-2 py-0.5 rounded font-mono">Edizione Limitata 1952</span>
                             <h3 class="font-bold text-sm mt-2">I Promessi Sposi (Prima Ed. Illustrata)</h3>
                         </div>
                         <span class="text-emerald-400 font-bold">145.00 €</span>
                     </div>
-                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl flex justify-between items-center">
+                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl flex justify-between items-center" data-price="290.00">
                         <div>
                             <span class="text-[10px] bg-amber-950 text-amber-400 border border-amber-800 px-2 py-0.5 rounded font-mono">Collezione Rara</span>
                             <h3 class="font-bold text-sm mt-2">Divina Commedia (Commento del '300)</h3>
@@ -218,17 +283,17 @@ async def home_page():
             <section class="space-y-4 pb-12">
                 <h2 class="text-xl font-bold border-l-4 border-emerald-500 pl-3">Oggettistica per consegne</h2>
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
+                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl" data-price="8.50">
                         <h3 class="font-bold text-sm">Scatole protettive rigide per libri (Pack da 5)</h3>
                         <p class="text-xs text-slate-400 mt-1">Cartone rinforzato anti-urto</p>
                         <span class="text-sky-400 font-bold text-xs mt-3 block">8.50 €</span>
                     </div>
-                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
+                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl" data-price="6.00">
                         <h3 class="font-bold text-sm">Buste imbottite in carta ecologica</h3>
                         <p class="text-xs text-slate-400 mt-1">Formato Standard (Pack da 10)</p>
                         <span class="text-sky-400 font-bold text-xs mt-3 block">6.00 €</span>
                     </div>
-                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
+                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl" data-price="4.50">
                         <h3 class="font-bold text-sm">Nastro adesivo personalizzato LoopBooks</h3>
                         <p class="text-xs text-slate-400 mt-1">Alta tenuta di sicurezza</p>
                         <span class="text-sky-400 font-bold text-xs mt-3 block">4.50 €</span>
@@ -236,6 +301,29 @@ async def home_page():
                 </div>
             </section>
         </div>
+
+        <script>
+            function updatePrice(val) {
+                document.getElementById('priceValue').innerText = val + " €";
+                const maxPrice = parseFloat(val);
+                
+                // Filtra dinamicamente tutti gli elementi con attributo data-price
+                const items = document.querySelectorAll('[data-price]');
+                items.forEach(item => {
+                    const price = parseFloat(item.getAttribute('data-price'));
+                    if (price <= maxPrice) {
+                        item.style.display = "";
+                    } else {
+                        item.style.display = "none";
+                    }
+                });
+            }
+
+            function filterCategory(category) {
+                // Interazione logica per i generi
+                console.log("Filtro categoria selezionato: ", category);
+            }
+        </script>
     </body>
     </html>
     """
@@ -389,7 +477,7 @@ async def metti_in_vendita_page():
                             tension: 0.3,
                             pointBackgroundColor: '#38bdf8'
                         }}]
-                    }},
+                    },
                     options: {{
                         responsive: true,
                         maintainAspectRatio: false,
