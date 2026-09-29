@@ -75,7 +75,6 @@ def get_navbar(active_page="home"):
 async def home_page():
     navbar = get_navbar('home')
     
-    # Generiamo la griglia dei libri dinamicamente
     books_html = ""
     for b in BOOKS_DATABASE:
         books_html += f"""
@@ -115,7 +114,6 @@ async def home_page():
         
         <main class="max-w-6xl mx-auto px-6 py-12 space-y-12">
             
-            <!-- SEZIONE IN EPRIMO PIANO -->
             <div class="pergamena rounded-2xl p-8 md:p-12 shadow-2xl relative overflow-hidden flex flex-col md:flex-row items-center gap-8 border-2 border-[#d4af37]/40">
                 <div class="absolute -right-16 -bottom-16 text-9xl opacity-5 select-none font-serif text-[#d4af37]">XII</div>
                 <div class="w-48 h-64 flex-shrink-0 bg-black rounded shadow-2xl border border-[#d4af37]/30 overflow-hidden">
@@ -135,12 +133,10 @@ async def home_page():
                 </div>
             </div>
 
-            <!-- FILTRI E SCAFFALI -->
             <div class="space-y-6">
                 <div class="border-b border-[#d4af37]/20 pb-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <h3 class="text-xl font-serif font-bold text-[#d4af37]">Scaffali della Sapienza (Filtri)</h3>
                     
-                    <!-- BARRA DEI FILTRI -->
                     <div class="flex flex-wrap gap-2 text-xs font-serif">
                         <button onclick="filterBooks('tutti')" id="btn-tutti" class="filter-btn active px-4 py-2 rounded border border-[#d4af37]/40 bg-[#1e1a16] text-[#f3ead8] transition">Tutti i Tomi</button>
                         <button onclick="filterBooks('mistero')" id="btn-mistero" class="filter-btn px-4 py-2 rounded border border-[#d4af37]/30 bg-[#1e1a16] text-slate-300 transition">Mistero & Noir</button>
@@ -149,7 +145,6 @@ async def home_page():
                     </div>
                 </div>
 
-                <!-- GRIGLIA LIBRI -->
                 <div id="books-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     {books_html}
                 </div>
@@ -159,17 +154,21 @@ async def home_page():
 
         <script>
             function filterBooks(genere) {
-                // Gestione classi attive sui bottoni
-                document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active', 'bg-[#7a1c1c]', 'text-[#d4af37]'));
-                const activeBtn = document.getElementById('btn-' + genere);
+                document.querySelectorAll('.filter-btn').forEach(function(btn) {
+                    btn.classList.remove('active');
+                    btn.style.backgroundColor = '#1e1a16';
+                    btn.style.color = '#cbd5e1';
+                });
+                var activeBtn = document.getElementById('btn-'.concat(genere));
                 if (activeBtn) {
                     activeBtn.classList.add('active');
+                    activeBtn.style.backgroundColor = '#7a1c1c';
+                    activeBtn.style.color = '#d4af37';
                 }
 
-                // Filtraggio elementi
-                const items = document.querySelectorAll('.book-item');
-                items.forEach(item => {
-                    const itemGenere = item.getAttribute('data-genere');
+                var items = document.querySelectorAll('.book-item');
+                items.forEach(function(item) {
+                    var itemGenere = item.getAttribute('data-genere');
                     if (genere === 'tutti' || itemGenere === genere) {
                         item.style.display = 'flex';
                     } else {
@@ -311,7 +310,7 @@ async def metti_in_vendita_page():
                         document.getElementById('res-rilegatura').innerText = data.rilegatura || "-";
                         document.getElementById('res-collana').innerText = data.collana || "-";
                         document.getElementById('res-desc').innerText = data.descrizione || "-";
-                        document.getElementById('res-copertina').src = data.copertina_url || `https://covers.openlibrary.org/b/isbn/${isbn}-L.jpg`;
+                        document.getElementById('res-copertina').src = data.copertina_url || 'https://covers.openlibrary.org/b/isbn/' + isbn + '-L.jpg';
                         
                         resultDiv.classList.remove('hidden');
                     } else {
