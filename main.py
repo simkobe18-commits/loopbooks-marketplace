@@ -1,134 +1,256 @@
 import os
 import json
 import re
-from fastapi import FastAPI
-from fastapi.responses import HTMLResponse
+import sqlite3
+from fastapi import FastAPI, Form
+from fastapi.responses import HTMLResponse, RedirectResponse
 from google import genai
 
 app = FastAPI()
 
-# Database locale di riserva per ISBN frequenti
-BOOKS_DB = {
-    "9788804668237": {
-        "success": True,
-        "nome_libro": "Le otto montagne",
-        "prezzo_medio": "18.50 €",
-        "descrizione": "Un romanzo profondo e intenso che racconta la storia di un'amicizia fraterna tra due ragazzi cresciuti in montagna, esplorando il legame con le radici, i padri e le scelte di vita.",
-        "anno_pubblicazione": "2016",
-        "anno_edizione": "2016",
-        "codice_ean": "9788804668237",
-        "rilegatura": "Brossura",
-        "edizione": "Prima edizione",
-        "collana": "Scrittori italiani e stranieri"
-    }
-}
+# Configurazione database SQLite / LibSQL locale per il marketplace
+DB_FILE = "cantina.db" # Oppure un database libri dedicato
 
+def init_db():
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS books (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nome_libro TEXT,
+            prezzo_medio TEXT,
+            descrizione TEXT,
+            anno_pubblicazione TEXT,
+            anno_edizione TEXT,
+            codice_ean TEXT UNIQUE,
+            rilegatura TEXT,
+            edizione TEXT,
+            collana TEXT
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
+init_db()
+
+# --- 1. HOME PAGE / MARKETPLACE ---
 @app.get("/", response_class=HTMLResponse)
-async def home():
+async def marketplace_home():
+    conn = sqlite3.connect(DB_FILE)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM books ORDER BY id DESC")
+    books = cursor.fetchall()
+    conn.close()
+
+    books_html = ""
+    if not books:
+        books_html = """
+        <div class="col-span-full text-center py-12 text-slate-500">
+            Nessun libro presente nel marketplace. Usa la funzione di inserimento rapido per aggiungerne uno!
+        </div>
+        """
+    else:
+        for b in books:
+            books_html += f"""
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 hover:border-sky-500/50 transition shadow-lg flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-start gap-2 mb-2">
+                        <h3 class="font-bold text-lg text-slate-100">{b['nome_libro']}</h3>
+                        <span class="bg-emerald-950 text-emerald-400 font-bold px-2.5 py-1 rounded-lg text-sm border border-emerald-800/50">{b['prezzo_medio']}</span>
+                    </div>
+                    <p class="text-xs text-sky-400 mb-3 font-mono">EAN: {b['codice_ean']} • {b['collana'] or 'Edizione Standard'}</p>
+                    <p class="text-slate-400 text-sm line-clamp-3 mb-4">{b['descrizione']}</p>
+                </div>
+                <div class="border-t border-slate-800/80 pt-3 flex justify-between text-xs text-slate-500">
+                    <span>{b['rilegatura']} ({b['anno_edizione']})</span>
+                    <span class="text-sky-400 font-medium">{b['edizione']}</span>
+                </div>
+            </div>
+            """
+
+    return f"""
+    <!DOCTYPE html>
+    <html lang="it">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>LoopBooks - Marketplace</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+    </head>
+    <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col">
+        <!-- Navbar -->
+        <header class="border-b border-slate-800 bg-slate-900/50 backdrop-blur sticky top-0 z-50 px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <h1 class="text-xl font-extrabold bg-gradient-to-r from-sky-400 to-indigo-500 bg-clip-text text-transparent">
+                    LoopBooks Marketplace
+                </h1>
+            </div>
+            <div class="flex items-center gap-3">
+                <a href="/add" class="bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-sm transition shadow-lg shadow-sky-500/20">
+                    + Inserimento Rapido ISBN
+                </a>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex-1 max-w-7xl w-full mx-auto p-6 md:p-8">
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold mb-2">Catalogo Libri Disponibili</h2>
+                <p class="text-slate-400 text-sm">Esplora i libri caricati e analizzati tramite LoopBooks Intelligence.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {books_html}
+            </div>
+        </main>
+    </body>
+    </html>
+    """
+
+# --- 2. PAGINA DI INSERIMENTO RAPIDO (INTELLIGENCE) ---
+@app.get("/add", response_class=HTMLResponse)
+async def add_book_page():
     return """
     <!DOCTYPE html>
     <html lang="it">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>LoopBooks - Analisi ISBN & Trend Prezzi</title>
+        <title>LoopBooks - Inserimento Rapido ISBN</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     </head>
     <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col items-center p-4 md:p-8">
-        <div class="w-full max-w-3xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-6 md:p-8">
-            <h1 class="text-2xl md:text-3xl font-extrabold text-center mb-2 bg-gradient-to-r from-sky-400 to-indigo-500 bg-clip-text text-transparent">
-                LoopBooks Intelligence
-            </h1>
-            <p class="text-slate-400 text-center text-sm mb-6">
-                Inserisci il codice ISBN per estrarre la scheda tecnica completa e il grafico storico dei prezzi.
-            </p>
-
-            <div class="flex gap-3 mb-6">
-                <input type="text" id="isbn" value="9788804668237" placeholder="Es. 9788804668237" 
-                    class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-slate-100 focus:outline-none focus:border-sky-500 transition">
-                <button id="search-btn" onclick="searchBook()" 
-                    class="bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold px-6 py-3 rounded-xl transition shadow-lg shadow-sky-500/25">
-                    Cerca
-                </button>
+        <div class="w-full max-w-3xl">
+            <div class="mb-4 flex justify-between items-center">
+                <a href="/" class="text-sm text-sky-400 hover:underline flex items-center gap-1">← Torna al Marketplace</a>
+                <span class="text-xs text-slate-500 font-mono">LoopBooks Intelligence v2.0</span>
             </div>
 
-            <div id="loader" class="hidden text-center py-8 text-sky-400 font-medium animate-pulse">
-                Estrazione dati del libro in corso con Gemini...
-            </div>
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-6 md:p-8">
+                <h1 class="text-2xl font-extrabold text-center mb-2 bg-gradient-to-r from-sky-400 to-indigo-500 bg-clip-text text-transparent">
+                    Inserimento Rapido tramite ISBN
+                </h1>
+                <p class="text-slate-400 text-center text-sm mb-6">
+                    Inserisci il codice ISBN: i campi si compileranno in automatico per l'aggiunta al marketplace.
+                </p>
 
-            <div id="error-box" class="hidden bg-red-950/50 border border-red-800 text-red-200 p-4 rounded-xl mb-6 text-sm">
-                <strong class="font-bold">Errore di sistema:</strong> <span id="error-text">-</span>
-            </div>
-
-            <div id="result" class="hidden space-y-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-950 p-5 rounded-xl border border-slate-800 text-sm">
-                    <div><span class="text-sky-400 font-semibold">Nome del libro:</span> <span id="res-nome">-</span></div>
-                    <div><span class="text-sky-400 font-semibold">Prezzo medio:</span> <span id="res-prezzo" class="text-emerald-400 font-bold">-</span></div>
-                    <div><span class="text-sky-400 font-semibold">Codice EAN:</span> <span id="res-ean">-</span></div>
-                    <div><span class="text-sky-400 font-semibold">Anno pubblicazione:</span> <span id="res-anno-pub">-</span></div>
-                    <div><span class="text-sky-400 font-semibold">Anno edizione:</span> <span id="res-anno-ed">-</span></div>
-                    <div><span class="text-sky-400 font-semibold">Rilegatura:</span> <span id="res-rilegatura">-</span></div>
-                    <div><span class="text-sky-400 font-semibold">Edizione:</span> <span id="res-edizione">-</span></div>
-                    <div><span class="text-sky-400 font-semibold">Collana:</span> <span id="res-collana">-</span></div>
-                    <div class="md:col-span-2"><span class="text-sky-400 font-semibold">Descrizione (riassunto):</span> <p id="res-desc" class="text-slate-300 mt-1 leading-relaxed">-</p></div>
+                <div class="flex gap-3 mb-6">
+                    <input type="text" id="isbn" placeholder="Es. 9788804668237" 
+                        class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-slate-100 focus:outline-none focus:border-sky-500 transition">
+                    <button id="search-btn" onclick="fetchBookData()" 
+                        class="bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold px-6 py-3 rounded-xl transition shadow-lg shadow-sky-500/25">
+                        Estrai Dati
+                    </button>
                 </div>
 
-                <div class="bg-slate-950 p-5 rounded-xl border border-slate-800">
-                    <h3 class="text-sm font-semibold text-slate-400 mb-3 flex items-center justify-between">
-                        <span>Grafico delle vendite e prezzo medio nel tempo</span>
-                        <span class="text-xs text-sky-400 bg-sky-950 px-2 py-1 rounded border border-sky-800">Trend CardMarket Style</span>
-                    </h3>
-                    <div class="relative h-64 w-full">
-                        <canvas id="priceChart"></canvas>
+                <div id="loader" class="hidden text-center py-8 text-sky-400 font-medium animate-pulse">
+                    Estrazione dettagli libro in corso con Gemini...
+                </div>
+
+                <div id="error-box" class="hidden bg-red-950/50 border border-red-800 text-red-200 p-4 rounded-xl mb-6 text-sm">
+                    <strong class="font-bold">Errore:</strong> <span id="error-text">-</span>
+                </div>
+
+                <!-- Form di salvataggio finale precompilato -->
+                <form id="save-form" action="/api/save-book" method="POST" class="hidden space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-950 p-5 rounded-xl border border-slate-800 text-sm">
+                        <div>
+                            <label class="text-sky-400 font-semibold block mb-1">Nome del libro[cite: 13]</label>
+                            <input type="text" id="res-nome" name="nome_libro" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-100" required>
+                        </div>
+                        <div>
+                            <label class="text-sky-400 font-semibold block mb-1">Prezzo medio[cite: 13]</label>
+                            <input type="text" id="res-prezzo" name="prezzo_medio" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-emerald-400 font-bold" required>
+                        </div>
+                        <div>
+                            <label class="text-sky-400 font-semibold block mb-1">Codice EAN[cite: 13]</label>
+                            <input type="text" id="res-ean" name="codice_ean" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-100" required>
+                        </div>
+                        <div>
+                            <label class="text-sky-400 font-semibold block mb-1">Anno pubblicazione[cite: 13]</label>
+                            <input type="text" id="res-anno-pub" name="anno_pubblicazione" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-100">
+                        </div>
+                        <div>
+                            <label class="text-sky-400 font-semibold block mb-1">Anno edizione[cite: 13]</label>
+                            <input type="text" id="res-anno-ed" name="anno_edizione" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-100">
+                        </div>
+                        <div>
+                            <label class="text-sky-400 font-semibold block mb-1">Rilegatura[cite: 13]</label>
+                            <input type="text" id="res-rilegatura" name="rilegatura" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-100">
+                        </div>
+                        <div>
+                            <label class="text-sky-400 font-semibold block mb-1">Edizione[cite: 13]</label>
+                            <input type="text" id="res-edizione" name="edizione" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-100">
+                        </div>
+                        <div>
+                            <label class="text-sky-400 font-semibold block mb-1">Collana[cite: 13]</label>
+                            <input type="text" id="res-collana" name="collana" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-100">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="text-sky-400 font-semibold block mb-1">Descrizione (riassunto)[cite: 13]</label>
+                            <textarea id="res-desc" name="descrizione" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-300"></textarea>
+                        </div>
                     </div>
-                </div>
+
+                    <div class="bg-slate-950 p-5 rounded-xl border border-slate-800">
+                        <h3 class="text-sm font-semibold text-slate-400 mb-3">Grafico storico prezzi (CardMarket Style)</h3>
+                        <div class="relative h-48 w-full">
+                            <canvas id="priceChart"></canvas>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold py-3.5 rounded-xl transition shadow-lg shadow-emerald-500/20">
+                        Salva e Pubblica nel Marketplace
+                    </button>
+                </form>
             </div>
         </div>
 
         <script>
             let myChart = null;
 
-            async function searchBook() {
+            async function fetchBookData() {
                 const isbn = document.getElementById('isbn').value.trim();
                 const btn = document.getElementById('search-btn');
                 const loader = document.getElementById('loader');
-                const resultDiv = document.getElementById('result');
+                const formDiv = document.getElementById('save-form');
                 const errorBox = document.getElementById('error-box');
                 
                 if (!isbn) {
-                    alert("Inserisci un codice ISBN valido.");
+                    alert("Inserisci un codice ISBN.");
                     return;
                 }
 
                 btn.disabled = true;
                 loader.classList.remove('hidden');
-                resultDiv.classList.add('hidden');
+                formDiv.classList.add('hidden');
                 errorBox.classList.add('hidden');
 
                 try {
-                    const response = await fetch('/api/search?isbn=' + encodeURIComponent(isbn));
+                    const response = await fetch('/api/parse-isbn?isbn=' + encodeURIComponent(isbn));
                     const data = await response.json();
 
                     if (data.success) {
-                        document.getElementById('res-nome').innerText = data.nome_libro || "-";
-                        document.getElementById('res-prezzo').innerText = data.prezzo_medio || "-";
-                        document.getElementById('res-ean').innerText = data.codice_ean || "-";
-                        document.getElementById('res-anno-pub').innerText = data.anno_pubblicazione || "-";
-                        document.getElementById('res-anno-ed').innerText = data.anno_edizione || "-";
-                        document.getElementById('res-rilegatura').innerText = data.rilegatura || "-";
-                        document.getElementById('res-edizione').innerText = data.edizione || "-";
-                        document.getElementById('res-collana').innerText = data.collana || "-";
-                        document.getElementById('res-desc').innerText = data.descrizione || "-";
+                        document.getElementById('res-nome').value = data.nome_libro || "";
+                        document.getElementById('res-prezzo').value = data.prezzo_medio || "";
+                        document.getElementById('res-ean').value = data.codice_ean || isbn;
+                        document.getElementById('res-anno-pub').value = data.anno_pubblicazione || "";
+                        document.getElementById('res-anno-ed').value = data.anno_edizione || "";
+                        document.getElementById('res-rilegatura').value = data.rilegatura || "";
+                        document.getElementById('res-edizione').value = data.edizione || "";
+                        document.getElementById('res-collana').value = data.collana || "";
+                        document.getElementById('res-desc').value = data.descrizione || "";
 
-                        resultDiv.classList.remove('hidden');
+                        formDiv.classList.remove('hidden');
                         renderChart(data.storico_prezzi);
                     } else {
-                        document.getElementById('error-text').innerText = data.error || "Libro non trovato o codice ISBN non valido.";
+                        document.getElementById('error-text').innerText = data.error || "Impossibile estrarre i dati.";
                         errorBox.classList.remove('hidden');
                     }
                 } catch (e) {
-                    alert("Errore di connessione al server.");
+                    alert("Errore di comunicazione.");
                 } finally {
                     btn.disabled = false;
                     loader.classList.add('hidden');
@@ -139,22 +261,17 @@ async def home():
                 const ctx = document.getElementById('priceChart').getContext('2d');
                 if (myChart) myChart.destroy();
 
-                const labels = storico?.labels || ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set'];
-                const prices = storico?.prices || [14.0, 14.5, 15.0, 14.8, 15.5, 16.0, 15.8, 16.2, 16.5];
-
                 myChart = new Chart(ctx, {
                     type: 'line',
                     data: {
-                        labels: labels,
+                        labels: storico?.labels || ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set'],
                         datasets: [{
-                            label: 'Prezzo Medio (€)',
-                            data: prices,
+                            data: storico?.prices || [15, 15.5, 16, 16.5, 17, 17.5, 18, 18.2, 18.5],
                             borderColor: '#38bdf8',
                             backgroundColor: 'rgba(56, 189, 248, 0.1)',
                             borderWidth: 2,
                             fill: true,
-                            tension: 0.3,
-                            pointBackgroundColor: '#38bdf8'
+                            tension: 0.3
                         }]
                     },
                     options: {
@@ -173,59 +290,71 @@ async def home():
     </html>
     """
 
-@app.get("/api/search")
-async def api_search(isbn: str):
+# --- 3. API DI ESTRAZIONE GEMINI PER ISBN ---
+@app.get("/api/parse-isbn")
+async def api_parse_isbn(isbn: str):
     clean_isbn = re.sub(r'[^\dxX]', '', isbn)
-    if not clean_isbn:
-        return {"success": False, "error": "ISBN non valido."}
-
-    # Controllo nel database locale di riserva
-    if clean_isbn in BOOKS_DB:
-        res = BOOKS_DB[clean_isbn].copy()
-        res["storico_prezzi"] = {
-            "labels": ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set"],
-            "prices": [16.0, 16.5, 17.0, 16.8, 17.2, 17.8, 18.0, 18.2, 18.5]
-        }
-        return res
-
-    # Generazione tramite Gemini API basata sui campi richiesti
     try:
         api_key = os.environ.get("GEMINI_API_KEY")
         if not api_key:
-            return {"success": False, "error": "Chiave GEMINI_API_KEY non configurata su Render."}
+            return {"success": False, "error": "Chiave GEMINI_API_KEY non configurata."}
 
         client = genai.Client(api_key=api_key)
         prompt = f"""
-        Analizza il codice ISBN: {clean_isbn}. Restituisci ESCLUSIVAMENTE un oggetto JSON valido (senza blocchi di codice markdown se possibile, o racchiuso in ```json) con esattamente queste chiavi e informazioni accurate:
+        Analizza il codice ISBN: {clean_isbn}. Restituisci ESCLUSIVAMENTE un oggetto JSON valido con queste chiavi esatte:
         {{
             "success": true,
-            "nome_libro": "Titolo completo del libro",
-            "prezzo_medio": "Prezzo medio stimato in formato euro (es. 15.00 €)",
-            "descrizione": "Un dettagliato riassunto o sinossi del libro",
-            "anno_pubblicazione": "Anno di prima pubblicazione",
-            "anno_edizione": "Anno di questa specifica edizione",
+            "nome_libro": "Titolo completo",
+            "prezzo_medio": "18.50 €",
+            "descrizione": "Sinossi o riassunto dettagliato",
+            "anno_pubblicazione": "2016",
+            "anno_edizione": "2020",
             "codice_ean": "{clean_isbn}",
-            "rilegatura": "Tipo di rilegatura (es. Brossura, Copertina rigida)",
-            "edizione": "Numero o tipo di edizione (es. Prima edizione)",
-            "collana": "Nome della collana editoriale o editore",
+            "rilegatura": "Brossura",
+            "edizione": "Prima edizione",
+            "collana": "Collana editoriale",
             "storico_prezzi": {{
                 "labels": ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set"],
-                "prices": [14.0, 14.5, 15.0, 14.8, 15.5, 16.0, 15.8, 16.2, 16.5]
+                "prices": [15.0, 15.5, 16.0, 16.8, 17.2, 17.5, 18.0, 18.2, 18.5]
             }}
         }}
         """
-        
         response = client.models.generate_content(
             model='gemini-2.5-flash',
             contents=prompt
         )
-        
         text_res = response.text.strip()
         text_res = re.sub(r'^```json\s*', '', text_res)
         text_res = re.sub(r'\s*```$', '', text_res)
-        
-        data = json.loads(text_res)
-        return data
+        return json.loads(text_res)
     except Exception as e:
-        print(f"Errore durante l'interrogazione di Gemini: {e}")
-        return {"success": False, "error": "Impossibile recuperare i dati per questo ISBN tramite l'intelligenza artificiale."}
+        return {"success": False, "error": str(e)}
+
+# --- 4. SALVATAGGIO NEL DATABASE DEL MARKETPLACE ---
+@app.post("/api/save-book")
+async def save_book(
+    nome_libro: str = Form(...),
+    prezzo_medio: str = Form(...),
+    descrizione: str = Form(...),
+    anno_pubblicazione: str = Form(...),
+    anno_edizione: str = Form(...),
+    codice_ean: str = Form(...),
+    rilegatura: str = Form(...),
+    edizione: str = Form(...),
+    collana: str = Form(...)
+):
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    try:
+        cursor.execute('''
+            INSERT OR REPLACE INTO books 
+            (nome_libro, prezzo_medio, descrizione, anno_pubblicazione, anno_edizione, codice_ean, rilegatura, edizione, collana)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (nome_libro, prezzo_medio, descrizione, anno_pubblicazione, anno_edizione, codice_ean, rilegatura, edizione, collana))
+        conn.commit()
+    except Exception as e:
+        print(f"Errore salvataggio DB: {e}")
+    finally:
+        conn.close()
+
+    return RedirectResponse(url="/", status_code=303)
