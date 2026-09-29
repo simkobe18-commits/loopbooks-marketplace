@@ -7,7 +7,7 @@ from google import genai
 
 app = FastAPI()
 
-# Database locale di riserva per ISBN frequenti
+# Database locale di riserva per ISBN frequenti[cite: 14]
 BOOKS_DB = {
     "9788804668237": {
         "success": True,
@@ -271,7 +271,7 @@ async def biblioteca_page():
 @app.get("/metti-in-vendita", response_class=HTMLResponse)
 async def metti_in_vendita_page():
     navbar = get_navbar('metti-in-vendita')
-    return f"""
+    html_content = f"""
     <!DOCTYPE html>
     <html lang="it">
     <head>
@@ -389,7 +389,7 @@ async def metti_in_vendita_page():
                             tension: 0.3,
                             pointBackgroundColor: '#38bdf8'
                         }}]
-                    },
+                    }},
                     options: {{
                         responsive: true,
                         maintainAspectRatio: false,
@@ -405,6 +405,7 @@ async def metti_in_vendita_page():
     </body>
     </html>
     """
+    return html_content
 
 # --- 4. PAGINA PROFILO VENDITORE ---
 @app.get("/venditore/{venditore_id}", response_class=HTMLResponse)
