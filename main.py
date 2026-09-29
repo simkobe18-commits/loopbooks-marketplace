@@ -187,8 +187,9 @@ async def api_search(isbn: str):
         Se non trovi il libro o l'ISBN è errato, restituisci: {{"success": false, "error": "Libro non trovato nel database"}}
         """
         
+        # Aggiornato al modello corretto indicato dall'errore
         response = client.models.generate_content(
-            model='gemini-2.5-flash',
+            model='gemini-3.8-flash',
             contents=prompt
         )
         
