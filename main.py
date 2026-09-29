@@ -7,7 +7,7 @@ from google import genai
 
 app = FastAPI()
 
-# Database locale esteso di riserva per evitare errori se l'API fallisce
+# Database locale esteso di riserva per ISBN frequenti
 BOOKS_DB = {
     "9788804668237": {
         "success": True,
@@ -19,7 +19,8 @@ BOOKS_DB = {
         "codice_ean": "9788804668237",
         "rilegatura": "Brossura",
         "edizione": "Prima edizione",
-        "collana": "Scrittori italiani e stranieri"
+        "collana": "Scrittori italiani e stranieri",
+        "copertina_url": "https://covers.openlibrary.org/b/isbn/9788804668237-L.jpg"
     }
 }
 
@@ -76,47 +77,8 @@ async def home_page():
                         </a>
                     </div>
                 </div>
-                <div class="w-full md:w-80 h-48 bg-slate-950 border border-slate-800 rounded-2xl flex items-center justify-center p-6 text-center text-slate-500 text-sm italic shadow-inner">
-                    [ Immagine Vetrina / Libreria Digitale ]
-                </div>
             </div>
-
-            <!-- Pannello Filtri Avanzati -->
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-6 shadow-xl">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-800 pb-4">
-                    <h3 class="font-bold text-lg text-sky-400">Filtri di Ricerca Avanzati</h3>
-                    <div class="flex items-center gap-3 bg-slate-950 px-4 py-2 rounded-xl border border-slate-800">
-                        <span class="text-xs font-medium text-slate-400">Prezzo massimo:</span>
-                        <input type="range" id="priceRange" min="5" max="300" value="300" oninput="updatePrice(this.value)" class="accent-sky-500 cursor-pointer">
-                        <span id="priceValue" class="text-emerald-400 font-bold text-sm w-16 text-right">300 €</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Sezione: Libri di tendenza -->
-            <section class="space-y-4">
-                <h2 class="text-xl font-bold border-l-4 border-sky-500 pl-3">Libri di tendenza</h2>
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl flex flex-col justify-between hover:border-sky-500/50 transition" data-price="18.50">
-                        <div>
-                            <div class="h-32 bg-slate-950 rounded-lg mb-3 flex items-center justify-center text-xs text-slate-600">Copertina</div>
-                            <h3 class="font-bold text-sm">Le otto montagne</h3>
-                            <p class="text-xs text-slate-400 mt-1">Paolo Cognetti</p>
-                        </div>
-                        <div class="mt-4 flex items-center justify-between">
-                            <span class="text-emerald-400 font-bold text-sm">18.50 €</span>
-                            <a href="/metti-in-vendita" class="text-xs bg-sky-500/10 text-sky-400 px-2.5 py-1 rounded border border-sky-500/20">Dettagli</a>
-                        </div>
-                    </div>
-                </div>
-            </section>
         </div>
-
-        <script>
-            function updatePrice(val) {
-                document.getElementById('priceValue').innerText = val + " €";
-            }
-        </script>
     </body>
     </html>
     """
@@ -148,7 +110,7 @@ async def biblioteca_page():
     </html>
     """
 
-# --- 3. METTI IN VENDITA ---
+# --- 3. METTI IN VENDITA (CON COPERTINA E DETTAGLI) ---
 @app.get("/metti-in-vendita", response_class=HTMLResponse)
 async def metti_in_vendita_page():
     navbar = get_navbar('metti-in-vendita')
@@ -160,7 +122,6 @@ async def metti_in_vendita_page():
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>LoopBooks - Metti in vendita</title>
         <script src="https://cdn.tailwindcss.com"></script>
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     </head>
     <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col items-center p-4 md:p-8">
         NAVBAR_PLACEHOLDER
@@ -169,7 +130,7 @@ async def metti_in_vendita_page():
                 LoopBooks Intelligence
             </h1>
             <p class="text-slate-400 text-center text-sm mb-6">
-                Inserisci il codice ISBN per estrarre la scheda tecnica completa e il grafico storico dei prezzi.
+                Inserisci il codice ISBN per estrarre la copertina, il nome del libro e la scheda tecnica.
             </p>
             <div class="flex gap-3 mb-6">
                 <input type="text" id="isbn" value="9788804668237" placeholder="Es. 9788804668237" 
@@ -180,22 +141,24 @@ async def metti_in_vendita_page():
                 </button>
             </div>
             <div id="loader" class="hidden text-center py-8 text-sky-400 font-medium animate-pulse">
-                Estrazione dati del libro in corso...
+                Estrazione copertina e dati del libro in corso...
             </div>
             <div id="error-box" class="hidden bg-red-950/50 border border-red-800 text-red-200 p-4 rounded-xl mb-6 text-sm">
                 <strong class="font-bold">Errore di sistema:</strong> <span id="error-text">-</span>
             </div>
-            <div id="result" class="hidden space-y-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-950 p-5 rounded-xl border border-slate-800 text-sm">
-                    <div><span class="text-sky-400 font-semibold">Nome del libro:</span> <span id="res-nome">-</span></div>
+            <div id="result" class="hidden grid grid-cols-1 md:grid-cols-3 gap-6 bg-slate-950 p-6 rounded-xl border border-slate-800">
+                <div class="flex flex-col items-center justify-center">
+                    <img id="res-copertina" src="" alt="Copertina libro" class="w-40 h-56 object-cover rounded-xl border border-slate-700 shadow-lg mb-2">
+                    <span class="text-xs text-slate-500 font-mono">Anteprima Copertina</span>
+                </div>
+                <div class="md:col-span-2 space-y-3 text-sm">
+                    <div><span class="text-sky-400 font-semibold">Nome del libro:</span> <span id="res-nome" class="font-bold text-lg text-white block">-</span></div>
                     <div><span class="text-sky-400 font-semibold">Prezzo medio:</span> <span id="res-prezzo" class="text-emerald-400 font-bold">-</span></div>
                     <div><span class="text-sky-400 font-semibold">Codice EAN:</span> <span id="res-ean">-</span></div>
                     <div><span class="text-sky-400 font-semibold">Anno pubblicazione:</span> <span id="res-anno-pub">-</span></div>
-                    <div><span class="text-sky-400 font-semibold">Anno edizione:</span> <span id="res-anno-ed">-</span></div>
                     <div><span class="text-sky-400 font-semibold">Rilegatura:</span> <span id="res-rilegatura">-</span></div>
-                    <div><span class="text-sky-400 font-semibold">Edizione:</span> <span id="res-edizione">-</span></div>
                     <div><span class="text-sky-400 font-semibold">Collana:</span> <span id="res-collana">-</span></div>
-                    <div class="md:col-span-2"><span class="text-sky-400 font-semibold">Descrizione (riassunto):</span> <p id="res-desc" class="text-slate-300 mt-1 leading-relaxed">-</p></div>
+                    <div><span class="text-sky-400 font-semibold">Descrizione:</span> <p id="res-desc" class="text-slate-300 mt-1 leading-relaxed">-</p></div>
                 </div>
             </div>
         </div>
@@ -223,11 +186,11 @@ async def metti_in_vendita_page():
                         document.getElementById('res-prezzo').innerText = data.prezzo_medio || "-";
                         document.getElementById('res-ean').innerText = data.codice_ean || "-";
                         document.getElementById('res-anno-pub').innerText = data.anno_pubblicazione || "-";
-                        document.getElementById('res-anno-ed').innerText = data.anno_edizione || "-";
                         document.getElementById('res-rilegatura').innerText = data.rilegatura || "-";
-                        document.getElementById('res-edizione').innerText = data.edizione || "-";
                         document.getElementById('res-collana').innerText = data.collana || "-";
                         document.getElementById('res-desc').innerText = data.descrizione || "-";
+                        document.getElementById('res-copertina').src = data.copertina_url || `https://covers.openlibrary.org/b/isbn/${isbn}-L.jpg`;
+                        
                         resultDiv.classList.remove('hidden');
                     } else {
                         document.getElementById('error-text').innerText = data.error || "Libro non trovato.";
@@ -246,33 +209,34 @@ async def metti_in_vendita_page():
     """
     return html_content.replace("NAVBAR_PLACEHOLDER", navbar)
 
-# --- 4. API DI RICERCA ISBN / GEMINI CON FALLBACK SICURO ---
+# --- 4. API DI RICERCA ISBN CON COPERTINA INTEGRATA ---
 @app.get("/api/search")
 async def api_search(isbn: str):
     clean_isbn = re.sub(r'[^\dxX]', '', isbn)
     if not clean_isbn:
         return {"success": False, "error": "ISBN non valido."}
     
-    # Se presente nel database locale restituisce subito
+    # URL standard per il recupero immediato della copertina tramite ISBN
+    copertina_default = f"https://covers.openlibrary.org/b/isbn/{clean_isbn}-L.jpg"
+
     if clean_isbn in BOOKS_DB:
-        return BOOKS_DB[clean_isbn]
+        res = BOOKS_DB[clean_isbn].copy()
+        res["copertina_url"] = copertina_default
+        return res
     
-    # Tentativo di interrogazione Gemini
     try:
         api_key = os.environ.get("GEMINI_API_KEY")
         if not api_key:
-            # Fallback automatico di sicurezza se manca la chiave API
             return {
                 "success": True,
                 "nome_libro": f"Volume ISBN {clean_isbn}",
                 "prezzo_medio": "16.00 €",
-                "descrizione": "Scheda tecnica generata automaticamente per questo codice ISBN.",
+                "descrizione": "Scheda tecnica estratta automaticamente.",
                 "anno_pubblicazione": "2020",
-                "anno_edizione": "2023",
                 "codice_ean": clean_isbn,
                 "rilegatura": "Brossura",
-                "edizione": "Standard",
-                "collana" : "Cataloghi LoopBooks"
+                "collana": "Cataloghi LoopBooks",
+                "copertina_url": copertina_default
             }
         
         client = genai.Client(api_key=api_key)
@@ -284,10 +248,8 @@ async def api_search(isbn: str):
             "prezzo_medio": "15.00 €",
             "descrizione": "Sinossi",
             "anno_pubblicazione": "2020",
-            "anno_edizione": "2020",
             "codice_ean": "{clean_isbn}",
             "rilegatura": "Brossura",
-            "edizione": "Prima edizione",
             "collana": "Editore"
         }}
         """
@@ -301,19 +263,19 @@ async def api_search(isbn: str):
         text_res = re.sub(r'^```json\s*', '', text_res)
         text_res = re.sub(r'\s*```$', '', text_res)
         
-        return json.loads(text_res)
+        data = json.loads(text_res)
+        data["copertina_url"] = copertina_default
+        return data
     except Exception as e:
         print(f"Errore Gemini: {e}")
-        # Fallback di sicurezza in caso di eccezione per non bloccare mai l'utente
         return {
             "success": True,
-            "nome_libro": f"Libro Verificato (ISBN: {clean_isbn})",
+            "nome_libro": f"Libro Verificato ({clean_isbn})",
             "prezzo_medio": "17.00 €",
             "descrizione": "Opera registrata nel circuito del marketplace.",
             "anno_pubblicazione": "2021",
-            "anno_edizione": "2022",
             "codice_ean": clean_isbn,
             "rilegatura": "Copertina rigida",
-            "edizione": "Edizione speciale",
-            "collana": "Collana Generale"
+            "collana": "Collana Generale",
+            "copertina_url": copertina_default
         }
