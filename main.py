@@ -107,14 +107,18 @@ BOOKS_DATABASE = [
 ]
 
 def get_navbar(active_page="home"):
+    home_class = 'text-white font-bold' if active_page == 'home' else 'text-neutral-300 hover:text-white transition'
+    biblio_class = 'text-white font-bold' if active_page == 'biblioteca' else 'text-neutral-300 hover:text-white transition'
+    vendita_class = 'text-white font-bold' if active_page == 'metti-in-vendita' else 'text-neutral-300 hover:text-white transition'
+    
     return f"""
     <header class="w-full bg-[#141414] border-b border-neutral-800 py-4 px-8 sticky top-0 z-50 flex justify-between items-center shadow-xl">
         <div class="flex items-center gap-8">
             <a href="/" class="text-red-600 font-black text-2xl tracking-tighter uppercase font-sans">LOOPBOOKS</a>
             <nav class="hidden md:flex items-center gap-6 text-sm font-medium">
-                <a href="/" class="{'text-white font-bold' : active_page == 'home'} text-neutral-300 hover:text-white transition">HOME</a>
-                <a href="/biblioteca" class="{'text-white font-bold' : active_page == 'biblioteca'} text-neutral-300 hover:text-white transition">LA MIA BIBLIOTECA</a>
-                <a href="/metti-in-vendita" class="{'text-white font-bold' : active_page == 'metti-in-vendita'} text-neutral-300 hover:text-white transition">METTI IN VENDITA</a>
+                <a href="/" class="{home_class}">HOME</a>
+                <a href="/biblioteca" class="{biblio_class}">LA MIA BIBLIOTECA</a>
+                <a href="/metti-in-vendita" class="{vendita_class}">METTI IN VENDITA</a>
             </nav>
         </div>
         <div>
@@ -130,7 +134,6 @@ def get_navbar(active_page="home"):
 async def home_page():
     navbar = get_navbar('home')
     
-    # Funzione per generare le card stile Netflix
     def render_row(sezione_key):
         filtered = [b for b in BOOKS_DATABASE if b["sezione"] == sezione_key or sezione_key == "tutti"]
         html = ""
@@ -244,10 +247,8 @@ async def home_page():
 async def libro_detail_page(libro_id: str):
     navbar = get_navbar('home')
     
-    # Trova il libro o usa il primo come default
     libro = next((b for b in BOOKS_DATABASE if b["id"] == libro_id), BOOKS_DATABASE[0])
     
-    # Libri simili (tutti tranne quello corrente)
     simili_html = ""
     for b in [x for x in BOOKS_DATABASE if x["id"] != libro_id]:
         simili_html += f"""
@@ -281,7 +282,6 @@ async def libro_detail_page(libro_id: str):
         
         <main class="max-w-6xl mx-auto px-6 py-10 space-y-12">
             
-            <!-- DETTAGLIO PRINCIPALE -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 bg-neutral-900/60 p-8 rounded-xl border border-neutral-800 shadow-2xl">
                 <div class="flex flex-col items-center">
                     <img src="{libro['copertina']}" class="w-64 h-80 object-cover rounded shadow-2xl border border-neutral-700 mb-4">
@@ -306,7 +306,6 @@ async def libro_detail_page(libro_id: str):
                 </div>
             </div>
 
-            <!-- GRAFICO ANDAMENTO PREZZI E VENDITE -->
             <div class="bg-neutral-900/60 p-6 rounded-xl border border-neutral-800 space-y-4">
                 <h3 class="text-xl font-bold">Andamento Prezzi e Vendite (Ultimi 6 Mesi)</h3>
                 <div class="h-72 w-full">
@@ -314,7 +313,6 @@ async def libro_detail_page(libro_id: str):
                 </div>
             </div>
 
-            <!-- TUTTI I VENDITORI DI QUESTO LIBRO -->
             <div class="space-y-4">
                 <h3 class="text-xl font-bold">Tutti i Venditori per questo Libro</h3>
                 <div class="bg-neutral-900 rounded-xl border border-neutral-800 overflow-hidden divide-y divide-neutral-800">
@@ -331,7 +329,6 @@ async def libro_detail_page(libro_id: str):
                             <button class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-4 py-2 rounded transition">Acquista</button>
                         </div>
                     </div>
-                    <!-- Secondo venditore simulato -->
                     <div class="p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:bg-neutral-800/50 transition">
                         <div>
                             <h4 class="font-bold text-white text-base">Biblioteca Centrale Express</h4>
@@ -348,7 +345,6 @@ async def libro_detail_page(libro_id: str):
                 </div>
             </div>
 
-            <!-- ALTRI LIBRI SIMILI -->
             <div class="space-y-4">
                 <h3 class="text-xl font-bold">Altri Libri Simili</h3>
                 <div class="flex gap-4 overflow-x-auto hide-scroll pb-4">
