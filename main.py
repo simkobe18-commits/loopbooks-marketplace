@@ -1,19 +1,18 @@
 import os
 import json
-import re
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
-from google import genai
 
 app = FastAPI()
 
-# Database esteso di volumi con estetica HUD / Roma Bibliotheca
+# Database esteso con generi, venditori e oggettistica
 BOOKS_DATABASE = [
     {
         "id": "9788806200085",
         "titolo": "Il Nome della Rosa",
         "autore": "Umberto Eco",
-        "prezzo": "14.00 €",
+        "prezzo": 14.00,
+        "valutazione_num": 4.9,
         "valutazione": "4.9 ★",
         "condizione": "Ottime condizioni",
         "editore": "Bompiani",
@@ -21,18 +20,21 @@ BOOKS_DATABASE = [
         "codice_ean": "9788806200085",
         "anno_edizione": "2015",
         "anno_pubblicazione": "1980",
-        "descrizione": "Un monastero, un segreto, un crimine. Scopri il mistero custodito tra i codici miniati.",
+        "descrizione": "Un monastero isolato, un segreto custodito tra i codici miniati e un crimine che scuote l'ordine monastico.",
         "venditore": "Libreria Antiquaria Roma",
+        "venditore_id": "roma-antiquaria",
         "venditore_posizione": "Roma (RM)",
         "venditore_valutazione": "4.9 ★ (1.2k recensioni)",
         "sezione": "tendenza",
+        "genere": "Gialli, Thriller e Noir",
         "copertina": "https://covers.openlibrary.org/b/isbn/9788806200085-L.jpg"
     },
     {
         "id": "9788804668237",
         "titolo": "Le otto montagne",
         "autore": "Paolo Cognetti",
-        "prezzo": "18.50 €",
+        "prezzo": 18.50,
+        "valutazione_num": 4.8,
         "valutazione": "4.8 ★",
         "condizione": "Come nuovo",
         "editore": "Einaudi",
@@ -42,16 +44,19 @@ BOOKS_DATABASE = [
         "anno_pubblicazione": "2016",
         "descrizione": "Un romanzo profondo e intenso che racconta la storia di un'amicizia fraterna tra due ragazzi cresciuti in montagna.",
         "venditore": "LoopBooks Official",
+        "venditore_id": "loopbooks-official",
         "venditore_posizione": "Milano (MI)",
         "venditore_valutazione": "4.8 ★ (850 recensioni)",
         "sezione": "migliori-venditori",
+        "genere": "Romanzi contemporanei",
         "copertina": "https://covers.openlibrary.org/b/isbn/9788804668237-L.jpg"
     },
     {
         "id": "9788806231362",
         "titolo": "Omero, Iliade",
         "autore": "Alessandro Baricco",
-        "prezzo": "16.50 €",
+        "prezzo": 16.50,
+        "valutazione_num": 4.7,
         "valutazione": "4.7 ★",
         "condizione": "Buone condizioni",
         "editore": "Feltrinelli",
@@ -61,16 +66,19 @@ BOOKS_DATABASE = [
         "anno_pubblicazione": "2004",
         "descrizione": "La rilettura appassionante del più grande poema epico di tutti i tempi, focalizzata sul destino e la guerra.",
         "venditore": "Antica Stamperia",
+        "venditore_id": "antica-stamperia",
         "venditore_posizione": "Firenze (FI)",
         "venditore_valutazione": "4.6 ★ (410 recensioni)",
         "sezione": "libri-per-te",
+        "genere": "Classici della letteratura",
         "copertina": "https://covers.openlibrary.org/b/isbn/9788806231362-L.jpg"
     },
     {
         "id": "9788866325087",
         "titolo": "L'amica geniale",
         "autore": "Elena Ferrante",
-        "prezzo": "15.00 €",
+        "prezzo": 15.00,
+        "valutazione_num": 5.0,
         "valutazione": "5.0 ★",
         "condizione": "Perfetto",
         "editore": "Edizioni E/O",
@@ -80,16 +88,19 @@ BOOKS_DATABASE = [
         "anno_pubblicazione": "2011",
         "descrizione": "La storia di un'amicizia complessa e duratura sullo sfondo di una Napoli popolare e in evoluzione.",
         "venditore": "BookBaron Milano",
+        "venditore_id": "bookbaron-milano",
         "venditore_posizione": "Milano (MI)",
         "venditore_valutazione": "5.0 ★ (3.4k recensioni)",
         "sezione": "migliori-venditori",
+        "genere": "Romanzi contemporanei",
         "copertina": "https://covers.openlibrary.org/b/isbn/9788866325087-L.jpg"
     },
     {
         "id": "9788804707035",
-        "titolo": "Codice Atlantico",
+        "titolo": "Codice Atlantico (Raro)",
         "autore": "Leonardo da Vinci",
-        "prezzo": "120.00 €",
+        "prezzo": 120.00,
+        "valutazione_num": 5.0,
         "valutazione": "5.0 ★",
         "condizione": "Rarità da collezione",
         "editore": "Giunti Editore",
@@ -99,69 +110,171 @@ BOOKS_DATABASE = [
         "anno_pubblicazione": "1490",
         "descrizione": "Raccolta di disegni e scritti di Leonardo da Vinci, edizione facsimile di inestimabile valore storico.",
         "venditore": "Rari & Co.",
+        "venditore_id": "rari-co",
         "venditore_posizione": "Venezia (VE)",
         "venditore_valutazione": "4.9 ★ (95 recensioni)",
         "sezione": "libri-rari",
+        "genere": "Arte, Musica e Cinema",
         "copertina": "https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=600&q=80"
     }
 ]
 
+OGGETTISTICA_DATABASE = [
+    {
+        "id": "obj-01",
+        "nome": "Valigetta Olografica in Pelle Nera per Consegne Rari",
+        "prezzo": "45.00 €",
+        "descrizione": "Custodia rigida rinforzata con interno in velluto e chiusura biometrica per trasporto manoscritti preziosi.",
+        "immagine": "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=600&q=80"
+    },
+    {
+        "id": "obj-02",
+        "nome": "Sigillo in Ceralacca Personalizzato Roma Bibliotheca",
+        "prezzo": "28.00 €",
+        "descrizione": "Kit completo con manico in ottone massiccio e ceralacca color oro antico per certificare la consegna.",
+        "immagine": "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=600&q=80"
+    },
+    {
+        "id": "obj-03",
+        "nome": "Guanti Bianchi Antistatici per Archivi Storici",
+        "prezzo": "12.00 €",
+        "descrizione": "Cotone organico certificato per la manipolazione sicura di tomi antichi e volumi da collezione.",
+        "immagine": "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=600&q=80"
+    }
+]
+
+GENERI_STRUTTURA = {
+    "Narrativa e Letteratura": [
+        "Romanzi contemporanei",
+        "Narrativa storica",
+        "Gialli, Thriller e Noir",
+        "Fantasy e Fantascienza (Sci-Fi)",
+        "Horror",
+        "Narrativa rosa / Romance",
+        "Classici della letteratura"
+    ],
+    "Saggistica e Cultura": [
+        "Storia e Biografie",
+        "Filosofia e Religione",
+        "Scienze, Tecnologia e Natura",
+        "Sociologia, Politica e Attualità",
+        "Arte, Musica e Cinema"
+    ],
+    "Crescita Personale e Lifestyle": [
+        "Self-help e Motivazione",
+        "Business, Economia e Finanza Personale",
+        "Benessere, Salute e Psicologia",
+        "Cucina, Enogastronomia e Vini",
+        "Viaggi e Guide turistiche"
+    ],
+    "Passioni, Hobby e Creatività": [
+        "Fumetti, Manga e Graphic Novel",
+        "Libri illustrati e Design",
+        "Sport e Giochi",
+        "Esoterismo e Astrologia"
+    ],
+    "Bambini e Ragazzi (Young Adult)": [
+        "Narrativa ragazzi",
+        "Fiabe e Fiabe illustrate",
+        "Young Adult"
+    ]
+}
+
 def get_navbar(active_page="home"):
-    home_class = 'text-[#e5c158] font-bold border-b border-[#e5c158]' if active_page == 'home' else 'text-neutral-400 hover:text-[#f3e5ab] transition'
-    biblio_class = 'text-[#e5c158] font-bold border-b border-[#e5c158]' if active_page == 'biblioteca' else 'text-neutral-400 hover:text-[#f3e5ab] transition'
-    vendita_class = 'text-[#e5c158] font-bold border-b border-[#e5c158]' if active_page == 'metti-in-vendita' else 'text-neutral-400 hover:text-[#f3e5ab] transition'
-    
     return f"""
-    <header class="w-full bg-[#070b14]/90 backdrop-blur-md border-b border-[#e5c158]/30 py-3 px-8 sticky top-0 z-50 flex justify-between items-center shadow-[0_0_25px_rgba(229,193,88,0.15)] font-mono">
+    <header class="w-full bg-[#050b14]/95 backdrop-blur-md border-b border-[#e5c158]/40 py-3 px-8 sticky top-0 z-50 flex justify-between items-center shadow-[0_0_20px_rgba(229,193,88,0.15)]">
         <div class="flex items-center gap-10">
-            <a href="/" class="text-[#e5c158] font-black text-lg tracking-[0.25em] uppercase flex items-center gap-2">
-                <span class="inline-block w-2 h-2 bg-[#e5c158] rounded-full animate-ping"></span>
-                📖 Loopbooks
+            <a href="/" class="text-[#e5c158] font-black text-lg tracking-[0.2em] uppercase font-mono flex items-center gap-2">
+                <span class="inline-block w-2.5 h-2.5 bg-[#e5c158] rounded-full animate-ping"></span>
+                LOOPBOOKS
             </a>
-            <nav class="hidden md:flex items-center gap-8 text-xs tracking-widest uppercase">
-                <a href="/" class="{home_class} pb-1">Home</a>
-                <a href="/biblioteca" class="{biblio_class} pb-1">Le tue liste</a>
-                <a href="/metti-in-vendita" class="{vendita_class} pb-1">Vendi</a>
+            <nav class="hidden md:flex items-center gap-8 text-xs font-mono tracking-widest uppercase">
+                <a href="/" class="{'text-[#e5c158] font-bold border-b border-[#e5c158]' if active_page == 'home' else 'text-neutral-400 hover:text-[#e5c158]'} pb-1 transition">HOME</a>
+                <a href="/biblioteca" class="{'text-[#e5c158] font-bold border-b border-[#e5c158]' if active_page == 'biblioteca' else 'text-neutral-400 hover:text-[#e5c158]'} pb-1 transition">LA MIA BIBLIOTECA</a>
+                <a href="/metti-in-vendita" class="{'text-[#e5c158] font-bold border-b border-[#e5c158]' if active_page == 'metti-in-vendita' else 'text-neutral-400 hover:text-[#e5c158]'} pb-1 transition">METTI IN VENDITA</a>
             </nav>
         </div>
         <div>
-            <a href="/metti-in-vendita" class="bg-[#e5c158]/10 hover:bg-[#e5c158]/20 text-[#e5c158] border border-[#e5c158]/50 text-xs px-4 py-1.5 rounded transition shadow-[0_0_10px_rgba(229,193,88,0.2)]">
-                Accedi HUD
+            <a href="/metti-in-vendita" class="bg-[#e5c158]/10 hover:bg-[#e5c158]/20 text-[#e5c158] border border-[#e5c158]/60 font-mono text-xs px-4 py-2 rounded transition shadow-[0_0_10px_rgba(229,193,88,0.2)]">
+                LOG IN
             </a>
         </div>
     </header>
     """
 
-# --- 1. HOME PAGE STILE ROMA BIBLIOTHECA HUD ---
+# --- HOME PAGE (CON FILTRI, GENERI E OGGETTISTICA) ---
 @app.get("/", response_class=HTMLResponse)
-async def home_page():
+async def home_page(q: str = "", ordine: str = "nessuno", genere: str = "tutti"):
     navbar = get_navbar('home')
     
-    def render_row(sezione_key):
-        filtered = [b for b in BOOKS_DATABASE if b["sezione"] == sezione_key or sezione_key == "tutti"]
+    # Filtraggio e ordinamento libri
+    libri_filtrati = BOOKS_DATABASE.copy()
+    if q:
+        libri_filtrati = [b for b in libri_filtrati if q.lower() in b['titolo'].lower() or q.lower() in b['autore'].lower()]
+    if genere != "tutti":
+        libri_filtrati = [b for b in libri_filtrati if b['genere'] == genere]
+        
+    if ordine == "prezzo_asc":
+        libri_filtrati.sort(key=lambda x: x['prezzo'])
+    elif ordine == "prezzo_desc":
+        libri_filtrati.sort(key=lambda x: x['prezzo'], reverse=True)
+    elif ordine == "valutazione":
+        libri_filtrati.sort(key=lambda x: x['valutazione_num'], reverse=True)
+    elif ordine == "rari":
+        libri_filtrati.sort(key=lambda x: x['prezzo'], reverse=True)
+
+    def render_cards(lista):
+        if not lista:
+            return '<p class="text-xs text-neutral-500 font-mono italic">Nessun tomo corrisponde ai parametri HUD.</p>'
         html = ""
-        for b in filtered:
+        for b in lista:
             html += f"""
-            <a href="/libro/{b['id']}" class="min-w-[150px] md:min-w-[170px] bg-[#0b1322] rounded border border-[#e5c158]/30 overflow-hidden shadow-lg hover:border-[#e5c158] hover:scale-105 transition duration-300 flex-shrink-0 group relative">
-                <div class="h-44 bg-black overflow-hidden relative">
+            <a href="/libro/{b['id']}" class="min-w-[200px] md:min-w-[210px] bg-[#0b1320] rounded border border-[#e5c158]/30 overflow-hidden shadow-lg hover:border-[#e5c158] hover:scale-105 transition duration-300 flex-shrink-0 group relative">
+                <div class="h-60 bg-black overflow-hidden relative">
                     <img src="{b['copertina']}" class="w-full h-full object-cover group-hover:opacity-90 transition">
-                    <span class="absolute top-1 right-1 bg-black/80 text-[#e5c158] font-mono text-[9px] px-1.5 py-0.5 rounded border border-[#e5c158]/30">{b['valutazione']}</span>
+                    <span class="absolute top-2 right-2 bg-black/85 text-[#e5c158] font-mono text-[10px] px-2 py-0.5 rounded border border-[#e5c158]/40">{b['valutazione']}</span>
                 </div>
-                <div class="p-2 space-y-1 font-mono">
+                <div class="p-3 space-y-1 font-mono">
                     <h4 class="font-bold text-xs text-[#f3e5ab] truncate">{b['titolo']}</h4>
-                    <p class="text-[10px] text-neutral-400 truncate">{b['autore']}</p>
-                    <div class="flex justify-between items-center pt-1">
-                        <span class="text-emerald-400 font-bold text-[11px]">{b['prezzo']}</span>
+                    <p class="text-[11px] text-[#e5c158]/70 truncate">{b['autore']}</p>
+                    <div class="flex justify-between items-center pt-2">
+                        <span class="text-emerald-400 font-bold text-xs">{b['prezzo']:.2f} €</span>
+                        <span class="text-[9px] bg-[#1a170c] text-[#e5c158] px-1.5 py-0.5 rounded border border-[#e5c158]/30 truncate max-w-[90px]">{b['condizione']}</span>
                     </div>
                 </div>
             </a>
             """
         return html
 
-    tendenza_html = render_row("tendenza")
-    venditori_html = render_row("migliori-venditori")
-    per_te_html = render_row("libri-per-te")
-    rari_html = render_row("libri-rari")
+    tendenza_html = render_cards([b for b in libri_filtrati if b["sezione"] == "tendenza"] or libri_filtrati)
+    venditori_html = render_cards([b for b in libri_filtrati if b["sezione"] == "migliori-venditori"] or libri_filtrati)
+    per_te_html = render_cards([b for b in libri_filtrati if b["sezione"] == "libri-per-te"] or libri_filtrati)
+    rari_html = render_cards(sorted(libri_filtrati, key=lambda x: x['prezzo'], reverse=True))
+
+    oggettistica_html = ""
+    for obj in OGGETTISTICA_DATABASE:
+        oggettistica_html += f"""
+        <div class="min-w-[220px] bg-[#0b1320] rounded border border-[#e5c158]/30 overflow-hidden shadow-lg p-4 flex-shrink-0 space-y-3 font-mono">
+            <div class="h-40 bg-black rounded overflow-hidden">
+                <img src="{obj['immagine']}" class="w-full h-full object-cover">
+            </div>
+            <h4 class="font-bold text-xs text-[#f3e5ab] truncate">{obj['nome']}</h4>
+            <p class="text-[11px] text-neutral-400 line-clamp-2">{obj['descrizione']}</p>
+            <div class="flex justify-between items-center pt-2">
+                <span class="text-emerald-400 font-bold text-xs">{obj['prezzo']}</span>
+                <button onclick="alert('Oggetto aggiunto al kit di consegna olografico!')" class="bg-[#e5c158]/20 hover:bg-[#e5c158]/30 text-[#e5c158] text-[10px] px-3 py-1.5 rounded border border-[#e5c158]/60 transition">Ordina</button>
+            </div>
+        </div>
+        """
+
+    # Generazione HTML select generi
+    generi_options = '<option value="tutti">Tutti i Generi HUD</option>'
+    for macro, sottos in GENERI_STRUTTURA.items():
+        generi_options += f'<optgroup label="{macro}">'
+        for sotto in sottos:
+            sel = "selected" if genere == sotto else ""
+            generi_options += f'<option value="{sotto}" {sel}>{sotto}</option>'
+        generi_options += '</optgroup>'
 
     return f"""
     <!DOCTYPE html>
@@ -169,146 +282,145 @@ async def home_page():
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Roma Bibliotheca - HUD Interface</title>
+        <title>LoopBooks - Roma Bibliotheca HUD</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <style>
-            body {{ background-color: #03060c; color: #e2e8f0; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }}
+            body {{ background-color: #030712; color: #e2e8f0; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }}
             .hide-scroll::-webkit-scrollbar {{ display: none; }}
             .hide-scroll {{ -ms-overflow-style: none; scrollbar-width: none; }}
-            .hud-border {{ border: 1px solid rgba(229, 193, 88, 0.35); box-shadow: 0 0 25px rgba(229, 193, 88, 0.1); }}
-            .hud-circle {{ border: 2px dashed rgba(229, 193, 88, 0.5); border-radius: 50%; animation: spin 20s linear infinite; }}
-            @keyframes spin {{ 100% {{ transform: rotate(360deg); }} }}
         </style>
     </head>
-    <body class="min-h-screen pb-24 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#0d1526] via-[#040812] to-[#020408]">
+    <body class="min-h-screen pb-24">
+        {navbar}
         
         <!-- ROMA BIBLIOTHECA TOP BADGE -->
-        <div class="w-full flex justify-center py-2 bg-[#050810] border-b border-[#e5c158]/20">
-            <div class="px-6 py-1 bg-[#0b1322] border border-[#e5c158]/50 rounded-b-lg shadow-[0_0_15px_rgba(229,193,88,0.2)] text-[#e5c158] font-mono text-xs font-bold tracking-[0.3em] uppercase">
-                Roma Bibliotheca
+        <div class="w-full bg-[#080d16] border-b border-[#e5c158]/30 py-2 text-center">
+            <span class="text-[#e5c158] font-mono text-xs tracking-[0.3em] uppercase">ROMA BIBLIOTHECA // SECURE ARCHIVE PROTOCOL</span>
+        </div>
+
+        <!-- HERO / BANNER PRINCIPALE -->
+        <div class="relative w-full h-[450px] bg-cover bg-center flex items-end p-8 md:p-14 border-b border-[#e5c158]/30" style="background-image: linear-gradient(to top, #030712, rgba(3,7,18,0.4)), url('https://covers.openlibrary.org/b/isbn/9788806200085-L.jpg');">
+            <div class="max-w-2xl space-y-4">
+                <span class="bg-[#e5c158]/20 text-[#e5c158] border border-[#e5c158]/60 text-[10px] font-mono font-bold px-3 py-1 uppercase tracking-widest rounded shadow-[0_0_10px_rgba(229,193,88,0.3)]">SISTEMA ATTIVO // ARCHIVIO CENTRALE</span>
+                <h1 class="text-4xl md:text-5xl font-black tracking-tight text-[#f3e5ab] font-sans">CREA LA TUA BIBLIOTECA</h1>
+                <p class="text-[#f3e5ab]/80 text-xs md:text-sm leading-relaxed font-mono">
+                    Interfaccia di scansione e gestione volumi rari, bestseller e inventari digitali. Sincronizzazione protetta attiva.
+                </p>
+                <div class="flex gap-4 pt-2">
+                    <a href="/metti-in-vendita" class="bg-[#e5c158] hover:bg-[#d4b045] text-black font-mono font-bold px-8 py-3 rounded flex items-center gap-2 transition shadow-[0_0_20px_rgba(229,193,88,0.4)] text-xs uppercase tracking-widest">
+                        ▶ Metti in Vendita
+                    </a>
+                </div>
             </div>
         </div>
 
-        {navbar}
-
-        <main class="max-w-7xl mx-auto px-6 py-8 space-y-8">
+        <main class="px-6 md:px-12 space-y-12 mt-8">
             
-            <!-- HERO / OLOGRAFICA CENTRALE (ISIRPIS 1:1 CON L'IMMAGINE) -->
-            <div class="relative w-full hud-border bg-[#070e1b]/80 backdrop-blur-md rounded-xl p-6 md:p-8 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
-                
-                <!-- Cornice Tech Sinistra (Descrizione) -->
-                <div class="lg:col-span-5 space-y-4">
-                    <div class="inline-block px-3 py-1 bg-[#e5c158]/10 border border-[#e5c158]/40 text-[#e5c158] text-[10px] uppercase tracking-widest rounded">
-                        Protocollo Scansione Attivo
-                    </div>
-                    <h1 class="text-2xl md:text-3xl font-black text-white tracking-wide font-sans">
-                        Un monastero, un segreto, un crimine. Scopri il mistero...
-                    </h1>
-                    <p class="text-neutral-300 text-xs leading-relaxed font-mono">
-                        Analisi codici miniati e volumi antichi in corso. Sincronizzato con l'archivio centrale di Roma.
-                    </p>
-                    <div class="flex items-center gap-3 pt-2">
-                        <span class="w-2 h-2 bg-emerald-400 rounded-full animate-ping"></span>
-                        <span class="text-[11px] text-emerald-400 font-mono">Stato: Disponibile per Scambio</span>
-                    </div>
+            <!-- BARRA FILTRI E RICERCA AVANZATA -->
+            <form method="GET" action="/" class="bg-[#0b1320] p-6 rounded border border-[#e5c158]/40 shadow-[0_0_20px_rgba(229,193,88,0.1)] grid grid-cols-1 md:grid-cols-3 gap-4 font-mono">
+                <div>
+                    <label class="block text-[11px] text-[#e5c158] mb-1 uppercase tracking-wider">Cerca libro per nome o autore</label>
+                    <input type="text" name="q" value="{q}" placeholder="Es. Il Nome della Rosa..." class="w-full bg-black border border-[#e5c158]/40 rounded px-3 py-2 text-xs text-[#f3e5ab] focus:outline-none focus:border-[#e5c158]">
                 </div>
-
-                <!-- Copertina Centrale in Evidenza -->
-                <div class="lg:col-span-4 flex justify-center items-center relative">
-                    <div class="absolute w-56 h-56 hud-circle pointer-events-none"></div>
-                    <div class="relative z-10 bg-[#0b1322] p-2 rounded-lg hud-border shadow-[0_0_30px_rgba(229,193,88,0.3)] transform hover:scale-105 transition duration-300">
-                        <img src="https://covers.openlibrary.org/b/isbn/9788806200085-L.jpg" class="w-36 h-48 md:w-44 md:h-60 object-cover rounded">
-                        <div class="absolute -bottom-3 -right-3 bg-[#e5c158] text-black text-[10px] font-bold px-2 py-0.5 rounded shadow">
-                            HUD-01
-                        </div>
-                    </div>
+                <div>
+                    <label class="block text-[11px] text-[#e5c158] mb-1 uppercase tracking-wider">Filtra per Genere HUD</label>
+                    <select name="genere" class="w-full bg-black border border-[#e5c158]/40 rounded px-3 py-2 text-xs text-[#f3e5ab] focus:outline-none focus:border-[#e5c158]">
+                        {generi_options}
+                    </select>
                 </div>
-
-                <!-- Radar Olografico Destra -->
-                <div class="lg:col-span-3 flex flex-col items-center justify-center relative">
-                    <div class="w-40 h-40 hud-circle flex items-center justify-center relative">
-                        <div class="w-28 h-28 border border-[#e5c158]/30 rounded-full flex items-center justify-center">
-                            <div class="w-16 h-16 bg-[#e5c158]/10 rounded-full flex items-center justify-center animate-pulse">
-                                <span class="text-[#e5c158] text-xl">📖</span>
-                            </div>
-                        </div>
+                <div class="flex items-end gap-2">
+                    <div class="flex-1">
+                        <label class="block text-[11px] text-[#e5c158] mb-1 uppercase tracking-wider">Ordina per</label>
+                        <select name="ordine" class="w-full bg-black border border-[#e5c158]/40 rounded px-3 py-2 text-xs text-[#f3e5ab] focus:outline-none focus:border-[#e5c158]">
+                            <option value="nessuno" {"selected" if ordine=="nessuno" else ""}>Predefinito</option>
+                            <option value="prezzo_asc" {"selected" if ordine=="prezzo_asc" else ""}>Prezzo: Crescente</option>
+                            <option value="prezzo_desc" {"selected" if ordine=="prezzo_desc" else ""}>Prezzo: Decrescente</option>
+                            <option value="valutazione" {"selected" if ordine=="valutazione" else ""}>Miglior Valutazione</option>
+                            <option value="rari" {"selected" if ordine=="rari" else ""}>Più Costosi (Rari)</option>
+                        </select>
                     </div>
-                    <span class="text-[10px] text-[#e5c158] mt-3 tracking-widest uppercase">Target Scanner 360°</span>
+                    <button type="submit" class="bg-[#e5c158] hover:bg-[#d4b045] text-black font-bold px-4 py-2 rounded text-xs uppercase transition h-[34px]">Filtra</button>
                 </div>
+            </form>
 
-            </div>
+            <!-- SEZIONE 1: LIBRI DI TENDENZA -->
+            <section class="space-y-4">
+                <div class="flex items-center gap-2 border-b border-[#e5c158]/30 pb-2">
+                    <span class="w-2 h-2 bg-[#e5c158] rounded-full animate-pulse"></span>
+                    <h3 class="text-sm font-mono font-bold tracking-widest text-[#f3e5ab] uppercase">Libri di Tendenza</h3>
+                </div>
+                <div class="flex gap-4 overflow-x-auto hide-scroll pb-4">
+                    {tendenza_html}
+                </div>
+            </section>
 
-            <!-- CAROSELLI STILE NETFLIX CON INTERFACCIA HUD -->
-            <div class="space-y-8">
-                
-                <!-- Sezione 1 -->
-                <section class="space-y-3">
-                    <div class="flex items-center gap-2 border-b border-[#e5c158]/20 pb-2">
-                        <span class="w-2 h-2 bg-[#e5c158] rounded-full"></span>
-                        <h3 class="text-sm font-mono font-bold tracking-wider text-[#e5c158] uppercase">Libri di Tendenza</h3>
-                    </div>
-                    <div class="flex gap-4 overflow-x-auto hide-scroll pb-2">
-                        {tendenza_html}
-                    </div>
-                </section>
+            <!-- SEZIONE 2: MIGLIORI VENDITORI -->
+            <section class="space-y-4">
+                <div class="flex items-center gap-2 border-b border-[#e5c158]/30 pb-2">
+                    <span class="w-2 h-2 bg-[#e5c158] rounded-full animate-pulse"></span>
+                    <h3 class="text-sm font-mono font-bold tracking-widest text-[#f3e5ab] uppercase">Migliori Venditori (Con Collegamento Profilo)</h3>
+                </div>
+                <div class="flex gap-4 overflow-x-auto hide-scroll pb-4">
+                    {venditori_html}
+                </div>
+            </section>
 
-                <!-- Sezione 2 -->
-                <section class="space-y-3">
-                    <div class="flex items-center gap-2 border-b border-[#e5c158]/20 pb-2">
-                        <span class="w-2 h-2 bg-[#e5c158] rounded-full"></span>
-                        <h3 class="text-sm font-mono font-bold tracking-wider text-[#e5c158] uppercase">Migliori Venditori</h3>
-                    </div>
-                    <div class="flex gap-4 overflow-x-auto hide-scroll pb-2">
-                        {venditori_html}
-                    </div>
-                </section>
+            <!-- SEZIONE 3: LIBRI PER TE -->
+            <section class="space-y-4">
+                <div class="flex items-center gap-2 border-b border-[#e5c158]/30 pb-2">
+                    <span class="w-2 h-2 bg-[#e5c158] rounded-full animate-pulse"></span>
+                    <h3 class="text-sm font-mono font-bold tracking-widest text-[#f3e5ab] uppercase">Libri per Te</h3>
+                </div>
+                <div class="flex gap-4 overflow-x-auto hide-scroll pb-4">
+                    {per_te_html}
+                </div>
+            </section>
 
-                <!-- Sezione 3 -->
-                <section class="space-y-3">
-                    <div class="flex items-center gap-2 border-b border-[#e5c158]/20 pb-2">
-                        <span class="w-2 h-2 bg-[#e5c158] rounded-full"></span>
-                        <h3 class="text-sm font-mono font-bold tracking-wider text-[#e5c158] uppercase">Consigliati per Te</h3>
-                    </div>
-                    <div class="flex gap-4 overflow-x-auto hide-scroll pb-2">
-                        {per_te_html}
-                    </div>
-                </section>
+            <!-- SEZIONE 4: LIBRI RARI (PIÙ COSTOSI) -->
+            <section class="space-y-4">
+                <div class="flex items-center gap-2 border-b border-[#e5c158]/30 pb-2">
+                    <span class="w-2 h-2 bg-[#e5c158] rounded-full animate-pulse"></span>
+                    <h3 class="text-sm font-mono font-bold tracking-widest text-[#f3e5ab] uppercase">Libri Rari (Più Costosi)</h3>
+                </div>
+                <div class="flex gap-4 overflow-x-auto hide-scroll pb-4">
+                    {rari_html}
+                </div>
+            </section>
 
-                <!-- Sezione 4 -->
-                <section class="space-y-3">
-                    <div class="flex items-center gap-2 border-b border-[#e5c158]/20 pb-2">
-                        <span class="w-2 h-2 bg-[#e5c158] rounded-full"></span>
-                        <h3 class="text-sm font-mono font-bold tracking-wider text-[#e5c158] uppercase">Libri Rari & Collezioni</h3>
-                    </div>
-                    <div class="flex gap-4 overflow-x-auto hide-scroll pb-2">
-                        {rari_html}
-                    </div>
-                </section>
-
-            </div>
+            <!-- SEZIONE 5: OGGETTISTICA PER CONSEGNE -->
+            <section class="space-y-4">
+                <div class="flex items-center gap-2 border-b border-[#e5c158]/30 pb-2">
+                    <span class="w-2 h-2 bg-[#e5c158] rounded-full animate-pulse"></span>
+                    <h3 class="text-sm font-mono font-bold tracking-widest text-[#f3e5ab] uppercase">📦 Oggettistica per Consegne e Archiviazione</h3>
+                </div>
+                <div class="flex gap-4 overflow-x-auto hide-scroll pb-4">
+                    {oggettistica_html}
+                </div>
+            </section>
 
         </main>
     </body>
     </html>
     """
 
-# --- 2. PAGINA DETTAGLIO LIBRO ---
-@app.get("/libro/{libro_id}", response_class=HTMLResponse)
-async def libro_detail_page(libro_id: str):
+# --- PAGINA PROFILO VENDITORE ---
+@app.get("/venditore/{venditore_id}", response_class=HTMLResponse)
+async def venditore_page(venditore_id: str):
     navbar = get_navbar('home')
-    
-    libro = next((b for b in BOOKS_DATABASE if b["id"] == libro_id), BOOKS_DATABASE[0])
-    
-    simili_html = ""
-    for b in [x for x in BOOKS_DATABASE if x["id"] != libro_id]:
-        simili_html += f"""
-        <a href="/libro/{b['id']}" class="min-w-[160px] bg-[#0b1322] rounded border border-[#e5c158]/30 overflow-hidden shadow hover:border-[#e5c158] hover:scale-105 transition flex-shrink-0">
-            <div class="h-40 bg-black overflow-hidden">
-                <img src="{b['copertina']}" class="w-full h-full object-cover">
-            </div>
-            <div class="p-2 font-mono">
-                <h4 class="font-bold text-xs text-[#f3e5ab] truncate">{b['titolo']}</h4>
-                <p class="text-[11px] text-emerald-400 mt-1">{b['prezzo']}</p>
+    libri_venditore = [b for b in BOOKS_DATABASE if b["venditore_id"] == venditore_id]
+    nome_venditore = libri_venditore[0]["venditore"] if libri_venditore else "Venditore Autorizzato"
+    posizione = libri_venditore[0]["venditore_posizione"] if libri_venditore else "Italia"
+    valutazione_v = libri_venditore[0]["venditore_valutazione"] if libri_venditore else "5.0 ★"
+
+    catalogo_html = ""
+    for b in libri_venditore:
+        catalogo_html += f"""
+        <a href="/libro/{b['id']}" class="bg-[#0b1320] rounded border border-[#e5c158]/30 overflow-hidden shadow hover:border-[#e5c158] transition p-4 flex gap-4 items-center">
+            <img src="{b['copertina']}" class="w-16 h-20 object-cover rounded border border-[#e5c158]/20">
+            <div class="font-mono space-y-1">
+                <h4 class="font-bold text-sm text-[#f3e5ab]">{b['titolo']}</h4>
+                <p class="text-xs text-[#e5c158]/70">{b['autore']}</p>
+                <span class="text-emerald-400 font-bold text-xs">{b['prezzo']:.2f} €</span>
             </div>
         </a>
         """
@@ -319,126 +431,76 @@ async def libro_detail_page(libro_id: str):
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>{libro['titolo']} - Roma Bibliotheca HUD</title>
+        <title>{nome_venditore} - Profilo HUD</title>
         <script src="https://cdn.tailwindcss.com"></script>
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-        <style>
-            body {{ background-color: #03060c; color: #e2e8f0; font-family: ui-monospace, monospace; }}
-            .hud-border {{ border: 1px solid rgba(229, 193, 88, 0.35); box-shadow: 0 0 25px rgba(229, 193, 88, 0.1); }}
-        </style>
+        <style>body {{ background-color: #030712; color: #e2e8f0; font-family: ui-monospace, monospace; }}</style>
     </head>
     <body class="min-h-screen pb-24">
-        
-        <div class="w-full flex justify-center py-2 bg-[#050810] border-b border-[#e5c158]/20">
-            <div class="px-6 py-1 bg-[#0b1322] border border-[#e5c158]/50 rounded-b-lg text-[#e5c158] font-mono text-xs font-bold tracking-[0.3em] uppercase">
-                Roma Bibliotheca // Analisi Tomo
-            </div>
-        </div>
-
         {navbar}
-        
-        <main class="max-w-6xl mx-auto px-6 py-10 space-y-10">
+        <main class="max-w-4xl mx-auto px-6 py-12 space-y-8">
+            <div class="bg-[#0b1320] border border-[#e5c158]/40 rounded p-8 space-y-4 shadow-[0_0_30px_rgba(229,193,88,0.15)] font-mono">
+                <span class="text-[10px] bg-[#e5c158]/20 text-[#e5c158] px-3 py-1 rounded border border-[#e5c158]/50 uppercase tracking-widest">PROFILO VENDITORE CERTIFICATO</span>
+                <h1 class="text-3xl font-bold text-[#f3e5ab]">{nome_venditore}</h1>
+                <p class="text-xs text-neutral-400">📍 Sede: {posizione} | Valutazione Globale: {valutazione_v}</p>
+            </div>
             
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 bg-[#0b1322] p-8 rounded hud-border">
-                <div class="flex flex-col items-center justify-center">
-                    <img src="{libro['copertina']}" class="w-60 h-80 object-cover rounded border border-[#e5c158]/40 shadow-2xl mb-4">
-                    <span class="text-xs text-[#e5c158] font-mono font-bold uppercase tracking-widest bg-[#e5c158]/10 px-3 py-1 rounded border border-[#e5c158]/30">{libro['valutazione']} Media</span>
-                </div>
-                
-                <div class="md:col-span-2 space-y-4 font-mono">
-                    <span class="text-[10px] text-[#e5c158] tracking-widest uppercase">ID PROTOCOLLO // {libro['id']}</span>
-                    <h1 class="text-3xl font-black text-white font-sans">{libro['titolo']}</h1>
-                    <p class="text-base text-[#e5c158]">di {libro['autore']}</p>
-                    <div class="text-2xl font-bold text-emerald-400">{libro['prezzo']} <span class="text-xs font-normal text-neutral-400">({libro['condizione']})</span></div>
-                    
-                    <p class="text-neutral-300 text-xs leading-relaxed italic border-l-2 border-[#e5c158] pl-3">{libro['descrizione']}</p>
-                    
-                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-4 border-t border-[#e5c158]/20 text-xs">
-                        <div><span class="text-neutral-500 block">Editore</span> <strong class="text-neutral-200">{libro['editore']}</strong></div>
-                        <div><span class="text-neutral-500 block">Collana</span> <strong class="text-neutral-200">{libro['collana']}</strong></div>
-                        <div><span class="text-neutral-500 block">Codice EAN</span> <strong class="text-neutral-200">{libro['codice_ean']}</strong></div>
-                        <div><span class="text-neutral-500 block">Anno Edizione</span> <strong class="text-neutral-200">{libro['anno_edizione']}</strong></div>
-                        <div><span class="text-neutral-500 block">Anno Pubblicazione</span> <strong class="text-neutral-200">{libro['anno_pubblicazione']}</strong></div>
-                        <div><span class="text-neutral-500 block">Condizioni</span> <strong class="text-neutral-200">{libro['condizione']}</strong></div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-[#0b1322] p-6 rounded hud-border space-y-4">
-                <div class="flex items-center justify-between border-b border-[#e5c158]/20 pb-2">
-                    <h3 class="text-sm font-bold text-[#e5c158] uppercase tracking-wider font-mono">Telemetria Mercato & Storico Vendite</h3>
-                    <span class="text-[10px] text-emerald-400 font-mono animate-pulse">● LIVE STATUS</span>
-                </div>
-                <div class="h-72 w-full">
-                    <canvas id="priceChart"></canvas>
-                </div>
-            </div>
-
             <div class="space-y-4">
-                <h3 class="text-sm font-bold text-[#e5c158] uppercase tracking-wider font-mono">Venditori Autorizzati per questo Tomo</h3>
-                <div class="bg-[#0b1322] rounded hud-border overflow-hidden divide-y divide-[#e5c158]/20 font-mono">
-                    <div class="p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:bg-[#131e35] transition">
-                        <div>
-                            <h4 class="font-bold text-neutral-100 text-sm">{libro['venditore']}</h4>
-                            <p class="text-[11px] text-neutral-400">📍 {libro['venditore_posizione']} | Valutazione: {libro['venditore_valutazione']}</p>
-                        </div>
-                        <div class="flex items-center gap-6">
-                            <div class="text-right">
-                                <span class="text-[10px] text-neutral-500 block">{libro['condizione']}</span>
-                                <strong class="text-emerald-400 text-base">{libro['prezzo']}</strong>
-                            </div>
-                            <button class="bg-[#e5c158] hover:bg-[#d4b046] text-black text-xs font-mono font-bold px-4 py-2 rounded transition shadow">Acquista</button>
-                        </div>
-                    </div>
+                <h3 class="text-sm font-mono font-bold text-[#f3e5ab] uppercase tracking-wider">Cataloghi e Tomi in Vendita da questo Partner</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {catalogo_html if catalogo_html else '<p class="text-xs text-neutral-500 font-mono">Nessun tomo attualmente attivo.</p>'}
                 </div>
             </div>
-
-            <div class="space-y-4">
-                <h3 class="text-sm font-bold text-[#e5c158] uppercase tracking-wider font-mono">Altri Libri Simili</h3>
-                <div class="flex gap-4 overflow-x-auto hide-scroll pb-4">
-                    {simili_html}
-                </div>
-            </div>
-
         </main>
-
-        <script>
-            const ctx = document.getElementById('priceChart').getContext('2d');
-            new Chart(ctx, {{
-                type: 'line',
-                data: {{
-                    labels: ['Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre'],
-                    datasets: [{{
-                        label: 'Prezzo Medio (€)',
-                        data: [18.0, 17.5, 16.0, 15.5, 15.0, 14.0],
-                        borderColor: '#e5c158',
-                        backgroundColor: 'rgba(229, 193, 88, 0.1)',
-                        tension: 0.3,
-                        fill: true
-                    }}, {{
-                        label: 'Copie Vendute',
-                        data: [5, 8, 12, 10, 15, 22],
-                        borderColor: '#34d399',
-                        tension: 0.3,
-                        yAxisID: 'y1'
-                    }}]
-                }},
-                options: {{
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {{
-                        y: {{ beginAtZero: false, grid: {{ color: '#1a263f' }}, ticks: {{ color: '#94a3b8' }} }},
-                        y1: {{ position: 'right', grid: {{ display: false }}, ticks: {{ color: '#94a3b8' }} }},
-                        x: {{ grid: {{ color: '#1a263f' }}, ticks: {{ color: '#94a3b8' }} }}
-                    }}
-                }}
-            }});
-        </script>
     </body>
     </html>
     """
 
-# --- 3. LA MIA BIBLIOTECA ---
+# --- PAGINA DETTAGLIO LIBRO (Aggiornata con collegamento venditore) ---
+@app.get("/libro/{libro_id}", response_class=HTMLResponse)
+async def libro_detail_page(libro_id: str):
+    navbar = get_navbar('home')
+    libro = next((b for b in BOOKS_DATABASE if b["id"] == libro_id), BOOKS_DATABASE[0])
+    
+    return f"""
+    <!DOCTYPE html>
+    <html lang="it">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>{libro['titolo']} - HUD Analisi</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <style>body {{ background-color: #030712; color: #e2e8f0; font-family: ui-monospace, monospace; }}</style>
+    </head>
+    <body class="min-h-screen pb-24">
+        {navbar}
+        <main class="max-w-5xl mx-auto px-6 py-12 space-y-8 font-mono">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 bg-[#0b1320] p-8 rounded border border-[#e5c158]/40 shadow-[0_0_30px_rgba(229,193,88,0.15)]">
+                <div class="flex flex-col items-center justify-center">
+                    <img src="{libro['copertina']}" class="w-60 h-80 object-cover rounded border border-[#e5c158]/40 shadow-2xl mb-4">
+                    <span class="text-xs text-[#e5c158] font-bold uppercase tracking-widest bg-[#1a170c] px-3 py-1 rounded border border-[#e5c158]/40">{libro['valutazione']} Media</span>
+                </div>
+                <div class="md:col-span-2 space-y-4">
+                    <span class="text-[10px] text-[#e5c158] tracking-widest uppercase">ID PROTOCOLLO // {libro['id']}</span>
+                    <h1 class="text-3xl md:text-4xl font-black text-[#f3e5ab] font-sans">{libro['titolo']}</h1>
+                    <p class="text-base text-[#e5c158]">di {libro['autore']}</p>
+                    <div class="text-2xl font-bold text-emerald-400">{libro['prezzo']:.2f} € <span class="text-xs font-normal text-neutral-400">({libro['condizione']})</span></div>
+                    <p class="text-[#f3e5ab]/80 text-xs leading-relaxed italic border-l-2 border-[#e5c158] pl-3">{libro['descrizione']}</p>
+                    
+                    <div class="pt-4 border-t border-[#e5c158]/20 flex items-center justify-between text-xs">
+                        <div>
+                            <span class="text-neutral-500 block">Venditore Partner:</span>
+                            <a href="/venditore/{libro['venditore_id']}" class="text-[#e5c158] font-bold underline hover:text-[#f3e5ab]">{libro['venditore']} ({libro['venditore_posizione']})</a>
+                        </div>
+                        <button onclick="alert('Richiesta d\\'acquisto registrata nei protocolli di LoopBooks!')" class="bg-[#e5c158] hover:bg-[#d4b045] text-black font-bold px-6 py-2.5 rounded transition uppercase tracking-wider">Acquista Ora</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </body>
+    </html>
+    """
+
+# --- LA MIA BIBLIOTECA ---
 @app.get("/biblioteca", response_class=HTMLResponse)
 async def biblioteca_page():
     navbar = get_navbar('biblioteca')
@@ -447,24 +509,18 @@ async def biblioteca_page():
     <html lang="it">
     <head>
         <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Le tue liste - Roma Bibliotheca HUD</title>
+        <title>La Mia Biblioteca - HUD</title>
         <script src="https://cdn.tailwindcss.com"></script>
-        <style>body {{ background-color: #03060c; color: #e2e8f0; font-family: ui-monospace, monospace; }} .hud-border {{ border: 1px solid rgba(229, 193, 88, 0.35); box-shadow: 0 0 25px rgba(229, 193, 88, 0.1); }}</style>
+        <style>body {{ background-color: #030712; color: #e2e8f0; font-family: ui-monospace, monospace; }}</style>
     </head>
     <body class="min-h-screen pb-24">
-        <div class="w-full flex justify-center py-2 bg-[#050810] border-b border-[#e5c158]/20">
-            <div class="px-6 py-1 bg-[#0b1322] border border-[#e5c158]/50 rounded-b-lg text-[#e5c158] font-mono text-xs font-bold tracking-[0.3em] uppercase">
-                Roma Bibliotheca // Le tue liste
-            </div>
-        </div>
         {navbar}
         <main class="max-w-4xl mx-auto px-6 py-12">
-            <div class="bg-[#0b1322] hud-border rounded p-8 space-y-6 font-mono">
-                <h2 class="text-xl font-bold text-[#e5c158] uppercase tracking-widest">La Tua Raccolta Personale</h2>
-                <p class="text-neutral-400 text-xs">I volumi registrati nella tua domus o sincronizzati con l'archivio.</p>
+            <div class="bg-[#0b1320] border border-[#e5c158]/40 rounded p-8 space-y-6 shadow-[0_0_20px_rgba(229,193,88,0.1)] font-mono">
+                <h2 class="text-xl font-bold text-[#f3e5ab] uppercase tracking-widest">La Tua Raccolta Personale</h2>
+                <p class="text-neutral-400 text-xs">I volumi registrati nella tua domus o sincronizzati con il cloud di Jarvis.</p>
                 <div class="border border-[#e5c158]/20 rounded p-12 text-center text-neutral-500 text-xs">
-                    Nessun manoscritto registrato. Visita <a href="/metti-in-vendita" class="text-[#e5c158] underline font-bold">Vendi</a> per aggiungere libri.
+                    Nessun manoscritto registrato. Visita <a href="/metti-in-vendita" class="text-[#e5c158] underline font-bold">Metti in Vendita</a> per sincronizzare libri.
                 </div>
             </div>
         </main>
@@ -472,7 +528,7 @@ async def biblioteca_page():
     </html>
     """
 
-# --- 4. METTI IN VENDITA ---
+# --- METTI IN VENDITA ---
 @app.get("/metti-in-vendita", response_class=HTMLResponse)
 async def metti_in_vendita_page():
     navbar = get_navbar('metti-in-vendita')
@@ -481,29 +537,23 @@ async def metti_in_vendita_page():
     <html lang="it">
     <head>
         <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Vendi - Roma Bibliotheca HUD</title>
+        <title>Metti in Vendita - HUD</title>
         <script src="https://cdn.tailwindcss.com"></script>
-        <style>body {{ background-color: #03060c; color: #e2e8f0; font-family: ui-monospace, monospace; }} .hud-border {{ border: 1px solid rgba(229, 193, 88, 0.35); box-shadow: 0 0 25px rgba(229, 193, 88, 0.1); }}</style>
+        <style>body {{ background-color: #030712; color: #e2e8f0; font-family: ui-monospace, monospace; }}</style>
     </head>
     <body class="min-h-screen pb-24">
-        <div class="w-full flex justify-center py-2 bg-[#050810] border-b border-[#e5c158]/20">
-            <div class="px-6 py-1 bg-[#0b1322] border border-[#e5c158]/50 rounded-b-lg text-[#e5c158] font-mono text-xs font-bold tracking-[0.3em] uppercase">
-                Roma Bibliotheca // Terminale Vendita
-            </div>
-        </div>
         {navbar}
-        <main class="max-w-3xl mx-auto px-6 py-12">
-            <div class="bg-[#0b1322] hud-border rounded p-8 space-y-6 font-mono">
+        <main class="max-w-3xl mx-auto px-6 py-12 font-mono">
+            <div class="bg-[#0b1320] border border-[#e5c158]/40 rounded p-8 space-y-6 shadow-[0_0_30px_rgba(229,193,88,0.15)]">
                 <div class="text-center space-y-2">
-                    <h2 class="text-2xl font-bold text-[#e5c158] uppercase tracking-widest">Registra un Nuovo Tomo</h2>
-                    <p class="text-neutral-400 text-xs">Inserisci il codice ISBN per attivare la scansione olografica e l'estrazione metadati.</p>
+                    <h2 class="text-2xl font-bold text-[#f3e5ab] uppercase tracking-widest">Registra un Nuovo Tomo</h2>
+                    <p class="text-neutral-400 text-xs">Inserisci il codice ISBN per attivare la scansione olografica e l'estrazione dati automatica.</p>
                 </div>
                 <div class="flex gap-3">
                     <input type="text" id="isbn" value="9788804668237" placeholder="Codice ISBN..." 
                         class="flex-1 bg-black border border-[#e5c158]/40 rounded px-4 py-3 text-[#f3e5ab] text-xs focus:outline-none focus:border-[#e5c158]">
-                    <button onclick="alert('Tomo scansionato e registrato nei registri di Roma Bibliotheca!')" 
-                        class="bg-[#e5c158] hover:bg-[#d4b046] text-black font-mono font-bold px-6 py-3 rounded text-xs uppercase tracking-wider transition shadow">
+                    <button onclick="alert('Tomo scansionato e registrato con successo nei registri di LoopBooks!')" 
+                        class="bg-[#e5c158] hover:bg-[#d4b045] text-black font-bold px-6 py-3 rounded text-xs uppercase tracking-wider transition shadow-[0_0_15px_rgba(229,193,88,0.4)]">
                         Pubblica
                     </button>
                 </div>
