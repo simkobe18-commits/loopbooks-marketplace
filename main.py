@@ -7,7 +7,7 @@ from google import genai
 
 app = FastAPI()
 
-# Database esteso di volumi in stile Netflix
+# Database esteso di volumi con estetica Jarvis / Netflix
 BOOKS_DATABASE = [
     {
         "id": "9788806200085",
@@ -107,29 +107,32 @@ BOOKS_DATABASE = [
 ]
 
 def get_navbar(active_page="home"):
-    home_class = 'text-white font-bold' if active_page == 'home' else 'text-neutral-300 hover:text-white transition'
-    biblio_class = 'text-white font-bold' if active_page == 'biblioteca' else 'text-neutral-300 hover:text-white transition'
-    vendita_class = 'text-white font-bold' if active_page == 'metti-in-vendita' else 'text-neutral-300 hover:text-white transition'
+    home_class = 'text-cyan-400 font-bold border-b border-cyan-400' if active_page == 'home' else 'text-neutral-400 hover:text-cyan-300 transition'
+    biblio_class = 'text-cyan-400 font-bold border-b border-cyan-400' if active_page == 'biblioteca' else 'text-neutral-400 hover:text-cyan-300 transition'
+    vendita_class = 'text-cyan-400 font-bold border-b border-cyan-400' if active_page == 'metti-in-vendita' else 'text-neutral-400 hover:text-cyan-300 transition'
     
     return f"""
-    <header class="w-full bg-[#141414] border-b border-neutral-800 py-4 px-8 sticky top-0 z-50 flex justify-between items-center shadow-xl">
-        <div class="flex items-center gap-8">
-            <a href="/" class="text-red-600 font-black text-2xl tracking-tighter uppercase font-sans">LOOPBOOKS</a>
-            <nav class="hidden md:flex items-center gap-6 text-sm font-medium">
-                <a href="/" class="{home_class}">HOME</a>
-                <a href="/biblioteca" class="{biblio_class}">LA MIA BIBLIOTECA</a>
-                <a href="/metti-in-vendita" class="{vendita_class}">METTI IN VENDITA</a>
+    <header class="w-full bg-[#050b14]/90 backdrop-blur-md border-b border-cyan-500/30 py-4 px-8 sticky top-0 z-50 flex justify-between items-center shadow-[0_0_20px_rgba(6,182,212,0.15)]">
+        <div class="flex items-center gap-10">
+            <a href="/" class="text-cyan-400 font-black text-xl tracking-[0.2em] uppercase font-mono flex items-center gap-2">
+                <span class="inline-block w-2.5 h-2.5 bg-cyan-400 rounded-full animate-ping"></span>
+                LOOPBOOKS // HUD
+            </a>
+            <nav class="hidden md:flex items-center gap-8 text-xs font-mono tracking-widest uppercase">
+                <a href="/" class="{home_class} pb-1">HOME</a>
+                <a href="/biblioteca" class="{biblio_class} pb-1">LA MIA BIBLIOTECA</a>
+                <a href="/metti-in-vendita" class="{vendita_class} pb-1">METTI IN VENDITA</a>
             </nav>
         </div>
         <div>
-            <a href="/metti-in-vendita" class="bg-red-600 hover:bg-red-700 text-white font-bold px-4 py-2 rounded text-sm transition shadow-lg">
+            <a href="/metti-in-vendita" class="bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/50 font-mono text-xs px-4 py-2 rounded transition shadow-[0_0_10px_rgba(6,182,212,0.2)]">
                 LOG IN
             </a>
         </div>
     </header>
     """
 
-# --- 1. HOME PAGE STILE NETFLIX ---
+# --- 1. HOME PAGE STILE NETFLIX + JARVIS ---
 @app.get("/", response_class=HTMLResponse)
 async def home_page():
     navbar = get_navbar('home')
@@ -139,17 +142,17 @@ async def home_page():
         html = ""
         for b in filtered:
             html += f"""
-            <a href="/libro/{b['id']}" class="min-w-[200px] md:min-w-[220px] bg-neutral-900 rounded-md overflow-hidden shadow-lg hover:scale-105 transition duration-300 flex-shrink-0 group border border-neutral-800">
+            <a href="/libro/{b['id']}" class="min-w-[200px] md:min-w-[220px] bg-[#0b1320] rounded border border-cyan-500/20 overflow-hidden shadow-lg hover:border-cyan-400 hover:scale-105 transition duration-300 flex-shrink-0 group relative">
                 <div class="h-64 bg-black overflow-hidden relative">
                     <img src="{b['copertina']}" class="w-full h-full object-cover group-hover:opacity-90 transition">
-                    <span class="absolute bottom-2 right-2 bg-black/80 text-amber-400 text-xs px-2 py-0.5 rounded font-bold">{b['valutazione']}</span>
+                    <span class="absolute top-2 right-2 bg-black/80 text-cyan-400 font-mono text-[10px] px-2 py-0.5 rounded border border-cyan-500/30">{b['valutazione']}</span>
                 </div>
-                <div class="p-3 space-y-1">
-                    <h4 class="font-bold text-sm text-white truncate">{b['titolo']}</h4>
-                    <p class="text-xs text-neutral-400">{b['autore']}</p>
+                <div class="p-3 space-y-1 font-mono">
+                    <h4 class="font-bold text-sm text-cyan-100 truncate">{b['titolo']}</h4>
+                    <p class="text-[11px] text-cyan-400/70">{b['autore']}</p>
                     <div class="flex justify-between items-center pt-2">
-                        <span class="text-emerald-400 font-bold text-sm">{b['prezzo']}</span>
-                        <span class="text-[10px] bg-neutral-800 text-neutral-300 px-2 py-0.5 rounded">{b['condizione']}</span>
+                        <span class="text-emerald-400 font-bold text-xs">{b['prezzo']}</span>
+                        <span class="text-[9px] bg-cyan-950 text-cyan-300 px-1.5 py-0.5 rounded border border-cyan-800">{b['condizione']}</span>
                     </div>
                 </div>
             </a>
@@ -167,47 +170,51 @@ async def home_page():
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>LoopBooks - Streaming di Cultura</title>
+        <title>LoopBooks - JARVIS Interface</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <style>
-            body {{ background-color: #141414; color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }}
+            body {{ background-color: #030712; color: #e2e8f0; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }}
             .hide-scroll::-webkit-scrollbar {{ display: none; }}
             .hide-scroll {{ -ms-overflow-style: none; scrollbar-width: none; }}
+            .jarvis-glow {{ box-shadow: 0 0 25px rgba(6, 182, 212, 0.15); }}
         </style>
     </head>
     <body class="min-h-screen pb-24">
         {navbar}
         
         <!-- HERO / BANNER PRINCIPALE -->
-        <div class="relative w-full h-[500px] bg-cover bg-center flex items-end p-8 md:p-16" style="background-image: linear-gradient(to top, #141414, rgba(20,20,20,0.4)), url('https://covers.openlibrary.org/b/isbn/9788806200085-L.jpg');">
+        <div class="relative w-full h-[520px] bg-cover bg-center flex items-end p-8 md:p-16 border-b border-cyan-500/30" style="background-image: linear-gradient(to top, #030712, rgba(3,7,18,0.3)), url('https://covers.openlibrary.org/b/isbn/9788806200085-L.jpg');">
             <div class="max-w-2xl space-y-4">
-                <span class="bg-red-600 text-white text-xs font-bold px-3 py-1 uppercase tracking-widest rounded">In Primo Piano</span>
-                <h1 class="text-4xl md:text-6xl font-black tracking-tight">CREA LA TUA BIBLIOTECA</h1>
-                <p class="text-neutral-300 text-sm md:text-base leading-relaxed">
-                    Esplora migliaia di volumi rari, bestseller e perle letterarie. Gestisci la tua collezione e scambia volumi in tutta sicurezza.
+                <span class="bg-cyan-500/20 text-cyan-300 border border-cyan-500/50 text-[10px] font-mono font-bold px-3 py-1 uppercase tracking-widest rounded shadow-[0_0_10px_rgba(6,182,212,0.3)]">SISTEMA ATTIVO // ARCHIVIO CENTRALE</span>
+                <h1 class="text-4xl md:text-6xl font-black tracking-tight text-white font-sans">CREA LA TUA BIBLIOTECA</h1>
+                <p class="text-cyan-100/80 text-sm md:text-base leading-relaxed font-mono">
+                    Interfaccia di scansione e gestione volumi rari, bestseller e inventari digitali. Sincronizzazione protetta attiva.
                 </p>
                 <div class="flex gap-4 pt-2">
-                    <a href="/metti-in-vendita" class="bg-white hover:bg-neutral-200 text-black font-bold px-8 py-3 rounded flex items-center gap-2 transition shadow-lg">
+                    <a href="/metti-in-vendita" class="bg-cyan-500 hover:bg-cyan-400 text-black font-mono font-bold px-8 py-3 rounded flex items-center gap-2 transition shadow-[0_0_20px_rgba(6,182,212,0.5)] text-xs uppercase tracking-widest">
                         ▶ Metti in Vendita
                     </a>
                 </div>
             </div>
         </div>
 
-        <main class="px-6 md:px-12 space-y-10 mt-6">
+        <main class="px-6 md:px-12 space-y-12 mt-8">
             
             <!-- FILTRI DI RICERCA RAPIDA -->
             <div class="flex items-center gap-3 overflow-x-auto hide-scroll py-2">
-                <span class="text-xs font-bold uppercase tracking-widest text-neutral-400 mr-2">Filtri:</span>
-                <a href="#tendenza" class="bg-neutral-800 hover:bg-neutral-700 text-xs px-4 py-2 rounded-full border border-neutral-700 whitespace-nowrap transition">🔥 Di Tendenza</a>
-                <a href="#migliori" class="bg-neutral-800 hover:bg-neutral-700 text-xs px-4 py-2 rounded-full border border-neutral-700 whitespace-nowrap transition">⭐ Migliori Venditori</a>
-                <a href="#per-te" class="bg-neutral-800 hover:bg-neutral-700 text-xs px-4 py-2 rounded-full border border-neutral-700 whitespace-nowrap transition">🎯 Consigliati per Te</a>
-                <a href="#rari" class="bg-neutral-800 hover:bg-neutral-700 text-xs px-4 py-2 rounded-full border border-neutral-700 whitespace-nowrap transition">💎 Libri Rari</a>
+                <span class="text-xs font-mono font-bold uppercase tracking-widest text-cyan-400 mr-2">Filtri HUD:</span>
+                <a href="#tendenza" class="bg-[#0b1320] hover:bg-cyan-950 text-cyan-300 text-xs px-4 py-2 rounded border border-cyan-500/30 whitespace-nowrap transition">🔥 Di Tendenza</a>
+                <a href="#migliori" class="bg-[#0b1320] hover:bg-cyan-950 text-cyan-300 text-xs px-4 py-2 rounded border border-cyan-500/30 whitespace-nowrap transition">⭐ Migliori Venditori</a>
+                <a href="#per-te" class="bg-[#0b1320] hover:bg-cyan-950 text-cyan-300 text-xs px-4 py-2 rounded border border-cyan-500/30 whitespace-nowrap transition">🎯 Consigliati per Te</a>
+                <a href="#rari" class="bg-[#0b1320] hover:bg-cyan-950 text-cyan-300 text-xs px-4 py-2 rounded border border-cyan-500/30 whitespace-nowrap transition">💎 Libri Rari</a>
             </div>
 
             <!-- SEZIONE 1: LIBRI DI TENDENZA -->
             <section id="tendenza" class="space-y-4">
-                <h3 class="text-xl font-bold tracking-wide">Libri di Tendenza</h3>
+                <div class="flex items-center gap-2 border-b border-cyan-500/30 pb-2">
+                    <span class="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></span>
+                    <h3 class="text-lg font-mono font-bold tracking-wide text-cyan-300 uppercase">Libri di Tendenza</h3>
+                </div>
                 <div class="flex gap-4 overflow-x-auto hide-scroll pb-4">
                     {tendenza_html}
                 </div>
@@ -215,7 +222,10 @@ async def home_page():
 
             <!-- SEZIONE 2: MIGLIORI VENDITORI -->
             <section id="migliori" class="space-y-4">
-                <h3 class="text-xl font-bold tracking-wide">Migliori Venditori</h3>
+                <div class="flex items-center gap-2 border-b border-cyan-500/30 pb-2">
+                    <span class="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></span>
+                    <h3 class="text-lg font-mono font-bold tracking-wide text-cyan-300 uppercase">Migliori Venditori</h3>
+                </div>
                 <div class="flex gap-4 overflow-x-auto hide-scroll pb-4">
                     {venditori_html}
                 </div>
@@ -223,7 +233,10 @@ async def home_page():
 
             <!-- SEZIONE 3: LIBRI PER TE -->
             <section id="per-te" class="space-y-4">
-                <h3 class="text-xl font-bold tracking-wide">Libri per Te</h3>
+                <div class="flex items-center gap-2 border-b border-cyan-500/30 pb-2">
+                    <span class="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></span>
+                    <h3 class="text-lg font-mono font-bold tracking-wide text-cyan-300 uppercase">Libri per Te</h3>
+                </div>
                 <div class="flex gap-4 overflow-x-auto hide-scroll pb-4">
                     {per_te_html}
                 </div>
@@ -231,7 +244,10 @@ async def home_page():
 
             <!-- SEZIONE 4: LIBRI RARI -->
             <section id="rari" class="space-y-4">
-                <h3 class="text-xl font-bold tracking-wide">Libri Rari & Collezioni</h3>
+                <div class="flex items-center gap-2 border-b border-cyan-500/30 pb-2">
+                    <span class="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></span>
+                    <h3 class="text-lg font-mono font-bold tracking-wide text-cyan-300 uppercase">Libri Rari & Collezioni</h3>
+                </div>
                 <div class="flex gap-4 overflow-x-auto hide-scroll pb-4">
                     {rari_html}
                 </div>
@@ -252,13 +268,13 @@ async def libro_detail_page(libro_id: str):
     simili_html = ""
     for b in [x for x in BOOKS_DATABASE if x["id"] != libro_id]:
         simili_html += f"""
-        <a href="/libro/{b['id']}" class="min-w-[200px] bg-neutral-900 rounded-md overflow-hidden shadow hover:scale-105 transition flex-shrink-0 border border-neutral-800">
+        <a href="/libro/{b['id']}" class="min-w-[200px] bg-[#0b1320] rounded border border-cyan-500/20 overflow-hidden shadow hover:border-cyan-400 hover:scale-105 transition flex-shrink-0">
             <div class="h-48 bg-black overflow-hidden">
                 <img src="{b['copertina']}" class="w-full h-full object-cover">
             </div>
-            <div class="p-3">
-                <h4 class="font-bold text-sm text-white truncate">{b['titolo']}</h4>
-                <p class="text-xs text-neutral-400">{b['prezzo']}</p>
+            <div class="p-3 font-mono">
+                <h4 class="font-bold text-xs text-cyan-200 truncate">{b['titolo']}</h4>
+                <p class="text-[11px] text-emerald-400 mt-1">{b['prezzo']}</p>
             </div>
         </a>
         """
@@ -269,11 +285,11 @@ async def libro_detail_page(libro_id: str):
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>{libro['titolo']} - LoopBooks</title>
+        <title>{libro['titolo']} - HUD Analisi</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <style>
-            body {{ background-color: #141414; color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }}
+            body {{ background-color: #030712; color: #e2e8f0; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }}
             .hide-scroll::-webkit-scrollbar {{ display: none; }}
         </style>
     </head>
@@ -282,71 +298,79 @@ async def libro_detail_page(libro_id: str):
         
         <main class="max-w-6xl mx-auto px-6 py-10 space-y-12">
             
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 bg-neutral-900/60 p-8 rounded-xl border border-neutral-800 shadow-2xl">
-                <div class="flex flex-col items-center">
-                    <img src="{libro['copertina']}" class="w-64 h-80 object-cover rounded shadow-2xl border border-neutral-700 mb-4">
-                    <span class="text-xs text-emerald-400 font-bold uppercase tracking-widest">{libro['valutazione']} Media Recensioni</span>
+            <!-- SCHEDA DETTAGLIO HUD -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 bg-[#0b1320] p-8 rounded border border-cyan-500/30 shadow-[0_0_30px_rgba(6,182,212,0.1)]">
+                <div class="flex flex-col items-center justify-center">
+                    <img src="{libro['copertina']}" class="w-60 h-80 object-cover rounded border border-cyan-500/40 shadow-2xl mb-4">
+                    <span class="text-xs text-cyan-300 font-mono font-bold uppercase tracking-widest bg-cyan-950 px-3 py-1 rounded border border-cyan-800">{libro['valutazione']} Media Recensioni</span>
                 </div>
                 
                 <div class="md:col-span-2 space-y-4">
-                    <h1 class="text-3xl md:text-4xl font-black">{libro['titolo']}</h1>
-                    <p class="text-lg text-neutral-400 font-medium">di {libro['autore']}</p>
-                    <div class="text-2xl font-bold text-emerald-400">{libro['prezzo']} <span class="text-xs font-normal text-neutral-400">({libro['condizione']})</span></div>
+                    <span class="text-[10px] text-cyan-400 font-mono tracking-widest uppercase">ID PROTOCOLLO // {libro['id']}</span>
+                    <h1 class="text-3xl md:text-4xl font-black text-white font-sans">{libro['titolo']}</h1>
+                    <p class="text-base text-cyan-400">di {libro['autore']}</p>
+                    <div class="text-2xl font-bold text-emerald-400">{libro['prezzo']} <span class="text-xs font-normal text-cyan-300/70 font-mono">({libro['condizione']})</span></div>
                     
-                    <p class="text-neutral-300 text-sm leading-relaxed italic">{libro['descrizione']}</p>
+                    <p class="text-cyan-100/80 text-xs leading-relaxed italic border-l-2 border-cyan-400 pl-3">{libro['descrizione']}</p>
                     
-                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-4 border-t border-neutral-800 text-xs">
-                        <div><span class="text-neutral-500 block">Editore</span> <strong class="text-white">{libro['editore']}</strong></div>
-                        <div><span class="text-neutral-500 block">Collana</span> <strong class="text-white">{libro['collana']}</strong></div>
-                        <div><span class="text-neutral-500 block">Codice EAN</span> <strong class="text-white">{libro['codice_ean']}</strong></div>
-                        <div><span class="text-neutral-500 block">Anno Edizione</span> <strong class="text-white">{libro['anno_edizione']}</strong></div>
-                        <div><span class="text-neutral-500 block">Anno Pubblicazione</span> <strong class="text-white">{libro['anno_pubblicazione']}</strong></div>
-                        <div><span class="text-neutral-500 block">Condizioni</span> <strong class="text-white">{libro['condizione']}</strong></div>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-4 border-t border-cyan-500/20 text-xs">
+                        <div><span class="text-cyan-500 block">Editore</span> <strong class="text-cyan-200">{libro['editore']}</strong></div>
+                        <div><span class="text-cyan-500 block">Collana</span> <strong class="text-cyan-200">{libro['collana']}</strong></div>
+                        <div><span class="text-cyan-500 block">Codice EAN</span> <strong class="text-cyan-200">{libro['codice_ean']}</strong></div>
+                        <div><span class="text-cyan-500 block">Anno Edizione</span> <strong class="text-cyan-200">{libro['anno_edizione']}</strong></div>
+                        <div><span class="text-cyan-500 block">Anno Pubblicazione</span> <strong class="text-cyan-200">{libro['anno_pubblicazione']}</strong></div>
+                        <div><span class="text-cyan-500 block">Condizioni</span> <strong class="text-cyan-200">{libro['condizione']}</strong></div>
                     </div>
                 </div>
             </div>
 
-            <div class="bg-neutral-900/60 p-6 rounded-xl border border-neutral-800 space-y-4">
-                <h3 class="text-xl font-bold">Andamento Prezzi e Vendite (Ultimi 6 Mesi)</h3>
+            <!-- GRAFICO HUD ANDAMENTO PREZZI -->
+            <div class="bg-[#0b1320] p-6 rounded border border-cyan-500/30 space-y-4">
+                <div class="flex items-center justify-between border-b border-cyan-500/20 pb-2">
+                    <h3 class="text-sm font-bold text-cyan-300 uppercase tracking-wider">Telemetria Mercato & Vendite (Ultimi 6 Mesi)</h3>
+                    <span class="text-[10px] text-emerald-400 font-mono animate-pulse">● LIVE STATUS</span>
+                </div>
                 <div class="h-72 w-full">
                     <canvas id="priceChart"></canvas>
                 </div>
             </div>
 
+            <!-- VENDITORI MULTIPLI -->
             <div class="space-y-4">
-                <h3 class="text-xl font-bold">Tutti i Venditori per questo Libro</h3>
-                <div class="bg-neutral-900 rounded-xl border border-neutral-800 overflow-hidden divide-y divide-neutral-800">
-                    <div class="p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:bg-neutral-800/50 transition">
+                <h3 class="text-sm font-bold text-cyan-300 uppercase tracking-wider">Venditori Autorizzati per questo Tomo</h3>
+                <div class="bg-[#0b1320] rounded border border-cyan-500/30 overflow-hidden divide-y divide-cyan-500/20">
+                    <div class="p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:bg-cyan-950/30 transition">
                         <div>
-                            <h4 class="font-bold text-white text-base">{libro['venditore']}</h4>
-                            <p class="text-xs text-neutral-400">📍 {libro['venditore_posizione']} | Valutazione: {libro['venditore_valutazione']}</p>
+                            <h4 class="font-bold text-cyan-100 text-sm">{libro['venditore']}</h4>
+                            <p class="text-[11px] text-cyan-400/70">📍 {libro['venditore_posizione']} | Valutazione: {libro['venditore_valutazione']}</p>
                         </div>
                         <div class="flex items-center gap-6">
                             <div class="text-right">
-                                <span class="text-xs text-neutral-500 block">{libro['condizione']}</span>
-                                <strong class="text-emerald-400 text-lg">{libro['prezzo']}</strong>
+                                <span class="text-[10px] text-cyan-500 block">{libro['condizione']}</span>
+                                <strong class="text-emerald-400 text-base">{libro['prezzo']}</strong>
                             </div>
-                            <button class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-4 py-2 rounded transition">Acquista</button>
+                            <button class="bg-cyan-500 hover:bg-cyan-400 text-black text-xs font-mono font-bold px-4 py-2 rounded transition shadow-[0_0_10px_rgba(6,182,212,0.3)]">Acquista</button>
                         </div>
                     </div>
-                    <div class="p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:bg-neutral-800/50 transition">
+                    <div class="p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:bg-cyan-950/30 transition">
                         <div>
-                            <h4 class="font-bold text-white text-base">Biblioteca Centrale Express</h4>
-                            <p class="text-xs text-neutral-400">📍 Bologna (BO) | Valutazione: 4.7 ★ (620 recensioni)</p>
+                            <h4 class="font-bold text-cyan-100 text-sm">Biblioteca Centrale Express</h4>
+                            <p class="text-[11px] text-cyan-400/70">📍 Bologna (BO) | Valutazione: 4.7 ★ (620 recensioni)</p>
                         </div>
                         <div class="flex items-center gap-6">
                             <div class="text-right">
-                                <span class="text-xs text-neutral-500 block">Ottime condizioni</span>
-                                <strong class="text-emerald-400 text-lg">19.00 €</strong>
+                                <span class="text-[10px] text-cyan-500 block">Ottime condizioni</span>
+                                <strong class="text-emerald-400 text-base">19.00 €</strong>
                             </div>
-                            <button class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-4 py-2 rounded transition">Acquista</button>
+                            <button class="bg-cyan-500 hover:bg-cyan-400 text-black text-xs font-mono font-bold px-4 py-2 rounded transition shadow-[0_0_10px_rgba(6,182,212,0.3)]">Acquista</button>
                         </div>
                     </div>
                 </div>
             </div>
 
+            <!-- ALTRI LIBRI SIMILI -->
             <div class="space-y-4">
-                <h3 class="text-xl font-bold">Altri Libri Simili</h3>
+                <h3 class="text-sm font-bold text-cyan-300 uppercase tracking-wider">Altri Libri Simili</h3>
                 <div class="flex gap-4 overflow-x-auto hide-scroll pb-4">
                     {simili_html}
                 </div>
@@ -363,8 +387,8 @@ async def libro_detail_page(libro_id: str):
                     datasets: [{{
                         label: 'Prezzo Medio (€)',
                         data: [18.0, 17.5, 16.0, 15.5, 15.0, 14.0],
-                        borderColor: '#e50914',
-                        backgroundColor: 'rgba(229, 9, 20, 0.1)',
+                        borderColor: '#06b6d4',
+                        backgroundColor: 'rgba(6, 182, 212, 0.1)',
                         tension: 0.3,
                         fill: true
                     }}, {{
@@ -379,9 +403,9 @@ async def libro_detail_page(libro_id: str):
                     responsive: true,
                     maintainAspectRatio: false,
                     scales: {{
-                        y: {{ beginAtZero: false, grid: {{ color: '#262626' }} }},
-                        y1: {{ position: 'right', grid: {{ display: false }} }},
-                        x: {{ grid: {{ color: '#262626' }} }}
+                        y: {{ beginAtZero: false, grid: {{ color: '#1e293b' }}, ticks: {{ color: '#94a3b8' }} }},
+                        y1: {{ position: 'right', grid: {{ display: false }}, ticks: {{ color: '#94a3b8' }} }},
+                        x: {{ grid: {{ color: '#1e293b' }}, ticks: {{ color: '#94a3b8' }} }}
                     }}
                 }}
             }});
@@ -400,18 +424,18 @@ async def biblioteca_page():
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>La Mia Biblioteca - LoopBooks</title>
+        <title>La Mia Biblioteca - HUD</title>
         <script src="https://cdn.tailwindcss.com"></script>
-        <style>body {{ background-color: #141414; color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }}</style>
+        <style>body {{ background-color: #030712; color: #e2e8f0; font-family: ui-monospace, monospace; }}</style>
     </head>
     <body class="min-h-screen pb-24">
         {navbar}
         <main class="max-w-4xl mx-auto px-6 py-12">
-            <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-8 space-y-6">
-                <h2 class="text-2xl font-black">La Tua Raccolta Personale</h2>
-                <p class="text-neutral-400 text-sm">I volumi registrati nella tua domus o salvati nei preferiti.</p>
-                <div class="border border-neutral-800 rounded-lg p-12 text-center text-neutral-500 text-sm">
-                    Nessun manoscritto registrato. Visita <a href="/metti-in-vendita" class="text-red-500 underline font-bold">Metti in Vendita</a> per aggiungere libri.
+            <div class="bg-[#0b1320] border border-cyan-500/30 rounded p-8 space-y-6 shadow-[0_0_20px_rgba(6,182,212,0.1)]">
+                <h2 class="text-xl font-bold text-cyan-300 uppercase tracking-widest">La Tua Raccolta Personale</h2>
+                <p class="text-cyan-400/70 text-xs">I volumi registrati nella tua domus o sincronizzati con il cloud di Jarvis.</p>
+                <div class="border border-cyan-500/20 rounded p-12 text-center text-cyan-500/50 text-xs">
+                    Nessun manoscritto registrato. Visita <a href="/metti-in-vendita" class="text-cyan-400 underline font-bold">Metti in Vendita</a> per sincronizzare libri.
                 </div>
             </div>
         </main>
@@ -429,23 +453,23 @@ async def metti_in_vendita_page():
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Metti in Vendita - LoopBooks</title>
+        <title>Metti in Vendita - HUD</title>
         <script src="https://cdn.tailwindcss.com"></script>
-        <style>body {{ background-color: #141414; color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }}</style>
+        <style>body {{ background-color: #030712; color: #e2e8f0; font-family: ui-monospace, monospace; }}</style>
     </head>
     <body class="min-h-screen pb-24">
         {navbar}
         <main class="max-w-3xl mx-auto px-6 py-12">
-            <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-8 space-y-6 shadow-2xl">
+            <div class="bg-[#0b1320] border border-cyan-500/30 rounded p-8 space-y-6 shadow-[0_0_30px_rgba(6,182,212,0.15)]">
                 <div class="text-center space-y-2">
-                    <h2 class="text-3xl font-black">Registra un Nuovo Tomo</h2>
-                    <p class="text-neutral-400 text-xs">Inserisci il codice ISBN per estrarre automaticamente metadati e stime di mercato.</p>
+                    <h2 class="text-2xl font-bold text-cyan-300 uppercase tracking-widest">Registra un Nuovo Tomo</h2>
+                    <p class="text-cyan-400/70 text-xs">Inserisci il codice ISBN per attivare la scansione olografica e l'estrazione dati automatica.</p>
                 </div>
                 <div class="flex gap-3">
                     <input type="text" id="isbn" value="9788804668237" placeholder="Codice ISBN..." 
-                        class="flex-1 bg-black border border-neutral-700 rounded px-4 py-3 text-white text-sm focus:outline-none focus:border-red-600">
-                    <button onclick="alert('Tomo registrato con successo nei registri di LoopBooks!')" 
-                        class="bg-red-600 hover:bg-red-700 text-white font-bold px-6 py-3 rounded text-xs uppercase tracking-wider transition">
+                        class="flex-1 bg-black border border-cyan-500/40 rounded px-4 py-3 text-cyan-200 text-xs focus:outline-none focus:border-cyan-400">
+                    <button onclick="alert('Tomo scansionato e registrato con successo nei sistemi di LoopBooks!')" 
+                        class="bg-cyan-500 hover:bg-cyan-400 text-black font-mono font-bold px-6 py-3 rounded text-xs uppercase tracking-wider transition shadow-[0_0_15px_rgba(6,182,212,0.4)]">
                         Pubblica
                     </button>
                 </div>
