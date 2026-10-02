@@ -119,6 +119,32 @@ BOOKS_DATABASE = [
     }
 ]
 
+# Dati di simulazione per la sezione "La Tua Biblioteca" (Comprati, Venduti, Magazzino, Preferiti)[cite: 9]
+BIBLIOTECA_UTENTE = {
+    "profilo": {
+        "nome": "Aaru Curatore",
+        "ruolo": "Master Collector",
+        "id_venditore": "aaru-milano",
+        "sede": "Milano (MI)",
+        "valutazione": "5.0 ★ (420 recensioni)"
+    },
+    "metriche": {
+        "libri_venduti_num": 14,
+        "guadagno_totale_netto": 840.50,
+        "libri_comprati_num": 22,
+        "totale_comprato": 1320.00,
+        "magazzino_num": 8,
+        "valore_magazzino": 745.00
+    },
+    "elenco": [
+        {"id": "lib-u1", "titolo": "Il Nome della Rosa", "autore": "Umberto Eco", "prezzo": 14.00, "valutazione": 4.9, "stato": "magazzino", "genere": "Gialli, Thriller e Noir", "condizione": "Ottime condizioni", "copertina": "https://covers.openlibrary.org/b/isbn/9788806200085-L.jpg"},
+        {"id": "lib-u2", "titolo": "Le otto montagne", "autore": "Paolo Cognetti", "prezzo": 18.50, "valutazione": 4.8, "stato": "comprato", "genere": "Romanzi contemporanei", "condizione": "Come nuovo", "copertina": "https://covers.openlibrary.org/b/isbn/9788804668237-L.jpg"},
+        {"id": "lib-u3", "titolo": "L'amica geniale", "autore": "Elena Ferrante", "prezzo": 15.00, "valutazione": 5.0, "stato": "venduto", "genere": "Romanzi contemporanei", "condizione": "Perfetto", "copertina": "https://covers.openlibrary.org/b/isbn/9788866325087-L.jpg"},
+        {"id": "lib-u4", "titolo": "Codice Atlantico (Raro)", "autore": "Leonardo da Vinci", "prezzo": 120.00, "valutazione": 5.0, "stato": "preferiti", "genere": "Arte, Musica e Cinema", "condizione": "Rarità", "copertina": "https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=600&q=80"},
+        {"id": "lib-u5", "titolo": "Omero, Iliade", "autore": "Alessandro Baricco", "prezzo": 16.50, "valutazione": 4.7, "stato": "magazzino", "genere": "Classici della letteratura", "copertina": "https://covers.openlibrary.org/b/isbn/9788806231362-L.jpg"}
+    ]
+}
+
 OGGETTISTICA_DATABASE = [
     {
         "id": "obj-01",
@@ -190,18 +216,18 @@ def get_base_head(title="LoopBooks Bento HUD"):
         <title>{title}</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <style>
-            @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;600;800;900&display=swap');
+            @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
             
             body {{
                 background-color: #030712;
                 color: #e5e7eb;
-                font-family: 'Share Tech Mono', monospace;
+                font-family: 'Plus Jakarta Sans', sans-serif;
                 overflow-x: hidden;
             }}
             h1, h2, h3, h4, .font-hud {{
-                font-family: 'Orbitron', sans-serif;
+                font-family: 'Plus Jakarta Sans', sans-serif;
+                letter-spacing: -0.02em;
             }}
-            /* Effetti di luce sfumati / Bento glow card */
             .bento-card {{
                 background: linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(3, 7, 18, 0.95) 100%);
                 border: 1px solid rgba(0, 240, 255, 0.15);
@@ -214,7 +240,6 @@ def get_base_head(title="LoopBooks Bento HUD"):
                 border-color: rgba(0, 240, 255, 0.4);
                 box-shadow: 0 15px 35px -10px rgba(0, 240, 255, 0.15), inset 0 0 25px rgba(0, 240, 255, 0.08);
             }}
-            /* Glow arancio/ambra ispirato all'angolo destro dell'immagine di riferimento */
             .bento-glow-orange {{
                 position: relative;
             }}
@@ -249,26 +274,26 @@ def get_navbar(active_page="home"):
     return f"""
     <header class="w-full bg-[#030712]/90 backdrop-blur-md border-b border-cyan-500/20 py-3 px-8 sticky top-0 z-50 flex justify-between items-center shadow-[0_4px_25px_rgba(0,0,0,0.8)]">
         <div class="flex items-center gap-10">
-            <a href="/" class="text-[#00f0ff] font-black text-sm md:text-base tracking-[0.2em] uppercase font-hud flex items-center gap-2">
+            <a href="/" class="text-[#00f0ff] font-extrabold text-sm md:text-base tracking-[0.15em] uppercase font-hud flex items-center gap-2">
                 <span class="inline-block w-2.5 h-2.5 bg-[#00f0ff] rounded-full animate-pulse shadow-[0_0_10px_#00f0ff]"></span>
                 LOOPBOOKS // BENTO HUD
             </a>
-            <nav class="hidden md:flex items-center gap-8 text-xs font-mono tracking-widest uppercase">
-                <a href="/" class="{'text-[#00f0ff] font-bold border-b-2 border-[#00f0ff]' if active_page == 'home' else 'text-neutral-400 hover:text-[#00f0ff]'} pb-1 transition">HOME</a>
+            <nav class="hidden md:flex items-center gap-8 text-xs font-semibold tracking-wider uppercase">
+                <a href="/" class="{'text-[#00f0ff] font-bold border-b-2 border-[#00f0ff]' if active_page == 'home' else 'text-neutral-400 hover:text-[#00f0ff]'} pb-1 transition">COMPRA (HOME)</a>
+                <a href="/metti-in-vendita" class="{'text-[#00f0ff] font-bold border-b-2 border-[#00f0ff]' if active_page == 'metti-in-vendita' else 'text-neutral-400 hover:text-[#00f0ff]'} pb-1 transition">VENDI</a>
                 <a href="/biblioteca" class="{'text-[#00f0ff] font-bold border-b-2 border-[#00f0ff]' if active_page == 'biblioteca' else 'text-neutral-400 hover:text-[#00f0ff]'} pb-1 transition">LA MIA BIBLIOTECA</a>
-                <a href="/metti-in-vendita" class="{'text-[#00f0ff] font-bold border-b-2 border-[#00f0ff]' if active_page == 'metti-in-vendita' else 'text-neutral-400 hover:text-[#00f0ff]'} pb-1 transition">METTI IN VENDITA</a>
             </nav>
         </div>
         <div class="flex items-center gap-4">
-            <span class="hidden lg:inline-block text-[10px] text-cyan-400 bg-cyan-950/40 px-3 py-1 rounded border border-cyan-500/30">ROMA // SECURE MESH</span>
-            <a href="/metti-in-vendita" class="bg-cyan-950/60 hover:bg-cyan-900/80 text-[#00f0ff] border border-[#00f0ff]/50 font-mono text-xs px-4 py-2 rounded transition shadow-[0_0_12px_rgba(0,240,255,0.2)]">
+            <a href="/biblioteca" class="hidden lg:inline-block text-[11px] font-medium text-cyan-400 bg-cyan-950/40 px-3.5 py-1 rounded-lg border border-cyan-500/30 hover:border-cyan-400 transition">👤 {BIBLIOTECA_UTENTE['profilo']['nome']}</a>
+            <a href="/metti-in-vendita" class="bg-cyan-950/60 hover:bg-cyan-900/80 text-[#00f0ff] border border-[#00f0ff]/50 font-semibold text-xs px-4 py-2 rounded-lg transition shadow-[0_0_12px_rgba(0,240,255,0.2)]">
                 [ SCANNER ]
             </a>
         </div>
     </header>
     """
 
-# --- HOME PAGE BENTO GRID ---
+# --- HOME PAGE (COMPRA) ---
 @app.get("/", response_class=HTMLResponse)
 async def home_page(q: str = "", ordine: str = "nessuno", genere: str = "tutti"):
     navbar = get_navbar('home')
@@ -285,26 +310,26 @@ async def home_page(q: str = "", ordine: str = "nessuno", genere: str = "tutti")
         libri_filtrati.sort(key=lambda x: x['prezzo'], reverse=True)
     elif ordine == "valutazione":
         libri_filtrati.sort(key=lambda x: x['valutazione_num'], reverse=True)
-    elif ordine == "rari":
-        libri_filtrati.sort(key=lambda x: x['prezzo'], reverse=True)
+    elif ordine == "alfabetico":
+        libri_filtrati.sort(key=lambda x: x['titolo'])
 
     def render_cards_horizontal(lista):
         if not lista:
-            return '<p class="text-xs text-neutral-500 font-mono italic">Nessun tomo trovato.</p>'
+            return '<p class="text-xs text-neutral-500 font-medium italic">Nessun tomo trovato.</p>'
         html = ""
         for b in lista:
             html += f"""
             <a href="/libro/{b['id']}" class="min-w-[190px] md:min-w-[210px] bg-black/40 border border-cyan-500/20 rounded-xl p-3 hover:border-cyan-400 hover:scale-[1.02] transition duration-300 flex-shrink-0 group relative space-y-2">
                 <div class="h-44 bg-black rounded-lg overflow-hidden relative border border-cyan-500/10">
                     <img src="{b['copertina']}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
-                    <span class="absolute top-2 right-2 bg-black/80 backdrop-blur text-[#00f0ff] font-mono text-[10px] px-2 py-0.5 rounded border border-cyan-500/40">{b['valutazione']}</span>
+                    <span class="absolute top-2 right-2 bg-black/80 backdrop-blur text-[#00f0ff] font-semibold text-[10px] px-2 py-0.5 rounded border border-cyan-500/40">{b['valutazione']}</span>
                 </div>
-                <div class="space-y-1 font-mono">
+                <div class="space-y-1">
                     <h4 class="font-bold text-xs text-cyan-100 truncate group-hover:text-[#00f0ff] transition">{b['titolo']}</h4>
                     <p class="text-[11px] text-cyan-400/70 truncate">{b['autore']}</p>
                     <div class="flex justify-between items-center pt-1 border-t border-cyan-950">
                         <span class="text-emerald-400 font-bold text-xs">{b['prezzo']:.2f} €</span>
-                        <span class="text-[9px] bg-cyan-950/80 text-cyan-300 px-2 py-0.5 rounded border border-cyan-500/20 truncate max-w-[85px]">{b['condizione']}</span>
+                        <span class="text-[9px] font-medium bg-cyan-950/80 text-cyan-300 px-2 py-0.5 rounded border border-cyan-500/20 truncate max-w-[85px]">{b['condizione']}</span>
                     </div>
                 </div>
             </a>
@@ -318,7 +343,7 @@ async def home_page(q: str = "", ordine: str = "nessuno", genere: str = "tutti")
     oggettistica_html = ""
     for obj in OGGETTISTICA_DATABASE:
         oggettistica_html += f"""
-        <div class="min-w-[210px] bg-black/40 border border-cyan-500/20 rounded-xl p-3 flex-shrink-0 space-y-2 font-mono">
+        <div class="min-w-[210px] bg-black/40 border border-cyan-500/20 rounded-xl p-3 flex-shrink-0 space-y-2">
             <div class="h-32 bg-black rounded-lg overflow-hidden border border-cyan-500/10">
                 <img src="{obj['immagine']}" class="w-full h-full object-cover">
             </div>
@@ -326,7 +351,7 @@ async def home_page(q: str = "", ordine: str = "nessuno", genere: str = "tutti")
             <p class="text-[10px] text-neutral-400 line-clamp-2">{obj['descrizione']}</p>
             <div class="flex justify-between items-center pt-1 border-t border-cyan-950">
                 <span class="text-emerald-400 font-bold text-xs">{obj['prezzo']}</span>
-                <button onclick="alert('[SUCCESS] Oggetto aggiunto al kit olografico!')" class="bg-cyan-950 hover:bg-cyan-900 text-[#00f0ff] text-[10px] px-2.5 py-1 rounded border border-cyan-500/40 transition">ORDINA</button>
+                <button onclick="alert('[SUCCESS] Oggetto aggiunto al kit olografico!')" class="bg-cyan-950 hover:bg-cyan-900 text-[#00f0ff] font-semibold text-[10px] px-2.5 py-1 rounded border border-cyan-500/40 transition">ORDINA</button>
             </div>
         </div>
         """
@@ -340,116 +365,341 @@ async def home_page(q: str = "", ordine: str = "nessuno", genere: str = "tutti")
         generi_options += '</optgroup>'
 
     return f"""
-    {get_base_head("LoopBooks - Bento Grid HUD")}
+    {get_base_head("LoopBooks - Compra & Bento Grid HUD")}
     <body class="min-h-screen pb-20">
         {navbar}
 
         <main class="max-w-7xl mx-auto px-4 md:px-8 py-8 space-y-6">
             
-            <!-- BENTO GRID TOP ROW: Benvenuto, Ricerca rapida e Stato Sistema -->
+            <!-- BENTO GRID TOP: Benvenuto, Ricerca e Filtri -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                
-                <!-- Box 1: Saluto & Sistema (Colonna 1) -->
                 <div class="bento-card bento-glow-blue rounded-2xl p-6 flex flex-col justify-between space-y-4">
                     <div class="space-y-1">
-                        <span class="text-[10px] text-[#00f0ff] uppercase tracking-widest bg-cyan-950/60 px-2.5 py-1 rounded border border-cyan-500/30">NODO ROMA 01</span>
-                        <h2 class="text-xl md:text-2xl font-bold text-white font-hud pt-2">Bentornato, Curatore</h2>
-                        <p class="text-xs text-neutral-400">Sistema di archiviazione e scansione olografica attivo.</p>
+                        <span class="text-[10px] font-semibold text-[#00f0ff] uppercase tracking-widest bg-cyan-950/60 px-2.5 py-1 rounded border border-cyan-500/35">NODO COMPRA</span>
+                        <h2 class="text-xl md:text-2xl font-bold text-white font-hud pt-2">Esplora Cataloghi</h2>
+                        <p class="text-xs text-neutral-400 font-medium">Ricerca avanzata tomi e volumi garantiti.</p>
                     </div>
-                    <div class="pt-4 border-t border-cyan-950 flex justify-between items-center text-xs font-mono">
-                        <span class="text-neutral-400">Sync Cloud:</span>
-                        <span class="text-emerald-400 font-bold">99.8% Ottimale</span>
+                    <div class="pt-4 border-t border-cyan-950 flex justify-between items-center text-xs">
+                        <span class="text-neutral-400 font-medium">Tomi Disponibili:</span>
+                        <span class="text-[#00f0ff] font-bold">5 Volumi Attivi</span>
                     </div>
                 </div>
 
-                <!-- Box 2: Ricerca e Filtri Bento (Colonna 2 e 3) -->
-                <div class="md:col-span-2 bento-card bento-glow-orange rounded-2xl p-6 font-mono">
+                <div class="md:col-span-2 bento-card bento-glow-orange rounded-2xl p-6">
                     <form method="GET" action="/" class="grid grid-cols-1 sm:grid-cols-3 gap-3 h-full items-center">
                         <div class="space-y-1">
-                            <label class="block text-[10px] text-[#00f0ff] uppercase tracking-wider">Cerca Titolo / Autore</label>
+                            <label class="block text-[10px] font-semibold text-[#00f0ff] uppercase tracking-wider">Cerca Titolo / Autore</label>
                             <input type="text" name="q" value="{q}" placeholder="Cerca nel database..." class="w-full bg-black/70 border border-cyan-500/30 rounded-xl px-3 py-2 text-xs text-cyan-100 focus:outline-none focus:border-[#00f0ff]">
                         </div>
                         <div class="space-y-1">
-                            <label class="block text-[10px] text-[#00f0ff] uppercase tracking-wider">Genere</label>
+                            <label class="block text-[10px] font-semibold text-[#00f0ff] uppercase tracking-wider">Genere</label>
                             <select name="genere" class="w-full bg-black/70 border border-cyan-500/30 rounded-xl px-3 py-2 text-xs text-cyan-100 focus:outline-none focus:border-[#00f0ff]">
                                 {generi_options}
                             </select>
                         </div>
                         <div class="space-y-1 flex flex-col justify-end">
-                            <label class="block text-[10px] text-[#00f0ff] uppercase tracking-wider">Ordinamento</label>
+                            <label class="block text-[10px] font-semibold text-[#00f0ff] uppercase tracking-wider">Ordinamento</label>
                             <div class="flex gap-2">
                                 <select name="ordine" class="flex-1 bg-black/70 border border-cyan-500/30 rounded-xl px-3 py-2 text-xs text-cyan-100 focus:outline-none focus:border-[#00f0ff]">
                                     <option value="nessuno" {"selected" if ordine=="nessuno" else ""}>Standard</option>
                                     <option value="prezzo_asc" {"selected" if ordine=="prezzo_asc" else ""}>Prezzo Min</option>
                                     <option value="prezzo_desc" {"selected" if ordine=="prezzo_desc" else ""}>Prezzo Max</option>
                                     <option value="valutazione" {"selected" if ordine=="valutazione" else ""}>Top Voti</option>
+                                    <option value="alfabetico" {"selected" if ordine=="alfabetico" else ""}>Alfabetico</option>
                                 </select>
                                 <button type="submit" class="bg-cyan-950 hover:bg-cyan-900 text-[#00f0ff] border border-cyan-500/50 font-bold px-4 py-2 rounded-xl text-xs uppercase transition shadow-[0_0_10px_rgba(0,240,255,0.2)]">Vai</button>
                             </div>
                         </div>
                     </form>
                 </div>
-
             </div>
 
-            <!-- BENTO GRID SECTION: Libri di Tendenza -->
+            <!-- BENTO SECTIONS -->
             <div class="bento-card rounded-2xl p-6 space-y-4">
                 <div class="flex items-center justify-between border-b border-cyan-950 pb-3">
                     <div class="flex items-center gap-2">
                         <span class="w-2 h-2 bg-[#00f0ff] rounded-full animate-ping"></span>
-                        <h3 class="text-xs md:text-sm font-hud font-bold tracking-widest text-cyan-100 uppercase">Libri di Tendenza</h3>
+                        <h3 class="text-xs md:text-sm font-hud font-bold tracking-wider text-cyan-100 uppercase">Libri di Tendenza</h3>
                     </div>
-                    <span class="text-[10px] text-cyan-400 font-mono">LIVE FEED</span>
+                    <span class="text-[10px] font-semibold text-cyan-400">LIVE FEED</span>
                 </div>
                 <div class="flex gap-4 overflow-x-auto hide-scroll pb-2">
                     {tendenza_html}
                 </div>
             </div>
 
-            <!-- BENTO GRID TWO COLUMNS: Migliori Venditori & Libri Rari -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                
-                <!-- Migliori Venditori -->
                 <div class="bento-card rounded-2xl p-6 space-y-4">
                     <div class="flex items-center justify-between border-b border-cyan-950 pb-3">
                         <div class="flex items-center gap-2">
                             <span class="w-2 h-2 bg-emerald-400 rounded-full"></span>
-                            <h3 class="text-xs md:text-sm font-hud font-bold tracking-widest text-cyan-100 uppercase">Migliori Venditori</h3>
+                            <h3 class="text-xs md:text-sm font-hud font-bold tracking-wider text-cyan-100 uppercase">Migliori Venditori</h3>
                         </div>
-                        <span class="text-[10px] text-emerald-400 font-mono">VERIFIED</span>
+                        <span class="text-[10px] font-semibold text-emerald-400">VERIFIED</span>
                     </div>
                     <div class="flex gap-4 overflow-x-auto hide-scroll pb-2">
                         {venditori_html}
                     </div>
                 </div>
 
-                <!-- Libri Rari -->
                 <div class="bento-card rounded-2xl p-6 space-y-4">
                     <div class="flex items-center justify-between border-b border-cyan-950 pb-3">
                         <div class="flex items-center gap-2">
                             <span class="w-2 h-2 bg-amber-400 rounded-full"></span>
-                            <h3 class="text-xs md:text-sm font-hud font-bold tracking-widest text-cyan-100 uppercase">Rarità & Collezioni</h3>
+                            <h3 class="text-xs md:text-sm font-hud font-bold tracking-wider text-cyan-100 uppercase">Rarità & Collezioni</h3>
                         </div>
-                        <span class="text-[10px] text-amber-400 font-mono">PREMIUM</span>
+                        <span class="text-[10px] font-semibold text-amber-400">PREMIUM</span>
                     </div>
                     <div class="flex gap-4 overflow-x-auto hide-scroll pb-2">
                         {rari_html}
                     </div>
                 </div>
-
             </div>
 
-            <!-- BENTO GRID SECTION: Oggettistica per Consegne -->
             <div class="bento-card rounded-2xl p-6 space-y-4">
                 <div class="flex items-center justify-between border-b border-cyan-950 pb-3">
                     <div class="flex items-center gap-2">
                         <span class="w-2 h-2 bg-purple-400 rounded-full"></span>
-                        <h3 class="text-xs md:text-sm font-hud font-bold tracking-widest text-cyan-100 uppercase">📦 Oggettistica per Consegne e Archiviazione</h3>
+                        <h3 class="text-xs md:text-sm font-hud font-bold tracking-wider text-cyan-100 uppercase">📦 Oggettistica per Consegne e Archiviazione</h3>
                     </div>
-                    <span class="text-[10px] text-purple-400 font-mono">LOGISTICS KIT</span>
+                    <span class="text-[10px] font-semibold text-purple-400">LOGISTICS KIT</span>
                 </div>
                 <div class="flex gap-4 overflow-x-auto hide-scroll pb-2">
                     {oggettistica_html}
+                </div>
+            </div>
+
+        </main>
+    </body>
+    </html>
+    """
+
+# --- SEZIONE LA MIA BIBLIOTECA (COMPLETA CON METRICHE, GRAFICI E FILTRI) ---
+@app.get("/biblioteca", response_class=HTMLResponse)
+async def biblioteca_page(filtro_stato: str = "tutti", q_biblio: str = "", ordine_biblio: str = "nessuno", genere_biblio: str = "tutti"):
+    navbar = get_navbar('biblioteca')
+    met = BIBLIOTECA_UTENTE["metriche"]
+    prof = BIBLIOTECA_UTENTE["profilo"]
+    
+    elenco = BIBLIOTECA_UTENTE["elenco"].copy()
+    if q_biblio:
+        elenco = [b for b in elenco if q_biblio.lower() in b['titolo'].lower() or q_biblio.lower() in b['autore'].lower()]
+    if filtro_stato != "tutti":
+        elenco = [b for b in elenco if b['stato'] == filtro_stato]
+    if genere_biblio != "tutti":
+        elenco = [b for b in elenco if b['genere'] == genere_biblio]
+
+    if ordine_biblio == "prezzo_asc":
+        elenco.sort(key=lambda x: x['prezzo'])
+    elif ordine_biblio == "prezzo_desc":
+        elenco.sort(key=lambda x: x['prezzo'], reverse=True)
+    elif ordine_biblio == "valutazione":
+        elenco.sort(key=lambda x: x['valutazione'], reverse=True)
+    elif ordine_biblio == "alfabetico":
+        elenco.sort(key=lambda x: x['titolo'])
+
+    elenco_html = ""
+    for b in elenco:
+        badge_stato = ""
+        if b['stato'] == 'comprato': badge_stato = '<span class="bg-blue-950 text-blue-400 border border-blue-500/40 text-[9px] font-semibold px-2 py-0.5 rounded">COMPRATO</span>'
+        elif b['stato'] == 'venduto': badge_stato = '<span class="bg-emerald-950 text-emerald-400 border border-emerald-500/40 text-[9px] font-semibold px-2 py-0.5 rounded">VENDUTO</span>'
+        elif b['stato'] == 'magazzino': badge_stato = '<span class="bg-amber-950 text-amber-400 border border-amber-500/40 text-[9px] font-semibold px-2 py-0.5 rounded">MAGAZZINO</span>'
+        elif b['stato'] == 'preferiti': badge_stato = '<span class="bg-purple-950 text-purple-400 border border-purple-500/40 text-[9px] font-semibold px-2 py-0.5 rounded">PREFERITO</span>'
+
+        elenco_html += f"""
+        <div class="bento-card rounded-xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:border-cyan-400 transition">
+            <div class="flex items-center gap-4">
+                <img src="{b['copertina']}" class="w-16 h-20 object-cover rounded-lg border border-cyan-500/30">
+                <div class="space-y-1">
+                    <div class="flex items-center gap-2">
+                        <h4 class="font-bold text-sm text-cyan-100">{b['titolo']}</h4>
+                        {badge_stato}
+                    </div>
+                    <p class="text-xs text-cyan-400/70 font-medium">di {b['autore']} • <span class="text-neutral-400">{b['condizione']}</span></p>
+                    <p class="text-[11px] font-medium text-amber-300">Valutazione: {b['valutazione']} ★</p>
+                </div>
+            </div>
+            <div class="flex sm:flex-col items-end justify-between w-full sm:w-auto">
+                <span class="text-emerald-400 font-bold text-sm">{b['prezzo']:.2f} €</span>
+                <a href="/libro/{b['id']}" class="text-[10px] font-semibold text-[#00f0ff] hover:underline mt-1">[ Visualizza Tomo ]</a>
+            </div>
+        </div>
+        """
+
+    generi_options_b = '<option value="tutti">-- TUTTI I GENERI --</option>'
+    for macro, sottos in GENERI_STRUTTURA.items():
+        generi_options_b += f'<optgroup label="{macro}">'
+        for sotto in sottos:
+            sel = "selected" if genere_biblio == sotto else ""
+            generi_options_b += f'<option value="{sotto}" {sel}>{sotto}</option>'
+        generi_options_b += '</optgroup>'
+
+    return f"""
+    {get_base_head("La Tua Biblioteca - Bento HUD")}
+    <body class="min-h-screen pb-20">
+        {navbar}
+        <main class="max-w-7xl mx-auto px-4 md:px-8 py-8 space-y-6">
+            
+            <!-- HEADER SEZIONE & PREVIEW PROFILO VENDITORE -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="bento-card bento-glow-blue p-6 rounded-2xl flex flex-col justify-between space-y-4">
+                    <div class="space-y-1">
+                        <span class="text-[10px] font-semibold text-[#00f0ff] uppercase tracking-widest bg-cyan-950/60 px-2.5 py-1 rounded border border-cyan-500/30">IL MIO PROFILO VENDITORE</span>
+                        <h2 class="text-xl font-bold text-cyan-100 font-hud pt-2">{prof['nome']}</h2>
+                        <p class="text-xs text-neutral-400 font-medium">📍 Sede: {prof['sede']} | Rating: {prof['valutazione']}</p>
+                    </div>
+                    <div class="pt-4 border-t border-cyan-950 flex justify-between items-center text-xs font-semibold">
+                        <span class="text-neutral-400 font-medium">ID Preview Nodo:</span>
+                        <a href="/venditore/{prof['id_venditore']}" class="text-[#00f0ff] underline font-bold hover:text-cyan-300">Apri Profilo Pubblico →</a>
+                    </div>
+                </div>
+
+                <!-- METRICHE CHIAVE BENTO GRID -->
+                <div class="lg:col-span-2 grid grid-cols-2 sm:grid-cols-3 gap-4">
+                    <div class="bento-card p-4 rounded-xl flex flex-col justify-between">
+                        <span class="text-[10px] font-semibold text-neutral-400 uppercase">Libri Venduti</span>
+                        <div class="text-2xl font-bold text-cyan-100 font-hud pt-2">{met['libri_venduti_num']}</div>
+                        <span class="text-[9px] font-semibold text-emerald-400 mt-1">Negoziati con successo</span>
+                    </div>
+                    <div class="bento-card p-4 rounded-xl flex flex-col justify-between">
+                        <span class="text-[10px] font-semibold text-neutral-400 uppercase">Guadagno Netto</span>
+                        <div class="text-2xl font-bold text-emerald-400 font-hud pt-2">{met['guadagno_totale_netto']:.2f} €</div>
+                        <span class="text-[9px] font-semibold text-emerald-400/80 mt-1">Totale incassato</span>
+                    </div>
+                    <div class="bento-card p-4 rounded-xl flex flex-col justify-between">
+                        <span class="text-[10px] font-semibold text-neutral-400 uppercase">Libri Comprati</span>
+                        <div class="text-2xl font-bold text-cyan-100 font-hud pt-2">{met['libri_comprati_num']}</div>
+                        <span class="text-[9px] font-semibold text-blue-400 mt-1">Acquisizioni totali</span>
+                    </div>
+                    <div class="bento-card p-4 rounded-xl flex flex-col justify-between">
+                        <span class="text-[10px] font-semibold text-neutral-400 uppercase">Totale Comprato</span>
+                        <div class="text-2xl font-bold text-cyan-200 font-hud pt-2">{met['totale_comprato']:.2f} €</div>
+                        <span class="text-[9px] font-semibold text-neutral-400 mt-1">Investimento spesa</span>
+                    </div>
+                    <div class="bento-card p-4 rounded-xl flex flex-col justify-between">
+                        <span class="text-[10px] font-semibold text-neutral-400 uppercase">Magazzino Libri</span>
+                        <div class="text-2xl font-bold text-amber-300 font-hud pt-2">{met['magazzino_num']}</div>
+                        <span class="text-[9px] font-semibold text-amber-400 mt-1">Volumi in stock</span>
+                    </div>
+                    <div class="bento-card p-4 rounded-xl flex flex-col justify-between">
+                        <span class="text-[10px] font-semibold text-neutral-400 uppercase">Valore Magazzino</span>
+                        <div class="text-2xl font-bold text-amber-400 font-hud pt-2">{met['valore_magazzino']:.2f} €</div>
+                        <span class="text-[9px] font-semibold text-amber-400/80 mt-1">Stima inventario</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SEZIONE GRAFICI (TREND TEMPORALE E GRAFICO A TORTA) -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Trend Portafoglio Temporale (Soldi / Mesi, Anni) -->
+                <div class="bento-card rounded-2xl p-6 space-y-4">
+                    <div class="flex items-center justify-between border-b border-cyan-950 pb-3">
+                        <h3 class="text-xs font-hud font-bold text-cyan-100 uppercase tracking-wider">📈 Trend Portafoglio Temporale (Soldi / Mesi)</h3>
+                        <span class="text-[10px] font-semibold text-cyan-400">2025 - 2026</span>
+                    </div>
+                    <div class="h-48 flex items-end gap-3 justify-between pt-6 px-2 border-b border-cyan-950/40">
+                        <div class="w-full flex flex-col items-center gap-2">
+                            <span class="text-[10px] font-semibold text-emerald-400">420€</span>
+                            <div class="w-full bg-cyan-950/60 hover:bg-[#00f0ff] rounded-t transition h-24 border-t border-[#00f0ff]/50"></div>
+                            <span class="text-[10px] font-medium text-neutral-400">Giu '25</span>
+                        </div>
+                        <div class="w-full flex flex-col items-center gap-2">
+                            <span class="text-[10px] font-semibold text-emerald-400">580€</span>
+                            <div class="w-full bg-cyan-950/60 hover:bg-[#00f0ff] rounded-t transition h-32 border-t border-[#00f0ff]/50"></div>
+                            <span class="text-[10px] font-medium text-neutral-400">Set '25</span>
+                        </div>
+                        <div class="w-full flex flex-col items-center gap-2">
+                            <span class="text-[10px] font-semibold text-emerald-400">710€</span>
+                            <div class="w-full bg-cyan-950/60 hover:bg-[#00f0ff] rounded-t transition h-40 border-t border-[#00f0ff]/50"></div>
+                            <span class="text-[10px] font-medium text-neutral-400">Gen '26</span>
+                        </div>
+                        <div class="w-full flex flex-col items-center gap-2">
+                            <span class="text-[10px] font-semibold text-emerald-400">840€</span>
+                            <div class="w-full bg-[#00f0ff] rounded-t transition h-44 shadow-[0_0_15px_rgba(0,240,255,0.4)]"></div>
+                            <span class="text-[10px] font-bold text-[#00f0ff]">Oggi</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Grafico a Torta (Guadagno Totale / Spese Totali / Magazzino Totale) -->
+                <div class="bento-card rounded-2xl p-6 space-y-4">
+                    <div class="flex items-center justify-between border-b border-cyan-950 pb-3">
+                        <h3 class="text-xs font-hud font-bold text-cyan-100 uppercase tracking-wider">🥧 Distribuzione Finanziaria</h3>
+                        <span class="text-[10px] font-semibold text-amber-400">Rapporto %</span>
+                    </div>
+                    <div class="flex flex-col sm:flex-row items-center justify-around gap-6 py-4">
+                        <div class="w-36 h-36 rounded-full border-4 border-cyan-500/20 relative flex items-center justify-center shadow-[0_0_20px_rgba(0,240,255,0.2)]"
+                             style="background: conic-gradient(#10b981 0deg 180deg, #3b82f6 180deg 280deg, #f59e0b 280deg 360deg);">
+                            <div class="w-24 h-24 bg-[#030712] rounded-full flex flex-col items-center justify-center">
+                                <span class="text-[10px] font-semibold text-neutral-400">ASSET</span>
+                                <span class="text-xs font-bold text-cyan-100 font-hud">100%</span>
+                            </div>
+                        </div>
+                        <div class="space-y-2 text-xs font-medium">
+                            <div class="flex items-center gap-2">
+                                <span class="w-3 h-3 bg-emerald-500 rounded"></span>
+                                <span class="text-neutral-300">Guadagno Netto (33%)</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="w-3 h-3 bg-blue-500 rounded"></span>
+                                <span class="text-neutral-300">Spese Comprati (38%)</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="w-3 h-3 bg-amber-500 rounded"></span>
+                                <span class="text-neutral-300">Valore Magazzino (29%)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FILTRI AVANZATI E RICERCA NELLA BIBLIOTECA -->
+            <div class="bento-card rounded-2xl p-6 space-y-4">
+                <form method="GET" action="/biblioteca" class="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
+                    <div class="space-y-1">
+                        <label class="block text-[10px] font-semibold text-[#00f0ff] uppercase">Ricerca in Biblioteca</label>
+                        <input type="text" name="q_biblio" value="{q_biblio}" placeholder="Cerca titolo/autore..." class="w-full bg-black/70 border border-cyan-500/30 rounded-xl px-3 py-2 text-xs text-cyan-100 focus:outline-none focus:border-[#00f0ff]">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="block text-[10px] font-semibold text-[#00f0ff] uppercase">Filtro Stato</label>
+                        <select name="filtro_stato" class="w-full bg-black/70 border border-cyan-500/30 rounded-xl px-3 py-2 text-xs text-cyan-100 focus:outline-none focus:border-[#00f0ff]">
+                            <option value="tutti" {"selected" if filtro_stato=="tutti" else ""}>Tutti gli elementi</option>
+                            <option value="comprato" {"selected" if filtro_stato=="comprato" else ""}>Comprati</option>
+                            <option value="venduto" {"selected" if filtro_stato=="venduto" else ""}>Venduti</option>
+                            <option value="magazzino" {"selected" if filtro_stato=="magazzino" else ""}>Magazzino</option>
+                            <option value="preferiti" {"selected" if filtro_stato=="preferiti" else ""}>Preferiti</option>
+                        </select>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="block text-[10px] font-semibold text-[#00f0ff] uppercase">Filtro Genere</label>
+                        <select name="genere_biblio" class="w-full bg-black/70 border border-cyan-500/30 rounded-xl px-3 py-2 text-xs text-cyan-100 focus:outline-none focus:border-[#00f0ff]">
+                            {generi_options_b}
+                        </select>
+                    </div>
+                    <div class="space-y-1 flex gap-2">
+                        <div class="flex-1 space-y-1">
+                            <label class="block text-[10px] font-semibold text-[#00f0ff] uppercase">Ordina per</label>
+                            <select name="ordine_biblio" class="w-full bg-black/70 border border-cyan-500/30 rounded-xl px-3 py-2 text-xs text-cyan-100 focus:outline-none focus:border-[#00f0ff]">
+                                <option value="nessuno" {"selected" if ordine_biblio=="nessuno" else ""}>Standard</option>
+                                <option value="prezzo_asc" {"selected" if ordine_biblio=="prezzo_asc" else ""}>Prezzo Min</option>
+                                <option value="prezzo_desc" {"selected" if ordine_biblio=="prezzo_desc" else ""}>Prezzo Max</option>
+                                <option value="valutazione" {"selected" if ordine_biblio=="valutazione" else ""}>Valutazione ★</option>
+                                <option value="alfabetico" {"selected" if ordine_biblio=="alfabetico" else ""}>Alfabetico</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="bg-cyan-950 hover:bg-cyan-900 text-[#00f0ff] border border-cyan-500/50 font-bold px-4 py-2 rounded-xl text-xs uppercase transition h-[34px] self-end">Filtra</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- ELENCO LIBRI COMPRATI, VENDUTI, MAGAZZINO E PREFERITI -->
+            <div class="space-y-4">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-xs font-hud font-bold text-cyan-100 uppercase tracking-wider">Elenco Completo Archiviato ({len(elenco)})</h3>
+                    <span class="text-[10px] font-medium text-neutral-400">Qualità Immagini HD Attiva</span>
+                </div>
+                <div class="grid grid-cols-1 gap-4">
+                    {elenco_html if elenco_html else '<p class="text-xs text-neutral-500 p-8 text-center font-medium">Nessun tomo corrisponde ai filtri selezionati.</p>'}
                 </div>
             </div>
 
@@ -463,18 +713,18 @@ async def home_page(q: str = "", ordine: str = "nessuno", genere: str = "tutti")
 async def venditore_page(venditore_id: str):
     navbar = get_navbar('home')
     libri_venditore = [b for b in BOOKS_DATABASE if b["venditore_id"] == venditore_id]
-    nome_venditore = libri_venditore[0]["venditore"] if libri_venditore else "Venditore Autorizzato"
-    posizione = libri_venditore[0]["venditore_posizione"] if libri_venditore else "Italia"
-    valutazione_v = libri_venditore[0]["venditore_valutazione"] if libri_venditore else "5.0 ★"
+    nome_venditore = libri_venditore[0]["venditore"] if libri_venditore else BIBLIOTECA_UTENTE["profilo"]["nome"]
+    posizione = libri_venditore[0]["venditore_posizione"] if libri_venditore else BIBLIOTECA_UTENTE["profilo"]["sede"]
+    valutazione_v = libri_venditore[0]["venditore_valutazione"] if libri_venditore else BIBLIOTECA_UTENTE["profilo"]["valutazione"]
 
     catalogo_html = ""
     for b in libri_venditore:
         catalogo_html += f"""
         <a href="/libro/{b['id']}" class="bento-card rounded-xl p-4 flex gap-4 items-center hover:border-cyan-400 transition group">
             <img src="{b['copertina']}" class="w-16 h-20 object-cover rounded-lg border border-cyan-500/20">
-            <div class="font-mono space-y-1">
+            <div class="space-y-1">
                 <h4 class="font-bold text-sm text-cyan-100 group-hover:text-[#00f0ff]">{b['titolo']}</h4>
-                <p class="text-xs text-cyan-400/70">{b['autore']}</p>
+                <p class="text-xs text-cyan-400/70 font-medium">{b['autore']}</p>
                 <span class="text-emerald-400 font-bold text-xs">{b['prezzo']:.2f} €</span>
             </div>
         </a>
@@ -484,17 +734,17 @@ async def venditore_page(venditore_id: str):
     {get_base_head(f"{nome_venditore} - Profilo Bento")}
     <body class="min-h-screen pb-20">
         {navbar}
-        <main class="max-w-4xl mx-auto px-4 py-12 space-y-8 font-mono">
+        <main class="max-w-4xl mx-auto px-4 py-12 space-y-8">
             <div class="bento-card bento-glow-blue p-8 space-y-4 rounded-2xl">
-                <span class="text-[10px] bg-cyan-950 text-[#00f0ff] px-3 py-1 rounded border border-cyan-500/40 uppercase tracking-widest">PROFILO VENDITORE VERIFIED</span>
+                <span class="text-[10px] font-semibold bg-cyan-950 text-[#00f0ff] px-3 py-1 rounded border border-cyan-500/40 uppercase tracking-widest">PROFILO VENDITORE VERIFIED</span>
                 <h1 class="text-3xl font-bold text-cyan-100 font-hud">{nome_venditore}</h1>
-                <p class="text-xs text-cyan-400/80">📍 Sede Nodo: {posizione} | Valutazione Integrale: {valutazione_v}</p>
+                <p class="text-xs text-cyan-400/80 font-medium">📍 Sede Nodo: {posizione} | Valutazione Integrale: {valutazione_v}</p>
             </div>
             
             <div class="space-y-4">
                 <h3 class="text-sm font-hud font-bold text-cyan-200 uppercase tracking-wider">Cataloghi Attivi associati</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {catalogo_html if catalogo_html else '<p class="text-xs text-neutral-500 font-mono">Nessun tomo attivo al momento.</p>'}
+                    {catalogo_html if catalogo_html else '<p class="text-xs text-neutral-500 font-medium">Nessun tomo attivo al momento.</p>'}
                 </div>
             </div>
         </main>
@@ -512,47 +762,26 @@ async def libro_detail_page(libro_id: str):
     {get_base_head(f"{libro['titolo']} - Analisi Bento")}
     <body class="min-h-screen pb-20">
         {navbar}
-        <main class="max-w-4xl mx-auto px-4 py-12 font-mono">
+        <main class="max-w-4xl mx-auto px-4 py-12">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 bento-card bento-glow-orange p-8 rounded-2xl">
                 <div class="flex flex-col items-center justify-center">
                     <img src="{libro['copertina']}" class="w-56 h-72 object-cover rounded-xl border border-cyan-500/40 shadow-xl mb-4">
-                    <span class="text-xs text-[#00f0ff] font-bold uppercase tracking-widest bg-cyan-950 px-3 py-1 rounded border border-cyan-500/40">{libro['valutazione']} Media Indice</span>
+                    <span class="text-xs font-bold text-[#00f0ff] uppercase tracking-widest bg-cyan-950 px-3 py-1 rounded border border-cyan-500/40">{libro['valutazione']} Media Indice</span>
                 </div>
                 <div class="md:col-span-2 space-y-4">
-                    <span class="text-[10px] text-cyan-400 tracking-widest uppercase">ID PROTOCOLLO ARCHIVIO // {libro['id']}</span>
-                    <h1 class="text-3xl font-black text-cyan-100 font-hud">{libro['titolo']}</h1>
-                    <p class="text-sm text-cyan-300">di {libro['autore']}</p>
+                    <span class="text-[10px] font-semibold text-cyan-400 tracking-widest uppercase">ID PROTOCOLLO ARCHIVIO // {libro['id']}</span>
+                    <h1 class="text-3xl font-extrabold text-cyan-100 font-hud">{libro['titolo']}</h1>
+                    <p class="text-sm text-cyan-300 font-medium">di {libro['autore']}</p>
                     <div class="text-2xl font-bold text-emerald-400">{libro['prezzo']:.2f} € <span class="text-xs font-normal text-neutral-400">({libro['condizione']})</span></div>
-                    <p class="text-cyan-200/80 text-xs leading-relaxed italic border-l-2 border-[#00f0ff] pl-3">{libro['descrizione']}</p>
+                    <p class="text-cyan-200/80 text-xs leading-relaxed font-medium italic border-l-2 border-[#00f0ff] pl-3">{libro['descrizione']}</p>
                     
                     <div class="pt-4 border-t border-cyan-950 flex items-center justify-between text-xs">
                         <div>
-                            <span class="text-neutral-500 block">Nodo Partner Autorizzato:</span>
+                            <span class="text-neutral-500 font-medium block">Nodo Partner Autorizzato:</span>
                             <a href="/venditore/{libro['venditore_id']}" class="text-[#00f0ff] font-bold underline hover:text-cyan-300">{libro['venditore']} ({libro['venditore_posizione']})</a>
                         </div>
                         <button onclick="alert('[TRANSACTION COMPLETE] Richiesta registrata nei server centrali!')" class="bg-[#00f0ff] hover:bg-cyan-400 text-black font-bold px-6 py-2.5 rounded-xl transition uppercase tracking-wider shadow-[0_0_15px_rgba(0,240,255,0.4)]">Acquista Ora</button>
                     </div>
-                </div>
-            </div>
-        </main>
-    </body>
-    </html>
-    """
-
-# --- LA MIA BIBLIOTECA ---
-@app.get("/biblioteca", response_class=HTMLResponse)
-async def biblioteca_page():
-    navbar = get_navbar('biblioteca')
-    return f"""
-    {get_base_head("La Mia Biblioteca - Bento HUD")}
-    <body class="min-h-screen pb-20">
-        {navbar}
-        <main class="max-w-4xl mx-auto px-4 py-12">
-            <div class="bento-card bento-glow-blue p-8 space-y-6 rounded-2xl font-mono">
-                <h2 class="text-xl font-hud font-bold text-cyan-100 uppercase tracking-widest">La Tua Raccolta Personale</h2>
-                <p class="text-cyan-300/70 text-xs">Inventario olografico sincronizzato con il cloud personale della Domus.</p>
-                <div class="border border-cyan-500/20 rounded-xl p-12 text-center text-neutral-500 text-xs">
-                    Nessun manoscritto registrato nel cloud. Visita <a href="/metti-in-vendita" class="text-[#00f0ff] underline font-bold">Metti in Vendita</a> per scansionare libri.
                 </div>
             </div>
         </main>
@@ -568,11 +797,11 @@ async def metti_in_vendita_page():
     {get_base_head("Metti in Vendita - Bento HUD")}
     <body class="min-h-screen pb-20">
         {navbar}
-        <main class="max-w-3xl mx-auto px-4 py-12 font-mono">
+        <main class="max-w-3xl mx-auto px-4 py-12">
             <div class="bento-card bento-glow-orange p-8 space-y-6 rounded-2xl">
                 <div class="text-center space-y-2">
-                    <h2 class="text-2xl font-hud font-bold text-cyan-100 uppercase tracking-widest">Scanner Quantico Tomo</h2>
-                    <p class="text-cyan-300/70 text-xs">Inserisci il codice ISBN per avviare il parsing automatico dei metadati olografici.</p>
+                    <h2 class="text-2xl font-hud font-bold text-cyan-100 uppercase tracking-wider">Scanner Quantico Tomo</h2>
+                    <p class="text-cyan-300/70 text-xs font-medium">Inserisci il codice ISBN per avviare il parsing automatico dei metadati olografici.</p>
                 </div>
                 <div class="flex gap-3">
                     <input type="text" id="isbn" value="9788804668237" placeholder="Codice ISBN..." 
@@ -585,4 +814,5 @@ async def metti_in_vendita_page():
             </div>
         </main>
     </body>
-    </html>    """
+    </html>
+    """
