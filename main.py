@@ -216,7 +216,6 @@ def get_base_head(title="LoopBooks Bento HUD"):
         <script src="https://cdn.tailwindcss.com"></script>
         <style>
             @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-            
             body {{
                 background-color: #030712;
                 color: #e5e7eb;
@@ -296,7 +295,6 @@ def get_navbar(active_page="home"):
 @app.get("/", response_class=HTMLResponse)
 async def home_page(q: str = "", ordine: str = "nessuno", genere: str = "tutti"):
     navbar = get_navbar('home')
-    
     libri_filtrati = BOOKS_DATABASE.copy()
     if q:
         libri_filtrati = [b for b in libri_filtrati if q.lower() in b['titolo'].lower() or q.lower() in b['autore'].lower()]
@@ -367,9 +365,7 @@ async def home_page(q: str = "", ordine: str = "nessuno", genere: str = "tutti")
     {get_base_head("LoopBooks - Compra & Bento Grid HUD")}
     <body class="min-h-screen pb-20">
         {navbar}
-
         <main class="max-w-7xl mx-auto px-4 md:px-8 py-8 space-y-6">
-            
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="bento-card bento-glow-blue rounded-2xl p-6 flex flex-col justify-between space-y-4">
                     <div class="space-y-1">
@@ -382,7 +378,6 @@ async def home_page(q: str = "", ordine: str = "nessuno", genere: str = "tutti")
                         <span class="text-[#00f0ff] font-bold">{len(BOOKS_DATABASE)} Volumi Attivi</span>
                     </div>
                 </div>
-
                 <div class="md:col-span-2 bento-card bento-glow-orange rounded-2xl p-6">
                     <form method="GET" action="/" class="grid grid-cols-1 sm:grid-cols-3 gap-3 h-full items-center">
                         <div class="space-y-1">
@@ -411,7 +406,6 @@ async def home_page(q: str = "", ordine: str = "nessuno", genere: str = "tutti")
                     </form>
                 </div>
             </div>
-
             <div class="bento-card rounded-2xl p-6 space-y-4">
                 <div class="flex items-center justify-between border-b border-cyan-950 pb-3">
                     <div class="flex items-center gap-2">
@@ -424,7 +418,6 @@ async def home_page(q: str = "", ordine: str = "nessuno", genere: str = "tutti")
                     {tendenza_html}
                 </div>
             </div>
-
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div class="bento-card rounded-2xl p-6 space-y-4">
                     <div class="flex items-center justify-between border-b border-cyan-950 pb-3">
@@ -438,7 +431,6 @@ async def home_page(q: str = "", ordine: str = "nessuno", genere: str = "tutti")
                         {venditori_html}
                     </div>
                 </div>
-
                 <div class="bento-card rounded-2xl p-6 space-y-4">
                     <div class="flex items-center justify-between border-b border-cyan-950 pb-3">
                         <div class="flex items-center gap-2">
@@ -452,7 +444,6 @@ async def home_page(q: str = "", ordine: str = "nessuno", genere: str = "tutti")
                     </div>
                 </div>
             </div>
-
             <div class="bento-card rounded-2xl p-6 space-y-4">
                 <div class="flex items-center justify-between border-b border-cyan-950 pb-3">
                     <div class="flex items-center gap-2">
@@ -465,7 +456,6 @@ async def home_page(q: str = "", ordine: str = "nessuno", genere: str = "tutti")
                     {oggettistica_html}
                 </div>
             </div>
-
         </main>
     </body>
     </html>
@@ -491,7 +481,7 @@ async def biblioteca_page(filtro_stato: str = "tutti", q_biblio: str = "", ordin
     elif ordine_biblio == "prezzo_desc":
         elenco.sort(key=lambda x: x['prezzo'], reverse=True)
     elif ordine_biblio == "valutazione":
-        elenco.sort(key=lambda x: x['valutazione'], reverse=True)
+        elenco.sort(key=lambda x: float(x.get('valutazione', 0)), reverse=True)
     elif ordine_biblio == "alfabetico":
         elenco.sort(key=lambda x: x['titolo'])
 
@@ -536,7 +526,6 @@ async def biblioteca_page(filtro_stato: str = "tutti", q_biblio: str = "", ordin
     <body class="min-h-screen pb-20">
         {navbar}
         <main class="max-w-7xl mx-auto px-4 md:px-8 py-8 space-y-6">
-            
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div class="bento-card bento-glow-blue p-6 rounded-2xl flex flex-col justify-between space-y-4">
                     <div class="space-y-1">
@@ -549,7 +538,6 @@ async def biblioteca_page(filtro_stato: str = "tutti", q_biblio: str = "", ordin
                         <a href="/venditore/{prof['id_venditore']}" class="text-[#00f0ff] underline font-bold hover:text-cyan-300">Apri Profilo Pubblico →</a>
                     </div>
                 </div>
-
                 <div class="lg:col-span-2 grid grid-cols-2 sm:grid-cols-3 gap-4">
                     <div class="bento-card p-4 rounded-xl flex flex-col justify-between">
                         <span class="text-[10px] font-semibold text-neutral-400 uppercase">Libri Venduti</span>
@@ -583,7 +571,6 @@ async def biblioteca_page(filtro_stato: str = "tutti", q_biblio: str = "", ordin
                     </div>
                 </div>
             </div>
-
             <div class="bento-card rounded-2xl p-6 space-y-4">
                 <form method="GET" action="/biblioteca" class="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
                     <div class="space-y-1">
@@ -621,7 +608,6 @@ async def biblioteca_page(filtro_stato: str = "tutti", q_biblio: str = "", ordin
                     </div>
                 </form>
             </div>
-
             <div class="space-y-4">
                 <div class="flex items-center justify-between">
                     <h3 class="text-xs font-hud font-bold text-cyan-100 uppercase tracking-wider">Elenco Completo Archiviato ({len(elenco)})</h3>
@@ -631,7 +617,6 @@ async def biblioteca_page(filtro_stato: str = "tutti", q_biblio: str = "", ordin
                     {elenco_html if elenco_html else '<p class="text-xs text-neutral-500 p-8 text-center font-medium">Nessun tomo corrisponde ai filtri selezionati.</p>'}
                 </div>
             </div>
-
         </main>
     </body>
     </html>
@@ -669,7 +654,6 @@ async def venditore_page(venditore_id: str):
                 <h1 class="text-3xl font-bold text-cyan-100 font-hud">{nome_venditore}</h1>
                 <p class="text-xs text-cyan-400/80 font-medium">📍 Sede Nodo: {posizione} | Valutazione Integrale: {valutazione_v}</p>
             </div>
-            
             <div class="space-y-4">
                 <h3 class="text-sm font-hud font-bold text-cyan-200 uppercase tracking-wider">Cataloghi Attivi associati</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -703,7 +687,6 @@ async def libro_detail_page(libro_id: str):
                     <p class="text-sm text-cyan-300 font-medium">di {libro['autore']}</p>
                     <div class="text-2xl font-bold text-emerald-400">{libro['prezzo']:.2f} € <span class="text-xs font-normal text-neutral-400">({libro['condizione']})</span></div>
                     <p class="text-cyan-200/80 text-xs leading-relaxed font-medium italic border-l-2 border-[#00f0ff] pl-3">{libro['descrizione']}</p>
-                    
                     <div class="pt-4 border-t border-cyan-950 flex items-center justify-between text-xs">
                         <div>
                             <span class="text-neutral-500 font-medium block">Nodo Partner Autorizzato:</span>
@@ -735,14 +718,12 @@ async def metti_in_vendita_page():
     <body class="min-h-screen pb-20">
         {navbar}
         <main class="max-w-4xl mx-auto px-4 py-12 space-y-6">
-            
             <div class="bento-card bento-glow-orange p-8 space-y-6 rounded-2xl">
                 <div class="space-y-2">
                     <span class="text-[10px] font-semibold text-[#00f0ff] uppercase tracking-widest bg-cyan-950/60 px-2.5 py-1 rounded border border-cyan-500/35">MODULO DI ACCERTAMENTO</span>
                     <h2 class="text-2xl font-hud font-bold text-cyan-100 uppercase tracking-wider">Scanner Quantico ISBN & Pubblicazione</h2>
-                    <p class="text-cyan-300/70 text-xs font-medium">Inserisci l'ISBN per interrogare l'archivio Google Books oppure compila i dati del volume da inserire nel market.</p>
+                    <p class="text-cyan-300/70 text-xs font-medium">Inserisci l'ISBN per interrogare gli archivi online oppure compila i dati del volume da inserire nel market.</p>
                 </div>
-                
                 <div class="flex gap-3">
                     <input type="text" id="isbn-input" value="9788804668237" placeholder="Inserisci ISBN (es. 9788804668237)..." 
                         class="flex-1 bg-black/80 border border-cyan-500/40 rounded-xl px-4 py-3 text-cyan-100 text-xs focus:outline-none focus:border-[#00f0ff]">
@@ -755,7 +736,6 @@ async def metti_in_vendita_page():
 
             <form action="/pubblica-tomo" method="POST" class="bento-card p-8 space-y-6 rounded-2xl">
                 <h3 class="text-sm font-hud font-bold text-cyan-200 uppercase tracking-wider border-b border-cyan-950 pb-3">Dettagli Tomo & Condizioni di Vendita</h3>
-                
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="space-y-4">
                         <div class="space-y-1">
@@ -792,7 +772,6 @@ async def metti_in_vendita_page():
                             </select>
                         </div>
                     </div>
-
                     <div class="space-y-4 flex flex-col justify-between">
                         <div class="space-y-3">
                             <div class="space-y-1">
@@ -813,7 +792,6 @@ async def metti_in_vendita_page():
                                 <textarea id="descrizione" name="descrizione" rows="3" class="w-full bg-black/80 border border-cyan-500/30 rounded-xl px-3 py-2 text-xs text-cyan-100 focus:outline-none focus:border-[#00f0ff]">Tomo verificato nei registri di LoopBooks.</textarea>
                             </div>
                         </div>
-
                         <div class="flex items-center gap-4 pt-4 border-t border-cyan-950">
                             <div class="w-16 h-20 bg-black rounded-lg overflow-hidden border border-cyan-500/30 flex-shrink-0">
                                 <img id="preview-img" src="https://covers.openlibrary.org/b/isbn/9788804668237-L.jpg" class="w-full h-full object-cover">
@@ -825,7 +803,6 @@ async def metti_in_vendita_page():
                     </div>
                 </div>
             </form>
-
         </main>
 
         <script>
@@ -839,35 +816,66 @@ async def metti_in_vendita_page():
                     alert('Inserisci un codice ISBN valido.');
                     return;
                 }}
+                
+                let found = false;
+                
+                // Tentativo 1: OpenLibrary API (molto affidabile per metadati e copertine)
                 try {{
-                    const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${{isbn}}`);
+                    const response = await fetch(`https://openlibrary.org/api/books?bibkeys=ISBN:${{isbn}}&format=json&jscmd=data`);
                     const data = await response.json();
-                    if(data.items && data.items.length > 0) {{
-                        const book = data.items[0].volumeInfo;
+                    const key = `ISBN:${{isbn}}`;
+                    if (data[key]) {{
+                        const book = data[key];
                         document.getElementById('titolo').value = book.title || '';
-                        document.getElementById('autore').value = book.authors ? book.authors.join(', ') : '';
-                        if(book.description) {{
-                            document.getElementById('descrizione').value = book.description.substring(0, 200) + '...';
-                        }}
-                        if(book.imageLinks && book.imageLinks.thumbnail) {{
-                            let imgUrl = book.imageLinks.thumbnail.replace('http:', 'https:');
-                            document.getElementById('copertina').value = imgUrl;
-                            document.getElementById('preview-img').src = imgUrl;
-                        }} else {{
-                            let fallbackUrl = `https://covers.openlibrary.org/b/isbn/${{isbn}}-L.jpg`;
-                            document.getElementById('copertina').value = fallbackUrl;
-                            document.getElementById('preview-img').src = fallbackUrl;
-                        }}
-                        alert('[SCAN OK] Metadati del tomo acquisiti con successo!');
-                    }} else {{
-                        alert('Nessun tomo trovato con questo ISBN. Utilizzo fallback OpenLibrary.');
-                        let fallbackUrl = `https://covers.openlibrary.org/b/isbn/${{isbn}}-L.jpg`;
-                        document.getElementById('copertina').value = fallbackUrl;
-                        document.getElementById('preview-img').src = fallbackUrl;
+                        document.getElementById('autore').value = book.authors ? book.authors.map(a => a.name).join(', ') : '';
+                        let coverUrl = book.cover && book.cover.large ? book.cover.large : `https://covers.openlibrary.org/b/isbn/${{isbn}}-L.jpg`;
+                        document.getElementById('copertina').value = coverUrl;
+                        document.getElementById('preview-img').src = coverUrl;
+                        document.getElementById('descrizione').value = `Tomo catalogato via OpenLibrary (ISBN: ${{isbn}}).`;
+                        found = true;
+                        alert('[SCAN OK] Metadati acquisiti tramite OpenLibrary!');
                     }}
                 }} catch(e) {{
-                    console.error(e);
-                    alert('Errore di connessione al database Google Books.');
+                    console.log('OpenLibrary fallito, provo Google Books...');
+                }}
+
+                // Tentativo 2: Google Books API se il primo non ha dato esito
+                if (!found) {{
+                    try {{
+                        const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${{isbn}}`);
+                        const data = await response.json();
+                        if(data.items && data.items.length > 0) {{
+                            const book = data.items[0].volumeInfo;
+                            document.getElementById('titolo').value = book.title || '';
+                            document.getElementById('autore').value = book.authors ? book.authors.join(', ') : '';
+                            if(book.description) {{
+                                document.getElementById('descrizione').value = book.description.substring(0, 200) + '...';
+                            }}
+                            if(book.imageLinks && book.imageLinks.thumbnail) {{
+                                let imgUrl = book.imageLinks.thumbnail.replace('http:', 'https:').replace('&zoom=1', '&zoom=0');
+                                document.getElementById('copertina').value = imgUrl;
+                                document.getElementById('preview-img').src = imgUrl;
+                            }} else {{
+                                let fallbackUrl = `https://covers.openlibrary.org/b/isbn/${{isbn}}-L.jpg`;
+                                document.getElementById('copertina').value = fallbackUrl;
+                                document.getElementById('preview-img').src = fallbackUrl;
+                            }}
+                            found = true;
+                            alert('[SCAN OK] Metadati acquisiti tramite Google Books!');
+                        }}
+                    }} catch(e) {{
+                        console.error(e);
+                    }}
+                }}
+
+                // Fallback finale se nessun servizio risponde via API
+                if (!found) {{
+                    alert('[AVVISO] Connessione API non riuscita. Configurazione copertina e dati standard basati su ISBN.');
+                    let fallbackUrl = `https://covers.openlibrary.org/b/isbn/${{isbn}}-L.jpg`;
+                    document.getElementById('copertina').value = fallbackUrl;
+                    document.getElementById('preview-img').src = fallbackUrl;
+                    document.getElementById('titolo').value = "Volume ISBN " + isbn;
+                    document.getElementById('autore').value = "Autore da specificare";
                 }}
             }}
         </script>
