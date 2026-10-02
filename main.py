@@ -299,7 +299,7 @@ async def home_page(q: str = "", ordine: str = "nessuno", genere: str = "tutti")
     if q:
         libri_filtrati = [b for b in libri_filtrati if q.lower() in b['titolo'].lower() or q.lower() in b['autore'].lower()]
     if genere != "tutti":
-        libri_filtrati = [b for b in libri_filtrati if b['genere'] == genere]
+        libri_filtrati = [b for b in libri_filtrati if b.get('genere') == genere]
         
     if ordine == "prezzo_asc":
         libri_filtrati.sort(key=lambda x: x['prezzo'])
@@ -333,8 +333,8 @@ async def home_page(q: str = "", ordine: str = "nessuno", genere: str = "tutti")
             """
         return html
 
-    tendenza_html = render_cards_horizontal([b for b in libri_filtrati if b["sezione"] == "tendenza"] or libri_filtrati)
-    venditori_html = render_cards_horizontal([b for b in libri_filtrati if b["sezione"] == "migliori-venditori"] or libri_filtrati)
+    tendenza_html = render_cards_horizontal([b for b in libri_filtrati if b.get("sezione") == "tendenza"] or libri_filtrati)
+    venditori_html = render_cards_horizontal([b for b in libri_filtrati if b.get("sezione") == "migliori-venditori"] or libri_filtrati)
     rari_html = render_cards_horizontal(sorted(libri_filtrati, key=lambda x: x['prezzo'], reverse=True))
 
     oggettistica_html = ""
@@ -461,7 +461,7 @@ async def home_page(q: str = "", ordine: str = "nessuno", genere: str = "tutti")
     </html>
     """
 
-# --- SEZIONE LA MIA BIBLIOTECA ---
+# --- SEZIONE LA MIA BIBLIOTECA (CORRETTA) ---
 @app.get("/biblioteca", response_class=HTMLResponse)
 async def biblioteca_page(filtro_stato: str = "tutti", q_biblio: str = "", ordine_biblio: str = "nessuno", genere_biblio: str = "tutti"):
     navbar = get_navbar('biblioteca')
@@ -470,45 +470,46 @@ async def biblioteca_page(filtro_stato: str = "tutti", q_biblio: str = "", ordin
     
     elenco = BIBLIOTECA_UTENTE["elenco"].copy()
     if q_biblio:
-        elenco = [b for b in elenco if q_biblio.lower() in b['titolo'].lower() or q_biblio.lower() in b['autore'].lower()]
+        elenco = [b for b in elenco if q_biblio.lower() in b.get('titolo', '').lower() or q_biblio.lower() in b.get('autore', '').lower()]
     if filtro_stato != "tutti":
-        elenco = [b for b in elenco if b['stato'] == filtro_stato]
+        elenco = [b for b in elenco if b.get('stato') == filtro_stato]
     if genere_biblio != "tutti":
-        elenco = [b for b in elenco if b['genere'] == genere_biblio]
+        elenco = [b for b in elenco if b.get('genere') == genere_biblio]
 
     if ordine_biblio == "prezzo_asc":
-        elenco.sort(key=lambda x: x['prezzo'])
+        elenco.sort(key=lambda x: float(x.get('prezzo', 0.0)))
     elif ordine_biblio == "prezzo_desc":
-        elenco.sort(key=lambda x: x['prezzo'], reverse=True)
+        elenco.sort(key=lambda x: float(x.get('prezzo', 0.0)), reverse=True)
     elif ordine_biblio == "valutazione":
-        elenco.sort(key=lambda x: float(x.get('valutazione', 0)), reverse=True)
+        elenco.sort(key=lambda x: float(x.get('valutazione', 0.0)), reverse=True)
     elif ordine_biblio == "alfabetico":
-        elenco.sort(key=lambda x: x['titolo'])
+        elenco.sort(key=lambda x: str(x.get('titolo', '')))
 
     elenco_html = ""
     for b in elenco:
         badge_stato = ""
-        if b['stato'] == 'comprato': badge_stato = '<span class="bg-blue-950 text-blue-400 border border-blue-500/40 text-[9px] font-semibold px-2 py-0.5 rounded">COMPRATO</span>'
-        elif b['stato'] == 'venduto': badge_stato = '<span class="bg-emerald-950 text-emerald-400 border border-emerald-500/40 text-[9px] font-semibold px-2 py-0.5 rounded">VENDUTO</span>'
-        elif b['stato'] == 'magazzino': badge_stato = '<span class="bg-amber-950 text-amber-400 border border-amber-500/40 text-[9px] font-semibold px-2 py-0.5 rounded">MAGAZZINO</span>'
-        elif b['stato'] == 'preferiti': badge_stato = '<span class="bg-purple-950 text-purple-400 border border-purple-500/40 text-[9px] font-semibold px-2 py-0.5 rounded">PREFERITO</span>'
+        stato_val = b.get('stato', '')
+        if stato_val == 'comprato': badge_stato = '<span class="bg-blue-950 text-blue-400 border border-blue-500/40 text-[9px] font-semibold px-2 py-0.5 rounded">COMPRATO</span>'
+        elif stato_val == 'venduto': badge_stato = '<span class="bg-emerald-950 text-emerald-400 border border-emerald-500/40 text-[9px] font-semibold px-2 py-0.5 rounded">VENDUTO</span>'
+        elif stato_val == 'magazzino': badge_stato = '<span class="bg-amber-950 text-amber-400 border border-amber-500/40 text-[9px] font-semibold px-2 py-0.5 rounded">MAGAZZINO</span>'
+        elif stato_val == 'preferiti': badge_stato = '<span class="bg-purple-950 text-purple-400 border border-purple-500/40 text-[9px] font-semibold px-2 py-0.5 rounded">PREFERITO</span>'
 
         elenco_html += f"""
         <div class="bento-card rounded-xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:border-cyan-400 transition">
             <div class="flex items-center gap-4">
-                <img src="{b['copertina']}" class="w-16 h-20 object-cover rounded-lg border border-cyan-500/30">
+                <img src="{b.get('copertina', '')}" class="w-16 h-20 object-cover rounded-lg border border-cyan-500/30">
                 <div class="space-y-1">
                     <div class="flex items-center gap-2">
-                        <h4 class="font-bold text-sm text-cyan-100">{b['titolo']}</h4>
+                        <h4 class="font-bold text-sm text-cyan-100">{b.get('titolo', 'Senza titolo')}</h4>
                         {badge_stato}
                     </div>
-                    <p class="text-xs text-cyan-400/70 font-medium">di {b['autore']} • <span class="text-neutral-400">{b['condizione']}</span></p>
-                    <p class="text-[11px] font-medium text-amber-300">Valutazione: {b['valutazione']} ★</p>
+                    <p class="text-xs text-cyan-400/70 font-medium">di {b.get('autore', 'Autore ignoto')} • <span class="text-neutral-400">{b.get('condizione', 'Standard')}</span></p>
+                    <p class="text-[11px] font-medium text-amber-300">Valutazione: {b.get('valutazione', '5.0')} ★</p>
                 </div>
             </div>
             <div class="flex sm:flex-col items-end justify-between w-full sm:w-auto">
-                <span class="text-emerald-400 font-bold text-sm">{b['prezzo']:.2f} €</span>
-                <a href="/libro/{b['id']}" class="text-[10px] font-semibold text-[#00f0ff] hover:underline mt-1">[ Visualizza Tomo ]</a>
+                <span class="text-emerald-400 font-bold text-sm">{float(b.get('prezzo', 0.0)):.2f} €</span>
+                <a href="/libro/{b.get('id', '#')}" class="text-[10px] font-semibold text-[#00f0ff] hover:underline mt-1">[ Visualizza Tomo ]</a>
             </div>
         </div>
         """
@@ -626,7 +627,7 @@ async def biblioteca_page(filtro_stato: str = "tutti", q_biblio: str = "", ordin
 @app.get("/venditore/{venditore_id}", response_class=HTMLResponse)
 async def venditore_page(venditore_id: str):
     navbar = get_navbar('home')
-    libri_venditore = [b for b in BOOKS_DATABASE if b["venditore_id"] == venditore_id]
+    libri_venditore = [b for b in BOOKS_DATABASE if b.get("venditore_id") == venditore_id]
     nome_venditore = libri_venditore[0]["venditore"] if libri_venditore else BIBLIOTECA_UTENTE["profilo"]["nome"]
     posizione = libri_venditore[0]["venditore_posizione"] if libri_venditore else BIBLIOTECA_UTENTE["profilo"]["sede"]
     valutazione_v = libri_venditore[0]["venditore_valutazione"] if libri_venditore else BIBLIOTECA_UTENTE["profilo"]["valutazione"]
@@ -819,7 +820,6 @@ async def metti_in_vendita_page():
                 
                 let found = false;
                 
-                // Tentativo 1: OpenLibrary API (molto affidabile per metadati e copertine)
                 try {{
                     const response = await fetch(`https://openlibrary.org/api/books?bibkeys=ISBN:${{isbn}}&format=json&jscmd=data`);
                     const data = await response.json();
@@ -839,7 +839,6 @@ async def metti_in_vendita_page():
                     console.log('OpenLibrary fallito, provo Google Books...');
                 }}
 
-                // Tentativo 2: Google Books API se il primo non ha dato esito
                 if (!found) {{
                     try {{
                         const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${{isbn}}`);
@@ -868,7 +867,6 @@ async def metti_in_vendita_page():
                     }}
                 }}
 
-                // Fallback finale se nessun servizio risponde via API
                 if (!found) {{
                     alert('[AVVISO] Connessione API non riuscita. Configurazione copertina e dati standard basati su ISBN.');
                     let fallbackUrl = `https://covers.openlibrary.org/b/isbn/${{isbn}}-L.jpg`;
