@@ -180,34 +180,111 @@ GENERI_STRUTTURA = {
     ]
 }
 
+def get_base_head(title="LoopBooks HUD"):
+    return f"""
+    <!DOCTYPE html>
+    <html lang="it">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>{title}</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;600;800;900&display=swap');
+            
+            body {{
+                background-color: #02050b;
+                color: #00f0ff;
+                font-family: 'Share Tech Mono', monospace;
+                overflow-x: hidden;
+            }}
+            h1, h2, h3, h4, .font-hud {{
+                font-family: 'Orbitron', sans-serif;
+            }}
+            /* Effetto Scanlines CRT Futuristico */
+            body::after {{
+                content: " ";
+                display: block;
+                position: fixed;
+                top: 0; left: 0; bottom: 0; right: 0;
+                background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+                z-index: 99999;
+                background-size: 100% 3px, 3px 100%;
+                pointer-events: none;
+            }}
+            .hud-box {{
+                background: rgba(2, 12, 27, 0.85);
+                border: 1px solid rgba(0, 240, 255, 0.35);
+                box-shadow: 0 0 15px rgba(0, 240, 255, 0.15), inset 0 0 15px rgba(0, 240, 255, 0.05);
+                position: relative;
+                backdrop-filter: blur(8px);
+            }}
+            .hud-box::before {{
+                content: '';
+                position: absolute;
+                top: -1px; left: -1px;
+                width: 8px; height: 8px;
+                border-top: 2px solid #00f0ff;
+                border-left: 2px solid #00f0ff;
+            }}
+            .hud-box::after {{
+                content: '';
+                position: absolute;
+                bottom: -1px; right: -1px;
+                width: 8px; height: 8px;
+                border-bottom: 2px solid #00f0ff;
+                border-right: 2px solid #00f0ff;
+            }}
+            .hud-gold {{
+                border-color: rgba(229, 193, 88, 0.4);
+                box-shadow: 0 0 15px rgba(229, 193, 88, 0.15);
+            }}
+            .hud-gold::before, .hud-gold::after {{
+                border-color: #e5c158;
+            }}
+            .hide-scroll::-webkit-scrollbar {{ display: none; }}
+            .hide-scroll {{ -ms-overflow-style: none; scrollbar-width: none; }}
+            
+            @keyframes pulseGlow {{
+                0% {{ opacity: 0.4; }}
+                50% {{ opacity: 1; }}
+                100% {{ opacity: 0.4; }}
+            }}
+            .animate-glow {{
+                animation: pulseGlow 3s infinite ease-in-out;
+            }}
+        </style>
+    </head>
+    """
+
 def get_navbar(active_page="home"):
     return f"""
-    <header class="w-full bg-[#050b14]/95 backdrop-blur-md border-b border-[#e5c158]/40 py-3 px-8 sticky top-0 z-50 flex justify-between items-center shadow-[0_0_20px_rgba(229,193,88,0.15)]">
+    <header class="w-full bg-[#020611]/95 backdrop-blur-md border-b border-[#00f0ff]/40 py-3 px-8 sticky top-0 z-50 flex justify-between items-center shadow-[0_0_25px_rgba(0,240,255,0.2)]">
         <div class="flex items-center gap-10">
-            <a href="/" class="text-[#e5c158] font-black text-lg tracking-[0.2em] uppercase font-mono flex items-center gap-2">
-                <span class="inline-block w-2.5 h-2.5 bg-[#e5c158] rounded-full animate-ping"></span>
-                LOOPBOOKS
+            <a href="/" class="text-[#00f0ff] font-black text-lg tracking-[0.25em] uppercase font-hud flex items-center gap-3">
+                <span class="inline-block w-3 h-3 bg-[#00f0ff] rounded-full animate-ping shadow-[0_0_10px_#00f0ff]"></span>
+                LOOPBOOKS // HUD v4.0
             </a>
             <nav class="hidden md:flex items-center gap-8 text-xs font-mono tracking-widest uppercase">
-                <a href="/" class="{'text-[#e5c158] font-bold border-b border-[#e5c158]' if active_page == 'home' else 'text-neutral-400 hover:text-[#e5c158]'} pb-1 transition">HOME</a>
-                <a href="/biblioteca" class="{'text-[#e5c158] font-bold border-b border-[#e5c158]' if active_page == 'biblioteca' else 'text-neutral-400 hover:text-[#e5c158]'} pb-1 transition">LA MIA BIBLIOTECA</a>
-                <a href="/metti-in-vendita" class="{'text-[#e5c158] font-bold border-b border-[#e5c158]' if active_page == 'metti-in-vendita' else 'text-neutral-400 hover:text-[#e5c158]'} pb-1 transition">METTI IN VENDITA</a>
+                <a href="/" class="{'text-[#00f0ff] font-bold border-b-2 border-[#00f0ff]' if active_page == 'home' else 'text-neutral-400 hover:text-[#00f0ff]'} pb-1 transition">HOME</a>
+                <a href="/biblioteca" class="{'text-[#00f0ff] font-bold border-b-2 border-[#00f0ff]' if active_page == 'biblioteca' else 'text-neutral-400 hover:text-[#00f0ff]'} pb-1 transition">LA MIA BIBLIOTECA</a>
+                <a href="/metti-in-vendita" class="{'text-[#00f0ff] font-bold border-b-2 border-[#00f0ff]' if active_page == 'metti-in-vendita' else 'text-neutral-400 hover:text-[#00f0ff]'} pb-1 transition">METTI IN VENDITA</a>
             </nav>
         </div>
-        <div>
-            <a href="/metti-in-vendita" class="bg-[#e5c158]/10 hover:bg-[#e5c158]/20 text-[#e5c158] border border-[#e5c158]/60 font-mono text-xs px-4 py-2 rounded transition shadow-[0_0_10px_rgba(229,193,88,0.2)]">
-                LOG IN
+        <div class="flex items-center gap-4">
+            <span class="hidden lg:inline-block text-[10px] text-cyan-400 bg-cyan-950/50 px-3 py-1 rounded border border-cyan-500/30">ROMA // SECURE MESH</span>
+            <a href="/metti-in-vendita" class="bg-cyan-950/60 hover:bg-cyan-900/80 text-[#00f0ff] border border-[#00f0ff]/60 font-mono text-xs px-4 py-2 rounded transition shadow-[0_0_12px_rgba(0,240,255,0.3)]">
+                [ LOG IN ]
             </a>
         </div>
     </header>
     """
 
-# --- HOME PAGE (CON FILTRI, GENERI E OGGETTISTICA) ---
+# --- HOME PAGE FUTURISTICA ---
 @app.get("/", response_class=HTMLResponse)
 async def home_page(q: str = "", ordine: str = "nessuno", genere: str = "tutti"):
     navbar = get_navbar('home')
     
-    # Filtraggio e ordinamento libri
     libri_filtrati = BOOKS_DATABASE.copy()
     if q:
         libri_filtrati = [b for b in libri_filtrati if q.lower() in b['titolo'].lower() or q.lower() in b['autore'].lower()]
@@ -225,21 +302,21 @@ async def home_page(q: str = "", ordine: str = "nessuno", genere: str = "tutti")
 
     def render_cards(lista):
         if not lista:
-            return '<p class="text-xs text-neutral-500 font-mono italic">Nessun tomo corrisponde ai parametri HUD.</p>'
+            return '<p class="text-xs text-neutral-500 font-mono italic">Nessun tomo corrisponde ai parametri olografici.</p>'
         html = ""
         for b in lista:
             html += f"""
-            <a href="/libro/{b['id']}" class="min-w-[200px] md:min-w-[210px] bg-[#0b1320] rounded border border-[#e5c158]/30 overflow-hidden shadow-lg hover:border-[#e5c158] hover:scale-105 transition duration-300 flex-shrink-0 group relative">
-                <div class="h-60 bg-black overflow-hidden relative">
-                    <img src="{b['copertina']}" class="w-full h-full object-cover group-hover:opacity-90 transition">
-                    <span class="absolute top-2 right-2 bg-black/85 text-[#e5c158] font-mono text-[10px] px-2 py-0.5 rounded border border-[#e5c158]/40">{b['valutazione']}</span>
+            <a href="/libro/{b['id']}" class="min-w-[210px] md:min-w-[220px] hud-box rounded p-3 hover:border-[#00f0ff] hover:scale-105 transition duration-300 flex-shrink-0 group relative space-y-2">
+                <div class="h-56 bg-black rounded overflow-hidden relative border border-cyan-500/20">
+                    <img src="{b['copertina']}" class="w-full h-full object-cover group-hover:opacity-90 transition group-hover:scale-105 duration-500">
+                    <span class="absolute top-2 right-2 bg-black/90 text-[#00f0ff] font-mono text-[10px] px-2 py-0.5 rounded border border-[#00f0ff]/50 shadow-[0_0_8px_rgba(0,240,255,0.4)]">{b['valutazione']}</span>
                 </div>
-                <div class="p-3 space-y-1 font-mono">
-                    <h4 class="font-bold text-xs text-[#f3e5ab] truncate">{b['titolo']}</h4>
-                    <p class="text-[11px] text-[#e5c158]/70 truncate">{b['autore']}</p>
-                    <div class="flex justify-between items-center pt-2">
+                <div class="space-y-1 font-mono">
+                    <h4 class="font-bold text-xs text-cyan-200 truncate group-hover:text-[#00f0ff] transition">{b['titolo']}</h4>
+                    <p class="text-[11px] text-cyan-400/70 truncate">{b['autore']}</p>
+                    <div class="flex justify-between items-center pt-2 border-t border-cyan-900/50">
                         <span class="text-emerald-400 font-bold text-xs">{b['prezzo']:.2f} €</span>
-                        <span class="text-[9px] bg-[#1a170c] text-[#e5c158] px-1.5 py-0.5 rounded border border-[#e5c158]/30 truncate max-w-[90px]">{b['condizione']}</span>
+                        <span class="text-[9px] bg-cyan-950 text-cyan-300 px-2 py-0.5 rounded border border-cyan-500/30 truncate max-w-[95px]">{b['condizione']}</span>
                     </div>
                 </div>
             </a>
@@ -254,21 +331,20 @@ async def home_page(q: str = "", ordine: str = "nessuno", genere: str = "tutti")
     oggettistica_html = ""
     for obj in OGGETTISTICA_DATABASE:
         oggettistica_html += f"""
-        <div class="min-w-[220px] bg-[#0b1320] rounded border border-[#e5c158]/30 overflow-hidden shadow-lg p-4 flex-shrink-0 space-y-3 font-mono">
-            <div class="h-40 bg-black rounded overflow-hidden">
+        <div class="min-w-[230px] hud-box rounded p-4 flex-shrink-0 space-y-3 font-mono">
+            <div class="h-36 bg-black rounded overflow-hidden border border-cyan-500/20">
                 <img src="{obj['immagine']}" class="w-full h-full object-cover">
             </div>
-            <h4 class="font-bold text-xs text-[#f3e5ab] truncate">{obj['nome']}</h4>
+            <h4 class="font-bold text-xs text-cyan-200 truncate">{obj['nome']}</h4>
             <p class="text-[11px] text-neutral-400 line-clamp-2">{obj['descrizione']}</p>
-            <div class="flex justify-between items-center pt-2">
+            <div class="flex justify-between items-center pt-2 border-t border-cyan-900/50">
                 <span class="text-emerald-400 font-bold text-xs">{obj['prezzo']}</span>
-                <button onclick="alert('Oggetto aggiunto al kit di consegna olografico!')" class="bg-[#e5c158]/20 hover:bg-[#e5c158]/30 text-[#e5c158] text-[10px] px-3 py-1.5 rounded border border-[#e5c158]/60 transition">Ordina</button>
+                <button onclick="alert('[SUCCESS] Oggetto aggiunto al kit olografico di consegna!')" class="bg-cyan-950 hover:bg-cyan-900 text-[#00f0ff] text-[10px] px-3 py-1.5 rounded border border-[#00f0ff]/60 transition shadow-[0_0_8px_rgba(0,240,255,0.2)]">ORDINA</button>
             </div>
         </div>
         """
 
-    # Generazione HTML select generi
-    generi_options = '<option value="tutti">Tutti i Generi HUD</option>'
+    generi_options = '<option value="tutti">-- TUTTI I GENERI OLOGRAFICI --</option>'
     for macro, sottos in GENERI_STRUTTURA.items():
         generi_options += f'<optgroup label="{macro}">'
         for sotto in sottos:
@@ -277,77 +353,66 @@ async def home_page(q: str = "", ordine: str = "nessuno", genere: str = "tutti")
         generi_options += '</optgroup>'
 
     return f"""
-    <!DOCTYPE html>
-    <html lang="it">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>LoopBooks - Roma Bibliotheca HUD</title>
-        <script src="https://cdn.tailwindcss.com"></script>
-        <style>
-            body {{ background-color: #030712; color: #e2e8f0; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }}
-            .hide-scroll::-webkit-scrollbar {{ display: none; }}
-            .hide-scroll {{ -ms-overflow-style: none; scrollbar-width: none; }}
-        </style>
-    </head>
+    {get_base_head("LoopBooks - Nexus HUD")}
     <body class="min-h-screen pb-24">
         {navbar}
         
-        <!-- ROMA BIBLIOTHECA TOP BADGE -->
-        <div class="w-full bg-[#080d16] border-b border-[#e5c158]/30 py-2 text-center">
-            <span class="text-[#e5c158] font-mono text-xs tracking-[0.3em] uppercase">ROMA BIBLIOTHECA // SECURE ARCHIVE PROTOCOL</span>
+        <!-- TOP OLOGRAFIC STATUS BAR -->
+        <div class="w-full bg-[#030919] border-b border-[#00f0ff]/20 py-2 px-8 flex justify-between items-center text-[10px] font-mono text-cyan-400 tracking-[0.2em]">
+            <span>ROMA BIBLIOTHECA // CORE SYSTEM ONLINE</span>
+            <span class="animate-glow text-emerald-400">● NEURAL SYNC ACTIVE (99.8%)</span>
         </div>
 
-        <!-- HERO / BANNER PRINCIPALE -->
-        <div class="relative w-full h-[450px] bg-cover bg-center flex items-end p-8 md:p-14 border-b border-[#e5c158]/30" style="background-image: linear-gradient(to top, #030712, rgba(3,7,18,0.4)), url('https://covers.openlibrary.org/b/isbn/9788806200085-L.jpg');">
-            <div class="max-w-2xl space-y-4">
-                <span class="bg-[#e5c158]/20 text-[#e5c158] border border-[#e5c158]/60 text-[10px] font-mono font-bold px-3 py-1 uppercase tracking-widest rounded shadow-[0_0_10px_rgba(229,193,88,0.3)]">SISTEMA ATTIVO // ARCHIVIO CENTRALE</span>
-                <h1 class="text-4xl md:text-5xl font-black tracking-tight text-[#f3e5ab] font-sans">CREA LA TUA BIBLIOTECA</h1>
-                <p class="text-[#f3e5ab]/80 text-xs md:text-sm leading-relaxed font-mono">
-                    Interfaccia di scansione e gestione volumi rari, bestseller e inventari digitali. Sincronizzazione protetta attiva.
+        <!-- HERO BANNER FUTURISTICO -->
+        <div class="relative w-full h-[460px] bg-cover bg-center flex items-end p-8 md:p-14 border-b border-[#00f0ff]/40 shadow-[inset_0_-100px_100px_#02050b]" style="background-image: linear-gradient(to top, #02050b, rgba(2,5,11,0.5)), url('https://covers.openlibrary.org/b/isbn/9788806200085-L.jpg');">
+            <div class="max-w-3xl space-y-4 relative z-10">
+                <span class="bg-cyan-950/80 text-[#00f0ff] border border-[#00f0ff]/60 text-[10px] font-mono font-bold px-3 py-1 uppercase tracking-widest rounded shadow-[0_0_15px_rgba(0,240,255,0.4)]">HUD PROTOCOL // MATRIX ACTIVE</span>
+                <h1 class="text-4xl md:text-6xl font-black tracking-wider text-cyan-100 font-hud">CREA LA TUA BIBLIOTECA</h1>
+                <p class="text-cyan-300/80 text-xs md:text-sm leading-relaxed font-mono max-w-2xl">
+                    Sistema di scansione quantistica e archiviazione avanzata per volumi rari, cataloghi digitali e spedizioni protette in ambiente olografico.
                 </p>
                 <div class="flex gap-4 pt-2">
-                    <a href="/metti-in-vendita" class="bg-[#e5c158] hover:bg-[#d4b045] text-black font-mono font-bold px-8 py-3 rounded flex items-center gap-2 transition shadow-[0_0_20px_rgba(229,193,88,0.4)] text-xs uppercase tracking-widest">
-                        ▶ Metti in Vendita
+                    <a href="/metti-in-vendita" class="bg-[#00f0ff] hover:bg-cyan-400 text-black font-mono font-bold px-8 py-3 rounded flex items-center gap-2 transition shadow-[0_0_25px_rgba(0,240,255,0.6)] text-xs uppercase tracking-widest">
+                        ⚡ Scansiona e Metti in Vendita
                     </a>
                 </div>
             </div>
         </div>
 
-        <main class="px-6 md:px-12 space-y-12 mt-8">
+        <main class="px-6 md:px-12 space-y-12 mt-10">
             
-            <!-- BARRA FILTRI E RICERCA AVANZATA -->
-            <form method="GET" action="/" class="bg-[#0b1320] p-6 rounded border border-[#e5c158]/40 shadow-[0_0_20px_rgba(229,193,88,0.1)] grid grid-cols-1 md:grid-cols-3 gap-4 font-mono">
+            <!-- BARRA RICERCA E FILTRI OLOGRAFICI -->
+            <form method="GET" action="/" class="hud-box p-6 rounded grid grid-cols-1 md:grid-cols-3 gap-4 font-mono shadow-[0_0_30px_rgba(0,240,255,0.1)]">
                 <div>
-                    <label class="block text-[11px] text-[#e5c158] mb-1 uppercase tracking-wider">Cerca libro per nome o autore</label>
-                    <input type="text" name="q" value="{q}" placeholder="Es. Il Nome della Rosa..." class="w-full bg-black border border-[#e5c158]/40 rounded px-3 py-2 text-xs text-[#f3e5ab] focus:outline-none focus:border-[#e5c158]">
+                    <label class="block text-[11px] text-[#00f0ff] mb-1 uppercase tracking-wider">Cerca Tomo / Autore</label>
+                    <input type="text" name="q" value="{q}" placeholder="Inserisci titolo o autore..." class="w-full bg-black/90 border border-cyan-500/40 rounded px-3 py-2 text-xs text-cyan-100 focus:outline-none focus:border-[#00f0ff] focus:shadow-[0_0_10px_rgba(0,240,255,0.5)]">
                 </div>
                 <div>
-                    <label class="block text-[11px] text-[#e5c158] mb-1 uppercase tracking-wider">Filtra per Genere HUD</label>
-                    <select name="genere" class="w-full bg-black border border-[#e5c158]/40 rounded px-3 py-2 text-xs text-[#f3e5ab] focus:outline-none focus:border-[#e5c158]">
+                    <label class="block text-[11px] text-[#00f0ff] mb-1 uppercase tracking-wider">Filtra per Genere HUD</label>
+                    <select name="genere" class="w-full bg-black/90 border border-cyan-500/40 rounded px-3 py-2 text-xs text-cyan-100 focus:outline-none focus:border-[#00f0ff]">
                         {generi_options}
                     </select>
                 </div>
                 <div class="flex items-end gap-2">
                     <div class="flex-1">
-                        <label class="block text-[11px] text-[#e5c158] mb-1 uppercase tracking-wider">Ordina per</label>
-                        <select name="ordine" class="w-full bg-black border border-[#e5c158]/40 rounded px-3 py-2 text-xs text-[#f3e5ab] focus:outline-none focus:border-[#e5c158]">
-                            <option value="nessuno" {"selected" if ordine=="nessuno" else ""}>Predefinito</option>
-                            <option value="prezzo_asc" {"selected" if ordine=="prezzo_asc" else ""}>Prezzo: Crescente</option>
-                            <option value="prezzo_desc" {"selected" if ordine=="prezzo_desc" else ""}>Prezzo: Decrescente</option>
-                            <option value="valutazione" {"selected" if ordine=="valutazione" else ""}>Miglior Valutazione</option>
-                            <option value="rari" {"selected" if ordine=="rari" else ""}>Più Costosi (Rari)</option>
+                        <label class="block text-[11px] text-[#00f0ff] mb-1 uppercase tracking-wider">Parametro Ordinamento</label>
+                        <select name="ordine" class="w-full bg-black/90 border border-cyan-500/40 rounded px-3 py-2 text-xs text-cyan-100 focus:outline-none focus:border-[#00f0ff]">
+                            <option value="nessuno" {"selected" if ordine=="nessuno" else ""}>Standard</option>
+                            <option value="prezzo_asc" {"selected" if ordine=="prezzo_asc" else ""}>Prezzo: Minimo</option>
+                            <option value="prezzo_desc" {"selected" if ordine=="prezzo_desc" else ""}>Prezzo: Massimo</option>
+                            <option value="valutazione" {"selected" if ordine=="valutazione" else ""}>Top Valutazione</option>
+                            <option value="rari" {"selected" if ordine=="rari" else ""}>Rarità Assolute</option>
                         </select>
                     </div>
-                    <button type="submit" class="bg-[#e5c158] hover:bg-[#d4b045] text-black font-bold px-4 py-2 rounded text-xs uppercase transition h-[34px]">Filtra</button>
+                    <button type="submit" class="bg-cyan-950 hover:bg-cyan-900 text-[#00f0ff] border border-[#00f0ff] font-bold px-5 py-2 rounded text-xs uppercase transition h-[35px] shadow-[0_0_10px_rgba(0,240,255,0.3)]">Esegui</button>
                 </div>
             </form>
 
-            <!-- SEZIONE 1: LIBRI DI TENDENZA -->
+            <!-- SEZIONE 1: TENDENZA -->
             <section class="space-y-4">
-                <div class="flex items-center gap-2 border-b border-[#e5c158]/30 pb-2">
-                    <span class="w-2 h-2 bg-[#e5c158] rounded-full animate-pulse"></span>
-                    <h3 class="text-sm font-mono font-bold tracking-widest text-[#f3e5ab] uppercase">Libri di Tendenza</h3>
+                <div class="flex items-center gap-3 border-b border-[#00f0ff]/30 pb-2">
+                    <span class="w-2.5 h-2.5 bg-[#00f0ff] rounded-full animate-ping"></span>
+                    <h3 class="text-sm font-hud font-bold tracking-widest text-cyan-200 uppercase">Libri di Tendenza</h3>
                 </div>
                 <div class="flex gap-4 overflow-x-auto hide-scroll pb-4">
                     {tendenza_html}
@@ -356,9 +421,9 @@ async def home_page(q: str = "", ordine: str = "nessuno", genere: str = "tutti")
 
             <!-- SEZIONE 2: MIGLIORI VENDITORI -->
             <section class="space-y-4">
-                <div class="flex items-center gap-2 border-b border-[#e5c158]/30 pb-2">
-                    <span class="w-2 h-2 bg-[#e5c158] rounded-full animate-pulse"></span>
-                    <h3 class="text-sm font-mono font-bold tracking-widest text-[#f3e5ab] uppercase">Migliori Venditori (Con Collegamento Profilo)</h3>
+                <div class="flex items-center gap-3 border-b border-[#00f0ff]/30 pb-2">
+                    <span class="w-2.5 h-2.5 bg-[#00f0ff] rounded-full animate-ping"></span>
+                    <h3 class="text-sm font-hud font-bold tracking-widest text-cyan-200 uppercase">Migliori Venditori (Con Collegamento Profilo)</h3>
                 </div>
                 <div class="flex gap-4 overflow-x-auto hide-scroll pb-4">
                     {venditori_html}
@@ -367,31 +432,31 @@ async def home_page(q: str = "", ordine: str = "nessuno", genere: str = "tutti")
 
             <!-- SEZIONE 3: LIBRI PER TE -->
             <section class="space-y-4">
-                <div class="flex items-center gap-2 border-b border-[#e5c158]/30 pb-2">
-                    <span class="w-2 h-2 bg-[#e5c158] rounded-full animate-pulse"></span>
-                    <h3 class="text-sm font-mono font-bold tracking-widest text-[#f3e5ab] uppercase">Libri per Te</h3>
+                <div class="flex items-center gap-3 border-b border-[#00f0ff]/30 pb-2">
+                    <span class="w-2.5 h-2.5 bg-[#00f0ff] rounded-full animate-ping"></span>
+                    <h3 class="text-sm font-hud font-bold tracking-widest text-cyan-200 uppercase">Libri per Te</h3>
                 </div>
                 <div class="flex gap-4 overflow-x-auto hide-scroll pb-4">
                     {per_te_html}
                 </div>
             </section>
 
-            <!-- SEZIONE 4: LIBRI RARI (PIÙ COSTOSI) -->
+            <!-- SEZIONE 4: RARI -->
             <section class="space-y-4">
-                <div class="flex items-center gap-2 border-b border-[#e5c158]/30 pb-2">
-                    <span class="w-2 h-2 bg-[#e5c158] rounded-full animate-pulse"></span>
-                    <h3 class="text-sm font-mono font-bold tracking-widest text-[#f3e5ab] uppercase">Libri Rari (Più Costosi)</h3>
+                <div class="flex items-center gap-3 border-b border-[#00f0ff]/30 pb-2">
+                    <span class="w-2.5 h-2.5 bg-[#00f0ff] rounded-full animate-ping"></span>
+                    <h3 class="text-sm font-hud font-bold tracking-widest text-cyan-200 uppercase">Libri Rari (Più Costosi)</h3>
                 </div>
                 <div class="flex gap-4 overflow-x-auto hide-scroll pb-4">
                     {rari_html}
                 </div>
             </section>
 
-            <!-- SEZIONE 5: OGGETTISTICA PER CONSEGNE -->
+            <!-- SEZIONE 5: OGGETTISTICA -->
             <section class="space-y-4">
-                <div class="flex items-center gap-2 border-b border-[#e5c158]/30 pb-2">
-                    <span class="w-2 h-2 bg-[#e5c158] rounded-full animate-pulse"></span>
-                    <h3 class="text-sm font-mono font-bold tracking-widest text-[#f3e5ab] uppercase">📦 Oggettistica per Consegne e Archiviazione</h3>
+                <div class="flex items-center gap-3 border-b border-[#00f0ff]/30 pb-2">
+                    <span class="w-2.5 h-2.5 bg-[#00f0ff] rounded-full animate-ping"></span>
+                    <h3 class="text-sm font-hud font-bold tracking-widest text-cyan-200 uppercase">📦 Oggettistica per Consegne e Archiviazione</h3>
                 </div>
                 <div class="flex gap-4 overflow-x-auto hide-scroll pb-4">
                     {oggettistica_html}
@@ -403,7 +468,7 @@ async def home_page(q: str = "", ordine: str = "nessuno", genere: str = "tutti")
     </html>
     """
 
-# --- PAGINA PROFILO VENDITORE ---
+# --- PAGINA VENDITORE ---
 @app.get("/venditore/{venditore_id}", response_class=HTMLResponse)
 async def venditore_page(venditore_id: str):
     navbar = get_navbar('home')
@@ -415,39 +480,31 @@ async def venditore_page(venditore_id: str):
     catalogo_html = ""
     for b in libri_venditore:
         catalogo_html += f"""
-        <a href="/libro/{b['id']}" class="bg-[#0b1320] rounded border border-[#e5c158]/30 overflow-hidden shadow hover:border-[#e5c158] transition p-4 flex gap-4 items-center">
-            <img src="{b['copertina']}" class="w-16 h-20 object-cover rounded border border-[#e5c158]/20">
+        <a href="/libro/{b['id']}" class="hud-box rounded p-4 flex gap-4 items-center hover:border-[#00f0ff] transition group">
+            <img src="{b['copertina']}" class="w-16 h-20 object-cover rounded border border-cyan-500/30">
             <div class="font-mono space-y-1">
-                <h4 class="font-bold text-sm text-[#f3e5ab]">{b['titolo']}</h4>
-                <p class="text-xs text-[#e5c158]/70">{b['autore']}</p>
+                <h4 class="font-bold text-sm text-cyan-100 group-hover:text-[#00f0ff]">{b['titolo']}</h4>
+                <p class="text-xs text-cyan-400/70">{b['autore']}</p>
                 <span class="text-emerald-400 font-bold text-xs">{b['prezzo']:.2f} €</span>
             </div>
         </a>
         """
 
     return f"""
-    <!DOCTYPE html>
-    <html lang="it">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>{nome_venditore} - Profilo HUD</title>
-        <script src="https://cdn.tailwindcss.com"></script>
-        <style>body {{ background-color: #030712; color: #e2e8f0; font-family: ui-monospace, monospace; }}</style>
-    </head>
+    {get_base_head(f"{nome_venditore} - Profilo HUD")}
     <body class="min-h-screen pb-24">
         {navbar}
-        <main class="max-w-4xl mx-auto px-6 py-12 space-y-8">
-            <div class="bg-[#0b1320] border border-[#e5c158]/40 rounded p-8 space-y-4 shadow-[0_0_30px_rgba(229,193,88,0.15)] font-mono">
-                <span class="text-[10px] bg-[#e5c158]/20 text-[#e5c158] px-3 py-1 rounded border border-[#e5c158]/50 uppercase tracking-widest">PROFILO VENDITORE CERTIFICATO</span>
-                <h1 class="text-3xl font-bold text-[#f3e5ab]">{nome_venditore}</h1>
-                <p class="text-xs text-neutral-400">📍 Sede: {posizione} | Valutazione Globale: {valutazione_v}</p>
+        <main class="max-w-4xl mx-auto px-6 py-12 space-y-8 font-mono">
+            <div class="hud-box p-8 space-y-4 shadow-[0_0_35px_rgba(0,240,255,0.15)] rounded">
+                <span class="text-[10px] bg-cyan-950 text-[#00f0ff] px-3 py-1 rounded border border-cyan-500/50 uppercase tracking-widest">PROFILO VENDITORE VERIFIED</span>
+                <h1 class="text-3xl font-bold text-cyan-100 font-hud">{nome_venditore}</h1>
+                <p class="text-xs text-cyan-400/80">📍 Sede Nodo: {posizione} | Valutazione Integrale: {valutazione_v}</p>
             </div>
             
             <div class="space-y-4">
-                <h3 class="text-sm font-mono font-bold text-[#f3e5ab] uppercase tracking-wider">Cataloghi e Tomi in Vendita da questo Partner</h3>
+                <h3 class="text-sm font-hud font-bold text-cyan-200 uppercase tracking-wider">Cataloghi Attivi associati a questo Partner</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {catalogo_html if catalogo_html else '<p class="text-xs text-neutral-500 font-mono">Nessun tomo attualmente attivo.</p>'}
+                    {catalogo_html if catalogo_html else '<p class="text-xs text-neutral-500 font-mono">Nessun tomo attivo al momento.</p>'}
                 </div>
             </div>
         </main>
@@ -455,43 +512,35 @@ async def venditore_page(venditore_id: str):
     </html>
     """
 
-# --- PAGINA DETTAGLIO LIBRO (Aggiornata con collegamento venditore) ---
+# --- DETTAGLIO LIBRO ---
 @app.get("/libro/{libro_id}", response_class=HTMLResponse)
 async def libro_detail_page(libro_id: str):
     navbar = get_navbar('home')
     libro = next((b for b in BOOKS_DATABASE if b["id"] == libro_id), BOOKS_DATABASE[0])
     
     return f"""
-    <!DOCTYPE html>
-    <html lang="it">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>{libro['titolo']} - HUD Analisi</title>
-        <script src="https://cdn.tailwindcss.com"></script>
-        <style>body {{ background-color: #030712; color: #e2e8f0; font-family: ui-monospace, monospace; }}</style>
-    </head>
+    {get_base_head(f"{libro['titolo']} - Analisi HUD")}
     <body class="min-h-screen pb-24">
         {navbar}
         <main class="max-w-5xl mx-auto px-6 py-12 space-y-8 font-mono">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 bg-[#0b1320] p-8 rounded border border-[#e5c158]/40 shadow-[0_0_30px_rgba(229,193,88,0.15)]">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 hud-box p-8 rounded shadow-[0_0_40px_rgba(0,240,255,0.2)]">
                 <div class="flex flex-col items-center justify-center">
-                    <img src="{libro['copertina']}" class="w-60 h-80 object-cover rounded border border-[#e5c158]/40 shadow-2xl mb-4">
-                    <span class="text-xs text-[#e5c158] font-bold uppercase tracking-widest bg-[#1a170c] px-3 py-1 rounded border border-[#e5c158]/40">{libro['valutazione']} Media</span>
+                    <img src="{libro['copertina']}" class="w-60 h-80 object-cover rounded border border-cyan-500/50 shadow-[0_0_20px_rgba(0,240,255,0.3)] mb-4">
+                    <span class="text-xs text-[#00f0ff] font-bold uppercase tracking-widest bg-cyan-950 px-3 py-1 rounded border border-cyan-500/50">{libro['valutazione']} Media Indice</span>
                 </div>
                 <div class="md:col-span-2 space-y-4">
-                    <span class="text-[10px] text-[#e5c158] tracking-widest uppercase">ID PROTOCOLLO // {libro['id']}</span>
-                    <h1 class="text-3xl md:text-4xl font-black text-[#f3e5ab] font-sans">{libro['titolo']}</h1>
-                    <p class="text-base text-[#e5c158]">di {libro['autore']}</p>
+                    <span class="text-[10px] text-cyan-400 tracking-widest uppercase">ID PROTOCOLLO ARCHIVIO // {libro['id']}</span>
+                    <h1 class="text-3xl md:text-4xl font-black text-cyan-100 font-hud">{libro['titolo']}</h1>
+                    <p class="text-base text-cyan-300">di {libro['autore']}</p>
                     <div class="text-2xl font-bold text-emerald-400">{libro['prezzo']:.2f} € <span class="text-xs font-normal text-neutral-400">({libro['condizione']})</span></div>
-                    <p class="text-[#f3e5ab]/80 text-xs leading-relaxed italic border-l-2 border-[#e5c158] pl-3">{libro['descrizione']}</p>
+                    <p class="text-cyan-200/80 text-xs leading-relaxed italic border-l-2 border-[#00f0ff] pl-3">{libro['descrizione']}</p>
                     
-                    <div class="pt-4 border-t border-[#e5c158]/20 flex items-center justify-between text-xs">
+                    <div class="pt-4 border-t border-cyan-900/60 flex items-center justify-between text-xs">
                         <div>
-                            <span class="text-neutral-500 block">Venditore Partner:</span>
-                            <a href="/venditore/{libro['venditore_id']}" class="text-[#e5c158] font-bold underline hover:text-[#f3e5ab]">{libro['venditore']} ({libro['venditore_posizione']})</a>
+                            <span class="text-neutral-500 block">Nodo Partner Autorizzato:</span>
+                            <a href="/venditore/{libro['venditore_id']}" class="text-[#00f0ff] font-bold underline hover:text-cyan-300">{libro['venditore']} ({libro['venditore_posizione']})</a>
                         </div>
-                        <button onclick="alert('Richiesta d\\'acquisto registrata nei protocolli di LoopBooks!')" class="bg-[#e5c158] hover:bg-[#d4b045] text-black font-bold px-6 py-2.5 rounded transition uppercase tracking-wider">Acquista Ora</button>
+                        <button onclick="alert('[TRANSACTION COMPLETE] Richiesta d\\'acquisto registrata nei server centrali!')" class="bg-[#00f0ff] hover:bg-cyan-400 text-black font-bold px-6 py-2.5 rounded transition uppercase tracking-wider shadow-[0_0_15px_rgba(0,240,255,0.5)]">Acquista Ora</button>
                     </div>
                 </div>
             </div>
@@ -505,22 +554,15 @@ async def libro_detail_page(libro_id: str):
 async def biblioteca_page():
     navbar = get_navbar('biblioteca')
     return f"""
-    <!DOCTYPE html>
-    <html lang="it">
-    <head>
-        <meta charset="UTF-8">
-        <title>La Mia Biblioteca - HUD</title>
-        <script src="https://cdn.tailwindcss.com"></script>
-        <style>body {{ background-color: #030712; color: #e2e8f0; font-family: ui-monospace, monospace; }}</style>
-    </head>
+    {get_base_head("La Mia Biblioteca - HUD")}
     <body class="min-h-screen pb-24">
         {navbar}
         <main class="max-w-4xl mx-auto px-6 py-12">
-            <div class="bg-[#0b1320] border border-[#e5c158]/40 rounded p-8 space-y-6 shadow-[0_0_20px_rgba(229,193,88,0.1)] font-mono">
-                <h2 class="text-xl font-bold text-[#f3e5ab] uppercase tracking-widest">La Tua Raccolta Personale</h2>
-                <p class="text-neutral-400 text-xs">I volumi registrati nella tua domus o sincronizzati con il cloud di Jarvis.</p>
-                <div class="border border-[#e5c158]/20 rounded p-12 text-center text-neutral-500 text-xs">
-                    Nessun manoscritto registrato. Visita <a href="/metti-in-vendita" class="text-[#e5c158] underline font-bold">Metti in Vendita</a> per sincronizzare libri.
+            <div class="hud-box p-8 space-y-6 shadow-[0_0_30px_rgba(0,240,255,0.15)] rounded font-mono">
+                <h2 class="text-xl font-hud font-bold text-cyan-100 uppercase tracking-widest">La Tua Raccolta Personale</h2>
+                <p class="text-cyan-300/70 text-xs">Inventario olografico sincronizzato con il cloud personale della Domus.</p>
+                <div class="border border-cyan-500/20 rounded p-12 text-center text-neutral-500 text-xs">
+                    Nessun manoscritto registrato nel cloud. Visita <a href="/metti-in-vendita" class="text-[#00f0ff] underline font-bold">Metti in Vendita</a> per scansionare libri.
                 </div>
             </div>
         </main>
@@ -533,27 +575,20 @@ async def biblioteca_page():
 async def metti_in_vendita_page():
     navbar = get_navbar('metti-in-vendita')
     return f"""
-    <!DOCTYPE html>
-    <html lang="it">
-    <head>
-        <meta charset="UTF-8">
-        <title>Metti in Vendita - HUD</title>
-        <script src="https://cdn.tailwindcss.com"></script>
-        <style>body {{ background-color: #030712; color: #e2e8f0; font-family: ui-monospace, monospace; }}</style>
-    </head>
+    {get_base_head("Metti in Vendita - HUD")}
     <body class="min-h-screen pb-24">
         {navbar}
         <main class="max-w-3xl mx-auto px-6 py-12 font-mono">
-            <div class="bg-[#0b1320] border border-[#e5c158]/40 rounded p-8 space-y-6 shadow-[0_0_30px_rgba(229,193,88,0.15)]">
+            <div class="hud-box p-8 space-y-6 shadow-[0_0_40px_rgba(0,240,255,0.2)] rounded">
                 <div class="text-center space-y-2">
-                    <h2 class="text-2xl font-bold text-[#f3e5ab] uppercase tracking-widest">Registra un Nuovo Tomo</h2>
-                    <p class="text-neutral-400 text-xs">Inserisci il codice ISBN per attivare la scansione olografica e l'estrazione dati automatica.</p>
+                    <h2 class="text-2xl font-hud font-bold text-cyan-100 uppercase tracking-widest">Scanner Quantico Tomo</h2>
+                    <p class="text-cyan-300/70 text-xs">Inserisci il codice ISBN per avviare il parsing automatico dei metadati olografici.</p>
                 </div>
                 <div class="flex gap-3">
                     <input type="text" id="isbn" value="9788804668237" placeholder="Codice ISBN..." 
-                        class="flex-1 bg-black border border-[#e5c158]/40 rounded px-4 py-3 text-[#f3e5ab] text-xs focus:outline-none focus:border-[#e5c158]">
-                    <button onclick="alert('Tomo scansionato e registrato con successo nei registri di LoopBooks!')" 
-                        class="bg-[#e5c158] hover:bg-[#d4b045] text-black font-bold px-6 py-3 rounded text-xs uppercase tracking-wider transition shadow-[0_0_15px_rgba(229,193,88,0.4)]">
+                        class="flex-1 bg-black/90 border border-cyan-500/40 rounded px-4 py-3 text-cyan-100 text-xs focus:outline-none focus:border-[#00f0ff] focus:shadow-[0_0_15px_rgba(0,240,255,0.5)]">
+                    <button onclick="alert('[SCAN OK] Tomo scansionato e registrato nei registri globali di LoopBooks!')" 
+                        class="bg-[#00f0ff] hover:bg-cyan-400 text-black font-bold px-6 py-3 rounded text-xs uppercase tracking-wider transition shadow-[0_0_20px_rgba(0,240,255,0.6)]">
                         Pubblica
                     </button>
                 </div>
