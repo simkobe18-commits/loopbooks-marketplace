@@ -119,7 +119,6 @@ BOOKS_DATABASE = [
     }
 ]
 
-# Dati di simulazione per la sezione "La Tua Biblioteca" (Comprati, Venduti, Magazzino, Preferiti)[cite: 9]
 BIBLIOTECA_UTENTE = {
     "profilo": {
         "nome": "Aaru Curatore",
@@ -371,7 +370,6 @@ async def home_page(q: str = "", ordine: str = "nessuno", genere: str = "tutti")
 
         <main class="max-w-7xl mx-auto px-4 md:px-8 py-8 space-y-6">
             
-            <!-- BENTO GRID TOP: Benvenuto, Ricerca e Filtri -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="bento-card bento-glow-blue rounded-2xl p-6 flex flex-col justify-between space-y-4">
                     <div class="space-y-1">
@@ -414,7 +412,6 @@ async def home_page(q: str = "", ordine: str = "nessuno", genere: str = "tutti")
                 </div>
             </div>
 
-            <!-- BENTO SECTIONS -->
             <div class="bento-card rounded-2xl p-6 space-y-4">
                 <div class="flex items-center justify-between border-b border-cyan-950 pb-3">
                     <div class="flex items-center gap-2">
@@ -474,7 +471,7 @@ async def home_page(q: str = "", ordine: str = "nessuno", genere: str = "tutti")
     </html>
     """
 
-# --- SEZIONE LA MIA BIBLIOTECA (COMPLETA CON METRICHE, GRAFICI E FILTRI) ---
+# --- SEZIONE LA MIA BIBLIOTECA (FIXED SORTING & TYPES) ---
 @app.get("/biblioteca", response_class=HTMLResponse)
 async def biblioteca_page(filtro_stato: str = "tutti", q_biblio: str = "", ordine_biblio: str = "nessuno", genere_biblio: str = "tutti"):
     navbar = get_navbar('biblioteca')
@@ -540,7 +537,6 @@ async def biblioteca_page(filtro_stato: str = "tutti", q_biblio: str = "", ordin
         {navbar}
         <main class="max-w-7xl mx-auto px-4 md:px-8 py-8 space-y-6">
             
-            <!-- HEADER SEZIONE & PREVIEW PROFILO VENDITORE -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div class="bento-card bento-glow-blue p-6 rounded-2xl flex flex-col justify-between space-y-4">
                     <div class="space-y-1">
@@ -554,7 +550,6 @@ async def biblioteca_page(filtro_stato: str = "tutti", q_biblio: str = "", ordin
                     </div>
                 </div>
 
-                <!-- METRICHE CHIAVE BENTO GRID -->
                 <div class="lg:col-span-2 grid grid-cols-2 sm:grid-cols-3 gap-4">
                     <div class="bento-card p-4 rounded-xl flex flex-col justify-between">
                         <span class="text-[10px] font-semibold text-neutral-400 uppercase">Libri Venduti</span>
@@ -589,9 +584,7 @@ async def biblioteca_page(filtro_stato: str = "tutti", q_biblio: str = "", ordin
                 </div>
             </div>
 
-            <!-- SEZIONE GRAFICI (TREND TEMPORALE E GRAFICO A TORTA) -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- Trend Portafoglio Temporale (Soldi / Mesi, Anni) -->
                 <div class="bento-card rounded-2xl p-6 space-y-4">
                     <div class="flex items-center justify-between border-b border-cyan-950 pb-3">
                         <h3 class="text-xs font-hud font-bold text-cyan-100 uppercase tracking-wider">📈 Trend Portafoglio Temporale (Soldi / Mesi)</h3>
@@ -621,7 +614,6 @@ async def biblioteca_page(filtro_stato: str = "tutti", q_biblio: str = "", ordin
                     </div>
                 </div>
 
-                <!-- Grafico a Torta (Guadagno Totale / Spese Totali / Magazzino Totale) -->
                 <div class="bento-card rounded-2xl p-6 space-y-4">
                     <div class="flex items-center justify-between border-b border-cyan-950 pb-3">
                         <h3 class="text-xs font-hud font-bold text-cyan-100 uppercase tracking-wider">🥧 Distribuzione Finanziaria</h3>
@@ -653,7 +645,6 @@ async def biblioteca_page(filtro_stato: str = "tutti", q_biblio: str = "", ordin
                 </div>
             </div>
 
-            <!-- FILTRI AVANZATI E RICERCA NELLA BIBLIOTECA -->
             <div class="bento-card rounded-2xl p-6 space-y-4">
                 <form method="GET" action="/biblioteca" class="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
                     <div class="space-y-1">
@@ -692,7 +683,6 @@ async def biblioteca_page(filtro_stato: str = "tutti", q_biblio: str = "", ordin
                 </form>
             </div>
 
-            <!-- ELENCO LIBRI COMPRATI, VENDUTI, MAGAZZINO E PREFERITI -->
             <div class="space-y-4">
                 <div class="flex items-center justify-between">
                     <h3 class="text-xs font-hud font-bold text-cyan-100 uppercase tracking-wider">Elenco Completo Archiviato ({len(elenco)})</h3>
