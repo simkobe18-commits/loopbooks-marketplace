@@ -1,6 +1,6 @@
 import os
 import json
-from fastapi import FastAPI
+from fastapi import FastAPI, Form
 from fastapi.responses import HTMLResponse
 
 app = FastAPI()
@@ -379,7 +379,7 @@ async def home_page(q: str = "", ordine: str = "nessuno", genere: str = "tutti")
                     </div>
                     <div class="pt-4 border-t border-cyan-950 flex justify-between items-center text-xs">
                         <span class="text-neutral-400 font-medium">Tomi Disponibili:</span>
-                        <span class="text-[#00f0ff] font-bold">5 Volumi Attivi</span>
+                        <span class="text-[#00f0ff] font-bold">{len(BOOKS_DATABASE)} Volumi Attivi</span>
                     </div>
                 </div>
 
@@ -471,7 +471,7 @@ async def home_page(q: str = "", ordine: str = "nessuno", genere: str = "tutti")
     </html>
     """
 
-# --- SEZIONE LA MIA BIBLIOTECA (FIXED SORTING & TYPES) ---
+# --- SEZIONE LA MIA BIBLIOTECA ---
 @app.get("/biblioteca", response_class=HTMLResponse)
 async def biblioteca_page(filtro_stato: str = "tutti", q_biblio: str = "", ordine_biblio: str = "nessuno", genere_biblio: str = "tutti"):
     navbar = get_navbar('biblioteca')
@@ -580,67 +580,6 @@ async def biblioteca_page(filtro_stato: str = "tutti", q_biblio: str = "", ordin
                         <span class="text-[10px] font-semibold text-neutral-400 uppercase">Valore Magazzino</span>
                         <div class="text-2xl font-bold text-amber-400 font-hud pt-2">{met['valore_magazzino']:.2f} €</div>
                         <span class="text-[9px] font-semibold text-amber-400/80 mt-1">Stima inventario</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="bento-card rounded-2xl p-6 space-y-4">
-                    <div class="flex items-center justify-between border-b border-cyan-950 pb-3">
-                        <h3 class="text-xs font-hud font-bold text-cyan-100 uppercase tracking-wider">📈 Trend Portafoglio Temporale (Soldi / Mesi)</h3>
-                        <span class="text-[10px] font-semibold text-cyan-400">2025 - 2026</span>
-                    </div>
-                    <div class="h-48 flex items-end gap-3 justify-between pt-6 px-2 border-b border-cyan-950/40">
-                        <div class="w-full flex flex-col items-center gap-2">
-                            <span class="text-[10px] font-semibold text-emerald-400">420€</span>
-                            <div class="w-full bg-cyan-950/60 hover:bg-[#00f0ff] rounded-t transition h-24 border-t border-[#00f0ff]/50"></div>
-                            <span class="text-[10px] font-medium text-neutral-400">Giu '25</span>
-                        </div>
-                        <div class="w-full flex flex-col items-center gap-2">
-                            <span class="text-[10px] font-semibold text-emerald-400">580€</span>
-                            <div class="w-full bg-cyan-950/60 hover:bg-[#00f0ff] rounded-t transition h-32 border-t border-[#00f0ff]/50"></div>
-                            <span class="text-[10px] font-medium text-neutral-400">Set '25</span>
-                        </div>
-                        <div class="w-full flex flex-col items-center gap-2">
-                            <span class="text-[10px] font-semibold text-emerald-400">710€</span>
-                            <div class="w-full bg-cyan-950/60 hover:bg-[#00f0ff] rounded-t transition h-40 border-t border-[#00f0ff]/50"></div>
-                            <span class="text-[10px] font-medium text-neutral-400">Gen '26</span>
-                        </div>
-                        <div class="w-full flex flex-col items-center gap-2">
-                            <span class="text-[10px] font-semibold text-emerald-400">840€</span>
-                            <div class="w-full bg-[#00f0ff] rounded-t transition h-44 shadow-[0_0_15px_rgba(0,240,255,0.4)]"></div>
-                            <span class="text-[10px] font-bold text-[#00f0ff]">Oggi</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bento-card rounded-2xl p-6 space-y-4">
-                    <div class="flex items-center justify-between border-b border-cyan-950 pb-3">
-                        <h3 class="text-xs font-hud font-bold text-cyan-100 uppercase tracking-wider">🥧 Distribuzione Finanziaria</h3>
-                        <span class="text-[10px] font-semibold text-amber-400">Rapporto %</span>
-                    </div>
-                    <div class="flex flex-col sm:flex-row items-center justify-around gap-6 py-4">
-                        <div class="w-36 h-36 rounded-full border-4 border-cyan-500/20 relative flex items-center justify-center shadow-[0_0_20px_rgba(0,240,255,0.2)]"
-                             style="background: conic-gradient(#10b981 0deg 180deg, #3b82f6 180deg 280deg, #f59e0b 280deg 360deg);">
-                            <div class="w-24 h-24 bg-[#030712] rounded-full flex flex-col items-center justify-center">
-                                <span class="text-[10px] font-semibold text-neutral-400">ASSET</span>
-                                <span class="text-xs font-bold text-cyan-100 font-hud">100%</span>
-                            </div>
-                        </div>
-                        <div class="space-y-2 text-xs font-medium">
-                            <div class="flex items-center gap-2">
-                                <span class="w-3 h-3 bg-emerald-500 rounded"></span>
-                                <span class="text-neutral-300">Guadagno Netto (33%)</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <span class="w-3 h-3 bg-blue-500 rounded"></span>
-                                <span class="text-neutral-300">Spese Comprati (38%)</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <span class="w-3 h-3 bg-amber-500 rounded"></span>
-                                <span class="text-neutral-300">Valore Magazzino (29%)</span>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -779,30 +718,226 @@ async def libro_detail_page(libro_id: str):
     </html>
     """
 
-# --- METTI IN VENDITA ---
+# --- METTI IN VENDITA (SCANNER + FORM COMPILAZIONE) ---
 @app.get("/metti-in-vendita", response_class=HTMLResponse)
 async def metti_in_vendita_page():
     navbar = get_navbar('metti-in-vendita')
+    
+    generi_options_v = ''
+    for macro, sottos in GENERI_STRUTTURA.items():
+        generi_options_v += f'<optgroup label="{macro}">'
+        for sotto in sottos:
+            generi_options_v += f'<option value="{sotto}">{sotto}</option>'
+        generi_options_v += '</optgroup>'
+
     return f"""
     {get_base_head("Metti in Vendita - Bento HUD")}
     <body class="min-h-screen pb-20">
         {navbar}
-        <main class="max-w-3xl mx-auto px-4 py-12">
+        <main class="max-w-4xl mx-auto px-4 py-12 space-y-6">
+            
             <div class="bento-card bento-glow-orange p-8 space-y-6 rounded-2xl">
-                <div class="text-center space-y-2">
-                    <h2 class="text-2xl font-hud font-bold text-cyan-100 uppercase tracking-wider">Scanner Quantico Tomo</h2>
-                    <p class="text-cyan-300/70 text-xs font-medium">Inserisci il codice ISBN per avviare il parsing automatico dei metadati olografici.</p>
+                <div class="space-y-2">
+                    <span class="text-[10px] font-semibold text-[#00f0ff] uppercase tracking-widest bg-cyan-950/60 px-2.5 py-1 rounded border border-cyan-500/35">MODULO DI ACCERTAMENTO</span>
+                    <h2 class="text-2xl font-hud font-bold text-cyan-100 uppercase tracking-wider">Scanner Quantico ISBN & Pubblicazione</h2>
+                    <p class="text-cyan-300/70 text-xs font-medium">Inserisci l'ISBN per interrogare l'archivio Google Books oppure compila i dati del volume da inserire nel market.</p>
                 </div>
+                
                 <div class="flex gap-3">
-                    <input type="text" id="isbn" value="9788804668237" placeholder="Codice ISBN..." 
+                    <input type="text" id="isbn-input" value="9788804668237" placeholder="Inserisci ISBN (es. 9788804668237)..." 
                         class="flex-1 bg-black/80 border border-cyan-500/40 rounded-xl px-4 py-3 text-cyan-100 text-xs focus:outline-none focus:border-[#00f0ff]">
-                    <button onclick="alert('[SCAN OK] Tomo scansionato e registrato nei registri globali di LoopBooks!')" 
-                        class="bg-[#00f0ff] hover:bg-cyan-400 text-black font-bold px-6 py-3 rounded-xl text-xs uppercase tracking-wider transition shadow-[0_0_20px_rgba(0,240,255,0.5)]">
-                        Pubblica
+                    <button type="button" onclick="fetchBookData()" 
+                        class="bg-cyan-950 hover:bg-cyan-900 text-[#00f0ff] border border-cyan-500/50 font-bold px-6 py-3 rounded-xl text-xs uppercase tracking-wider transition shadow-[0_0_15px_rgba(0,240,255,0.3)]">
+                        🔍 Scansiona ISBN
                     </button>
                 </div>
             </div>
+
+            <form action="/pubblica-tomo" method="POST" class="bento-card p-8 space-y-6 rounded-2xl">
+                <h3 class="text-sm font-hud font-bold text-cyan-200 uppercase tracking-wider border-b border-cyan-950 pb-3">Dettagli Tomo & Condizioni di Vendita</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-4">
+                        <div class="space-y-1">
+                            <label class="block text-[10px] font-semibold text-[#00f0ff] uppercase">Titolo Tomo</label>
+                            <input type="text" id="titolo" name="titolo" required placeholder="Titolo del libro" 
+                                class="w-full bg-black/80 border border-cyan-500/30 rounded-xl px-3 py-2 text-xs text-cyan-100 focus:outline-none focus:border-[#00f0ff]">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="block text-[10px] font-semibold text-[#00f0ff] uppercase">Autore</label>
+                            <input type="text" id="autore" name="autore" required placeholder="Autore" 
+                                class="w-full bg-black/80 border border-cyan-500/30 rounded-xl px-3 py-2 text-xs text-cyan-100 focus:outline-none focus:border-[#00f0ff]">
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="space-y-1">
+                                <label class="block text-[10px] font-semibold text-[#00f0ff] uppercase">Prezzo (€)</label>
+                                <input type="number" step="0.01" name="prezzo" required value="15.00" 
+                                    class="w-full bg-black/80 border border-cyan-500/30 rounded-xl px-3 py-2 text-xs text-emerald-400 font-bold focus:outline-none focus:border-[#00f0ff]">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="block text-[10px] font-semibold text-[#00f0ff] uppercase">Condizione</label>
+                                <select name="condizione" class="w-full bg-black/80 border border-cyan-500/30 rounded-xl px-3 py-2 text-xs text-cyan-100 focus:outline-none focus:border-[#00f0ff]">
+                                    <option value="Perfetto">Perfetto</option>
+                                    <option value="Come nuovo" selected>Come nuovo</option>
+                                    <option value="Ottime condizioni">Ottime condizioni</option>
+                                    <option value="Buone condizioni">Buone condizioni</option>
+                                    <option value="Rarità da collezione">Rarità da collezione</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="block text-[10px] font-semibold text-[#00f0ff] uppercase">Genere Olografico</label>
+                            <select name="genere" class="w-full bg-black/80 border border-cyan-500/30 rounded-xl px-3 py-2 text-xs text-cyan-100 focus:outline-none focus:border-[#00f0ff]">
+                                {generi_options_v}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4 flex flex-col justify-between">
+                        <div class="space-y-3">
+                            <div class="space-y-1">
+                                <label class="block text-[10px] font-semibold text-[#00f0ff] uppercase">URL Immagine Copertina</label>
+                                <input type="text" id="copertina" name="copertina" required value="https://covers.openlibrary.org/b/isbn/9788804668237-L.jpg" 
+                                    class="w-full bg-black/80 border border-cyan-500/30 rounded-xl px-3 py-2 text-xs text-cyan-100 focus:outline-none focus:border-[#00f0ff]" oninput="updatePreview(this.value)">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="block text-[10px] font-semibold text-[#00f0ff] uppercase">Modalità Consegna & Spedizione</label>
+                                <select name="consegna" class="w-full bg-black/80 border border-cyan-500/30 rounded-xl px-3 py-2 text-xs text-cyan-100 focus:outline-none focus:border-[#00f0ff]">
+                                    <option value="Spedizione Corriere Tracciato (4.90 €)">Spedizione Corriere Tracciato (4.90 €)</option>
+                                    <option value="Ritiro a mano in Sede a Milano (Gratuito)">Ritiro a mano in Sede a Milano (Gratuito)</option>
+                                    <option value="Consegna Express Assicurata (9.90 €)">Consegna Express Assicurata (9.90 €)</option>
+                                </select>
+                            </div>
+                            <div class="space-y-1">
+                                <label class="block text-[10px] font-semibold text-[#00f0ff] uppercase">Descrizione / Note</label>
+                                <textarea id="descrizione" name="descrizione" rows="3" class="w-full bg-black/80 border border-cyan-500/30 rounded-xl px-3 py-2 text-xs text-cyan-100 focus:outline-none focus:border-[#00f0ff]">Tomo verificato nei registri di LoopBooks.</textarea>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-4 pt-4 border-t border-cyan-950">
+                            <div class="w-16 h-20 bg-black rounded-lg overflow-hidden border border-cyan-500/30 flex-shrink-0">
+                                <img id="preview-img" src="https://covers.openlibrary.org/b/isbn/9788804668237-L.jpg" class="w-full h-full object-cover">
+                            </div>
+                            <button type="submit" class="flex-1 bg-[#00f0ff] hover:bg-cyan-400 text-black font-bold py-3 px-6 rounded-xl text-xs uppercase tracking-wider transition shadow-[0_0_20px_rgba(0,240,255,0.4)]">
+                                Pubblica Tomo nel Market
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
         </main>
+
+        <script>
+            function updatePreview(url) {{
+                document.getElementById('preview-img').src = url;
+            }}
+
+            async function fetchBookData() {{
+                const isbn = document.getElementById('isbn-input').value.trim();
+                if(!isbn) {{
+                    alert('Inserisci un codice ISBN valido.');
+                    return;
+                }}
+                try {{
+                    const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${{isbn}}`);
+                    const data = await response.json();
+                    if(data.items && data.items.length > 0) {{
+                        const book = data.items[0].volumeInfo;
+                        document.getElementById('titolo').value = book.title || '';
+                        document.getElementById('autore').value = book.authors ? book.authors.join(', ') : '';
+                        if(book.description) {{
+                            document.getElementById('descrizione').value = book.description.substring(0, 200) + '...';
+                        }}
+                        if(book.imageLinks && book.imageLinks.thumbnail) {{
+                            let imgUrl = book.imageLinks.thumbnail.replace('http:', 'https:');
+                            document.getElementById('copertina').value = imgUrl;
+                            document.getElementById('preview-img').src = imgUrl;
+                        }} else {{
+                            let fallbackUrl = `https://covers.openlibrary.org/b/isbn/${{isbn}}-L.jpg`;
+                            document.getElementById('copertina').value = fallbackUrl;
+                            document.getElementById('preview-img').src = fallbackUrl;
+                        }}
+                        alert('[SCAN OK] Metadati del tomo acquisiti con successo!');
+                    }} else {{
+                        alert('Nessun tomo trovato con questo ISBN. Utilizzo fallback OpenLibrary.');
+                        let fallbackUrl = `https://covers.openlibrary.org/b/isbn/${{isbn}}-L.jpg`;
+                        document.getElementById('copertina').value = fallbackUrl;
+                        document.getElementById('preview-img').src = fallbackUrl;
+                    }}
+                }} catch(e) {{
+                    console.error(e);
+                    alert('Errore di connessione al database Google Books.');
+                }}
+            }}
+        </script>
+    </body>
+    </html>
+    """
+
+# --- AZIONE PUBBLICAZIONE TOMO ---
+@app.post("/pubblica-tomo", response_class=HTMLResponse)
+async def pubblica_tomo(
+    titolo: str = Form(...),
+    autore: str = Form(...),
+    prezzo: float = Form(...),
+    condizione: str = Form(...),
+    genere: str = Form(...),
+    copertina: str = Form(...),
+    consegna: str = Form(...),
+    descrizione: str = Form(...)
+):
+    new_id = f"lib-user-{len(BOOKS_DATABASE) + 1}"
+    new_book = {
+        "id": new_id,
+        "titolo": titolo,
+        "autore": autore,
+        "prezzo": prezzo,
+        "valutazione_num": 5.0,
+        "valutazione": "5.0 ★",
+        "condizione": condizione,
+        "editore": "LoopBooks Publisher",
+        "collana": "Edizioni Indipendenti",
+        "codice_ean": "9788800000000",
+        "anno_edizione": "2026",
+        "anno_pubblicazione": "2026",
+        "descrizione": f"{descrizione} [Consegna: {consegna}]",
+        "venditore": BIBLIOTECA_UTENTE["profilo"]["nome"],
+        "venditore_id": BIBLIOTECA_UTENTE["profilo"]["id_venditore"],
+        "venditore_posizione": BIBLIOTECA_UTENTE["profilo"]["sede"],
+        "venditore_valutazione": BIBLIOTECA_UTENTE["profilo"]["valutazione"],
+        "sezione": "tendenza",
+        "genere": genere,
+        "copertina": copertina
+    }
+    
+    BOOKS_DATABASE.insert(0, new_book)
+    BIBLIOTECA_UTENTE["elenco"].insert(0, {
+        "id": new_id,
+        "titolo": titolo,
+        "autore": autore,
+        "prezzo": prezzo,
+        "valutazione": 5.0,
+        "stato": "magazzino",
+        "genere": genere,
+        "condizione": condizione,
+        "copertina": copertina
+    })
+    BIBLIOTECA_UTENTE["metriche"]["magazzino_num"] += 1
+    BIBLIOTECA_UTENTE["metriche"]["valore_magazzino"] += prezzo
+
+    return f"""
+    {get_base_head("Pubblicazione Avvenuta - Bento HUD")}
+    <body class="min-h-screen pb-20 flex items-center justify-center">
+        <div class="bento-card bento-glow-blue p-8 rounded-2xl max-w-lg text-center space-y-6">
+            <span class="text-emerald-400 font-bold text-xs uppercase bg-emerald-950 px-3 py-1 rounded border border-emerald-500/40">PROTOCOLLO COMPLETATO</span>
+            <h2 class="text-2xl font-bold text-cyan-100 font-hud">Tomo Pubblicato con Successo!</h2>
+            <p class="text-xs text-cyan-300/80">Il libro <strong>{titolo}</strong> è ora attivo nel market globale e registrato nella tua biblioteca personale in magazzino.</p>
+            <div class="flex justify-center gap-4 pt-4">
+                <a href="/" class="bg-cyan-950 hover:bg-cyan-900 text-[#00f0ff] border border-cyan-500/50 font-bold px-5 py-2.5 rounded-xl text-xs uppercase transition">Vai al Market</a>
+                <a href="/biblioteca" class="bg-[#00f0ff] hover:bg-cyan-400 text-black font-bold px-5 py-2.5 rounded-xl text-xs uppercase transition shadow-[0_0_15px_rgba(0,240,255,0.4)]">Apri Biblioteca</a>
+            </div>
+        </div>
     </body>
     </html>
     """
