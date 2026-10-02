@@ -20,6 +20,8 @@ BOOKS_DATABASE = [
         "codice_ean": "9788806200085",
         "anno_edizione": "2015",
         "anno_pubblicazione": "1980",
+        "rilegatura": "Flessibile",
+        "edizione": "15ª Edizione",
         "descrizione": "Un monastero isolato, un segreto custodito tra i codici miniati e un crimine che scuote l'ordine monastico.",
         "venditore": "Libreria Antiquaria Roma",
         "venditore_id": "roma-antiquaria",
@@ -42,6 +44,8 @@ BOOKS_DATABASE = [
         "codice_ean": "9788804668237",
         "anno_edizione": "2018",
         "anno_pubblicazione": "2016",
+        "rilegatura": "Rigida con sovraccoperta",
+        "edizione": "Edizione Speciale",
         "descrizione": "Un romanzo profondo e intenso che racconta la storia di un'amicizia fraterna tra due ragazzi cresciuti in montagna.",
         "venditore": "LoopBooks Official",
         "venditore_id": "loopbooks-official",
@@ -64,6 +68,8 @@ BOOKS_DATABASE = [
         "codice_ean": "9788806231362",
         "anno_edizione": "2020",
         "anno_pubblicazione": "2004",
+        "rilegatura": "Flessibile",
+        "edizione": "3ª Ristampa",
         "descrizione": "La rilettura appassionante del più grande poema epico di tutti i tempi, focalizzata sul destino e la guerra.",
         "venditore": "Antica Stamperia",
         "venditore_id": "antica-stamperia",
@@ -86,6 +92,8 @@ BOOKS_DATABASE = [
         "codice_ean": "9788866325087",
         "anno_edizione": "2016",
         "anno_pubblicazione": "2011",
+        "rilegatura": "Brossura",
+        "edizione": "12ª Edizione",
         "descrizione": "La storia di un'amicizia complessa e duratura sullo sfondo di una Napoli popolare e in evoluzione.",
         "venditore": "BookBaron Milano",
         "venditore_id": "bookbaron-milano",
@@ -108,6 +116,8 @@ BOOKS_DATABASE = [
         "codice_ean": "9788804707035",
         "anno_edizione": "2001",
         "anno_pubblicazione": "1490",
+        "rilegatura": "Pelle con inserti in oro",
+        "edizione": "Facsimile Numerato",
         "descrizione": "Raccolta di disegni e scritti di Leonardo da Vinci, edizione facsimile di inestimabile valore storico.",
         "venditore": "Rari & Co.",
         "venditore_id": "rari-co",
@@ -461,7 +471,7 @@ async def home_page(q: str = "", ordine: str = "nessuno", genere: str = "tutti")
     </html>
     """
 
-# --- SEZIONE LA MIA BIBLIOTECA (CORRETTA) ---
+# --- SEZIONE LA MIA BIBLIOTECA ---
 @app.get("/biblioteca", response_class=HTMLResponse)
 async def biblioteca_page(filtro_stato: str = "tutti", q_biblio: str = "", ordine_biblio: str = "nessuno", genere_biblio: str = "tutti"):
     navbar = get_navbar('biblioteca')
@@ -666,38 +676,179 @@ async def venditore_page(venditore_id: str):
     </html>
     """
 
-# --- DETTAGLIO LIBRO ---
+# --- DETTAGLIO LIBRO CON TUTTE LE INFO E GRAFICO CARDMARKET & CAROSELLO VENDITORI ---
 @app.get("/libro/{libro_id}", response_class=HTMLResponse)
 async def libro_detail_page(libro_id: str):
     navbar = get_navbar('home')
     libro = next((b for b in BOOKS_DATABASE if b["id"] == libro_id), BOOKS_DATABASE[0])
     
+    # Calcolo prezzo medio simulato e lista venditori per questo titolo
+    stesso_titolo = [b for b in BOOKS_DATABASE if b["titolo"].lower() == libro["titolo"].lower()]
+    prezzo_medio = sum(b["prezzo"] for b in stesso_titolo) / len(stesso_titolo) if stesso_titolo else libro["prezzo"]
+
+    # Generazione carosello venditori sotto a scorrimento
+    venditori_cards_html = ""
+    # Simuliamo altri venditori partner se ce ne sono pochi
+    venditori_list = stesso_titolo if stesso_titolo else [libro]
+    for v_item in venditori_list:
+        venditori_cards_html += f"""
+        <div class="min-w-[240px] bg-black/60 border border-cyan-500/20 rounded-xl p-4 flex-shrink-0 space-y-2 hover:border-cyan-400 transition">
+            <div class="flex justify-between items-start">
+                <span class="text-[10px] font-bold text-cyan-300 bg-cyan-950 px-2 py-0.5 rounded border border-cyan-500/30">NOME VENDITORE</span>
+                <span class="text-xs text-amber-400 font-bold">{v_item.get('venditore_valutazione', '5.0 ★')}</span>
+            </div>
+            <h4 class="font-bold text-xs text-white truncate">{v_item.get('venditore', 'LoopBooks Partner')}</h4>
+            <p class="text-[11px] text-cyan-400/80 truncate">Libro: {v_item['titolo']}</p>
+            <div class="flex justify-between items-center pt-2 border-t border-cyan-950">
+                <span class="text-emerald-400 font-bold text-sm">{v_item['prezzo']:.2f} €</span>
+                <a href="/venditore/{v_item.get('venditore_id', 'partner')}" class="text-[10px] text-[#00f0ff] hover:underline font-semibold">[ Visita Nodo ]</a>
+            </div>
+        </div>
+        """
+
     return f"""
     {get_base_head(f"{libro['titolo']} - Analisi Bento")}
     <body class="min-h-screen pb-20">
         {navbar}
-        <main class="max-w-4xl mx-auto px-4 py-12">
+        <main class="max-w-6xl mx-auto px-4 py-8 space-y-8">
+            <!-- SCHEDA PRINCIPALE TOMO -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 bento-card bento-glow-orange p-8 rounded-2xl">
-                <div class="flex flex-col items-center justify-center">
-                    <img src="{libro['copertina']}" class="w-56 h-72 object-cover rounded-xl border border-cyan-500/40 shadow-xl mb-4">
+                <div class="flex flex-col items-center justify-center space-y-3">
+                    <img src="{libro['copertina']}" class="w-52 h-68 object-cover rounded-xl border border-cyan-500/40 shadow-xl">
                     <span class="text-xs font-bold text-[#00f0ff] uppercase tracking-widest bg-cyan-950 px-3 py-1 rounded border border-cyan-500/40">{libro['valutazione']} Media Indice</span>
                 </div>
                 <div class="md:col-span-2 space-y-4">
-                    <span class="text-[10px] font-semibold text-cyan-400 tracking-widest uppercase">ID PROTOCOLLO ARCHIVIO // {libro['id']}</span>
-                    <h1 class="text-3xl font-extrabold text-cyan-100 font-hud">{libro['titolo']}</h1>
-                    <p class="text-sm text-cyan-300 font-medium">di {libro['autore']}</p>
-                    <div class="text-2xl font-bold text-emerald-400">{libro['prezzo']:.2f} € <span class="text-xs font-normal text-neutral-400">({libro['condizione']})</span></div>
-                    <p class="text-cyan-200/80 text-xs leading-relaxed font-medium italic border-l-2 border-[#00f0ff] pl-3">{libro['descrizione']}</p>
-                    <div class="pt-4 border-t border-cyan-950 flex items-center justify-between text-xs">
+                    <div class="flex justify-between items-start">
                         <div>
-                            <span class="text-neutral-500 font-medium block">Nodo Partner Autorizzato:</span>
+                            <span class="text-[10px] font-semibold text-cyan-400 tracking-widest uppercase">ID PROTOCOLLO ARCHIVIO // {libro['id']}</span>
+                            <h1 class="text-2xl md:text-3xl font-extrabold text-cyan-100 font-hud mt-1">{libro['titolo']}</h1>
+                            <p class="text-sm text-cyan-300 font-medium">di {libro['autore']}</p>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-[10px] text-neutral-400 uppercase block">Prezzo Medio di Mercato</span>
+                            <span class="text-xl font-bold text-emerald-400">{prezzo_medio:.2f} €</span>
+                        </div>
+                    </div>
+
+                    <!-- GRIGLIA SPECIFICHE -->
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2 pb-2 border-y border-cyan-950 text-xs">
+                        <div>
+                            <span class="text-neutral-400 block text-[10px]">Anno Pubblicazione</span>
+                            <strong class="text-cyan-200">{libro.get('anno_pubblicazione', 'N/D')}</strong>
+                        </div>
+                        <div>
+                            <span class="text-neutral-400 block text-[10px]">Anno Edizione</span>
+                            <strong class="text-cyan-200">{libro.get('anno_edizione', 'N/D')}</strong>
+                        </div>
+                        <div>
+                            <span class="text-neutral-400 block text-[10px]">Codice EAN</span>
+                            <strong class="text-cyan-200">{libro.get('codice_ean', libro['id'])}</strong>
+                        </div>
+                        <div>
+                            <span class="text-neutral-400 block text-[10px]">Rilegatura</span>
+                            <strong class="text-cyan-200">{libro.get('rilegatura', libro.get('condizione', 'Standard'))}</strong>
+                        </div>
+                        <div>
+                            <span class="text-neutral-400 block text-[10px]">Edizione</span>
+                            <strong class="text-cyan-200">{libro.get('edizione', 'Standard')}</strong>
+                        </div>
+                        <div>
+                            <span class="text-neutral-400 block text-[10px]">Collana / Editore</span>
+                            <strong class="text-cyan-200">{libro.get('collana', 'N/A')} ({libro.get('editore', 'N/A')})</strong>
+                        </div>
+                    </div>
+
+                    <p class="text-cyan-200/80 text-xs leading-relaxed font-medium italic">{libro['descrizione']}</p>
+                    
+                    <div class="pt-2 flex items-center justify-between text-xs">
+                        <div>
+                            <span class="text-neutral-500 font-medium block">Nodo Principale:</span>
                             <a href="/venditore/{libro['venditore_id']}" class="text-[#00f0ff] font-bold underline hover:text-cyan-300">{libro['venditore']} ({libro['venditore_posizione']})</a>
                         </div>
                         <button onclick="alert('[TRANSACTION COMPLETE] Richiesta registrata nei server centrali!')" class="bg-[#00f0ff] hover:bg-cyan-400 text-black font-bold px-6 py-2.5 rounded-xl transition uppercase tracking-wider shadow-[0_0_15px_rgba(0,240,255,0.4)]">Acquista Ora</button>
                     </div>
                 </div>
             </div>
+
+            <!-- GRAFICO STORICO PREZZI (TIPO CARDMARKET) -->
+            <div class="bento-card p-6 rounded-2xl space-y-4">
+                <div class="flex justify-between items-center border-b border-cyan-950 pb-3">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 bg-emerald-400 rounded-full"></span>
+                        <h3 class="text-xs md:text-sm font-hud font-bold text-cyan-100 uppercase tracking-wider">Grafico Vendite & Prezzo Medio nel Tempo (Stile CardMarket)</h3>
+                    </div>
+                    <span class="text-[10px] font-semibold text-emerald-400 bg-emerald-950 px-2.5 py-1 rounded border border-emerald-500/30">TREND STORICO</span>
+                </div>
+                <div class="h-48 w-full relative">
+                    <canvas id="priceChart"></canvas>
+                </div>
+            </div>
+
+            <!-- SOTTO A SCORRIMENTO ELENCO VENDITORI -->
+            <div class="bento-card p-6 rounded-2xl space-y-4">
+                <div class="flex justify-between items-center border-b border-cyan-950 pb-3">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 bg-[#00f0ff] rounded-full"></span>
+                        <h3 class="text-xs md:text-sm font-hud font-bold text-cyan-100 uppercase tracking-wider">Sotto a Scorrimento: Elenco Venditori Attivi per questo Tomo</h3>
+                    </div>
+                    <span class="text-[10px] font-semibold text-cyan-400">OFFERTE MULTIPLE</span>
+                </div>
+                <div class="flex gap-4 overflow-x-auto hide-scroll pb-2">
+                    {venditori_cards_html}
+                </div>
+            </div>
         </main>
+
+        <!-- Script per Chart.js (Grafico Prezzi) -->
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script>
+            const ctx = document.getElementById('priceChart').getContext('2d');
+            const basePrice = {libro['prezzo']};
+            new Chart(ctx, {{
+                type: 'line',
+                data: {{
+                    labels: ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott'],
+                    datasets: [{{
+                        label: 'Prezzo Medio (€)',
+                        data: [
+                            (basePrice * 0.9).toFixed(2), 
+                            (basePrice * 0.92).toFixed(2), 
+                            (basePrice * 0.95).toFixed(2), 
+                            (basePrice * 0.94).toFixed(2), 
+                            (basePrice * 0.98).toFixed(2), 
+                            (basePrice * 1.02).toFixed(2), 
+                            (basePrice * 1.0).toFixed(2), 
+                            (basePrice * 0.99).toFixed(2), 
+                            (basePrice * 1.03).toFixed(2), 
+                            basePrice
+                        ],
+                        borderColor: '#00f0ff',
+                        backgroundColor: 'rgba(0, 240, 255, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.3,
+                        pointBackgroundColor: '#00f0ff'
+                    }}]
+                }},
+                options: {{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {{
+                        legend: {{ display: false }}
+                    }},
+                    scales: {{
+                        x: {{
+                            grid: {{ color: 'rgba(0, 240, 255, 0.05)' }},
+                            ticks: {{ color: '#94a3b8', font: {{ size: 10 }} }}
+                        }},
+                        y: {{
+                            grid: {{ color: 'rgba(0, 240, 255, 0.05)' }},
+                            ticks: {{ color: '#94a3b8', font: {{ size: 10 }} }}
+                        }}
+                    }}
+                }}
+            }});
+        </script>
     </body>
     </html>
     """
