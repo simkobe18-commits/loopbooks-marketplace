@@ -1,5 +1,6 @@
-fastapi
-uvicorn
-httpx
-google-genai
-python-multipart
+pip install 
+fastapi 
+uvicorn 
+pydantic 
+requests 
+jinja2
