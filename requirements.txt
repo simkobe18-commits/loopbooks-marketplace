@@ -1,4 +1,3 @@
-pipinstall 
 fastapi 
 uvicorn 
 pydantic 
