@@ -1,12 +1,11 @@
-from fastapi import FastAPI, HTTPException, Form, UploadFile, File
+from fastapi import FastAPI, HTTPException, Form
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List
 import uvicorn
 
 app = FastAPI(title="LoopBooks Marketplace", version="1.0")
 
-# Modelli Pydantic
 class Book(BaseModel):
     id: int
     title: str
@@ -18,7 +17,6 @@ class Book(BaseModel):
     description: str
     image_url: str
 
-# Database in-memory temporaneo (predisposto per LibSQL)
 fake_books_db = [
     Book(
         id=1,
@@ -92,33 +90,37 @@ def home():
                 color: #fff;
                 text-decoration: none;
             }
-            .nav-menu {
+            .nav-center {
                 display: flex;
-                gap: 25px;
+                gap: 30px;
                 align-items: center;
             }
-            .nav-menu a {
+            .nav-center a {
                 color: var(--text-color);
                 text-decoration: none;
-                font-weight: 500;
-                font-size: 0.95rem;
+                font-weight: 600;
+                font-size: 0.9rem;
+                letter-spacing: 0.5px;
                 transition: color 0.3s;
             }
-            .nav-menu a:hover {
+            .nav-center a:hover {
                 color: #fff;
             }
-            .btn-sell {
-                background-color: var(--accent-color);
-                color: white;
-                padding: 8px 18px;
-                border-radius: 4px;
-                font-weight: 600;
-                border: none;
-                cursor: pointer;
-                transition: background 0.3s;
+            .profile-area {
+                display: flex;
+                align-items: center;
             }
-            .btn-sell:hover {
-                background-color: var(--accent-hover);
+            .profile-icon {
+                width: 36px;
+                height: 36px;
+                background: #333;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #fff;
+                font-weight: bold;
+                cursor: pointer;
             }
             .hero {
                 height: 70vh;
@@ -212,29 +214,37 @@ def home():
     </head>
     <body>
         <header>
+            <!-- Logo in alto a sinistra -->
             <a href="/" class="logo-area">
-                <span>📖 LoopBooks</span>
+                <span>📖 Loopbooks</span>
             </a>
-            <div class="nav-menu">
-                <a href="/library">LA TUA BIBLIOTECA</a>
-                <a href="/sell"><button class="btn-sell">METTI IN VENDITA</button></a>
-                <a href="#login">Accedi</a>
+
+            <!-- Menu centrale -->
+            <div class="nav-center">
+                <a href="/sell">METTI IN VENDITA</a>
+                <a href="/library">LA MIA BIBLIOTECA</a>
+                <a href="#search-section">CERCA LIBRO</a>
+            </div>
+
+            <!-- Profilo a destra -->
+            <div class="profile-area">
+                <div class="profile-icon">SC</div>
             </div>
         </header>
 
-        <section class="hero">
+        <section class="hero" id="search-section">
             <h1>Un monastero, un segreto, un crimine.</h1>
             <p>Scopri il mistero tra migliaia di libri garantiti e venditori verificati.</p>
             <div class="search-bar">
-                <input type="text" placeholder="Cerca per titolo, autore o codice ISBN...">
-                <button>Trova libro</button>
+                <input type="text" id="search-input" placeholder="Cerca per nome o codice ISBN...">
+                <button onclick="searchBooks()">Trova il mio libro</button>
             </div>
         </section>
 
         <div class="container">
             <h2>Libri di Tendenza (Top 10)</h2>
             <div class="grid-bento" id="books-grid">
-                <!-- I libri verranno caricati qui -->
+                <!-- Contenuto dinamico -->
             </div>
         </div>
 
@@ -242,8 +252,16 @@ def home():
             async function loadBooks() {
                 const response = await fetch('/api/books');
                 const books = await response.json();
+                renderBooks(books);
+            }
+
+            function renderBooks(books) {
                 const grid = document.getElementById('books-grid');
                 grid.innerHTML = '';
+                if(books.length === 0) {
+                    grid.innerHTML = '<p style="color: #888;">Nessun libro trovato.</p>';
+                    return;
+                }
                 books.forEach(book => {
                     grid.innerHTML += `
                         <div class="book-card">
@@ -257,6 +275,15 @@ def home():
                     `;
                 });
             }
+
+            async function searchBooks() {
+                const query = document.getElementById('search-input').value.toLowerCase();
+                const response = await fetch('/api/books');
+                const books = await response.json();
+                const filtered = books.filter(b => b.title.toLowerCase().includes(query) || b.isbn.includes(query) || b.genre.toLowerCase().includes(query));
+                renderBooks(filtered);
+            }
+
             loadBooks();
         </script>
     </body>
@@ -274,20 +301,20 @@ def sell_page():
     <html lang="it">
     <head>
         <meta charset="UTF-8">
-        <title>Metti in Vendita - LoopBooks</title>
+        <title>Metti in Vendita - Loopbooks</title>
         <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
         <style>
             body { font-family: 'Plus Jakarta Sans', sans-serif; background: #141414; color: #fff; padding: 40px; }
             .form-container { max-width: 600px; margin: auto; background: #1f1f1f; padding: 30px; border-radius: 8px; }
-            input, select, textarea { width: 100%; padding: 10px; margin: 10px 0 20px 0; background: #333; border: none; color: #fff; border-radius: 4px; }
+            input, select, textarea { width: 100%; padding: 10px; margin: 10px 0 20px 0; background: #333; border: none; color: #fff; border-radius: 4px; box-sizing: border-box; }
             button { background: #e50914; color: white; padding: 12px 20px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; width: 100%; }
         </style>
     </head>
     <body>
         <div class="form-container">
-            <h2>Metti in Vendita un Libro</h2>
+            <h2>Metti in Vendita</h2>
             <form action="/api/sell" method="POST">
-                <label>Codice ISBN (Autocompilazione IA):</label>
+                <label>Codice ISBN (Autocompilazione assistita IA):</label>
                 <input type="text" name="isbn" placeholder="Es. 9788804712345" required>
                 
                 <label>Prezzo di Vendita (€):</label>
@@ -301,7 +328,7 @@ def sell_page():
                     <option value="Discrete">Discrete</option>
                 </select>
 
-                <button type="submit">Conferma e Pubblica</button>
+                <button type="submit">Conferma Inserzione</button>
             </form>
             <p><a href="/" style="color: #aaa; text-decoration: none;">← Torna alla Home</a></p>
         </div>
@@ -311,7 +338,6 @@ def sell_page():
 
 @app.post("/api/sell")
 def post_sell(isbn: str = Form(...), price: float = Form(...), condition: str = Form(...)):
-    # Simulazione integrazione IA per recuperare metadati tramite ISBN
     new_book = Book(
         id=len(fake_books_db) + 1,
         title=f"Libro ISBN {isbn}",
@@ -334,7 +360,7 @@ def library_page():
     <html lang="it">
     <head>
         <meta charset="UTF-8">
-        <title>La Tua Biblioteca - LoopBooks</title>
+        <title>La Mia Biblioteca - Loopbooks</title>
         <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
         <style>
             body { font-family: 'Plus Jakarta Sans', sans-serif; background: #141414; color: #fff; padding: 40px; }
@@ -347,10 +373,10 @@ def library_page():
     </head>
     <body>
         <div class="container">
-            <h2>La Tua Biblioteca (Dashboard)</h2>
+            <h2>La Mia Biblioteca (Dashboard)</h2>
             <div class="stats">
                 <div class="stat-card">
-                    <h3>Libri in Magazzino</h3>
+                    <h3>Magazzino (Libri)</h3>
                     <p>2</p>
                 </div>
                 <div class="stat-card">
