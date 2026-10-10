@@ -79,7 +79,7 @@ fake_books_db = [
     )
 ]
 
-# --- 1. HOME PAGE, RICERCA E VETRINA ---
+# --- 1. HOME PAGE, RICERCA CON ALBERATURA GENERI E VETRINA ---
 @app.get("/", response_class=HTMLResponse)
 def home():
     return """
@@ -111,11 +111,16 @@ def home():
             .hero h1 { font-size: 2.5rem; max-width: 700px; margin-bottom: 10px; line-height: 1.2; }
             .hero p { font-size: 1.1rem; max-width: 600px; color: #b3b3b3; margin-bottom: 25px; }
             
-            .search-filters-box { background: rgba(31, 31, 31, 0.95); padding: 25px; border-radius: 8px; max-width: 900px; backdrop-filter: blur(5px); border: 1px solid #333; }
+            /* Sezione Cerca il tuo libro (Barra di Ricerca e Filtri) */
+            .search-filters-box { background: rgba(31, 31, 31, 0.95); padding: 25px; border-radius: 8px; max-width: 950px; backdrop-filter: blur(5px); border: 1px solid #333; }
             .search-row { display: flex; gap: 15px; margin-bottom: 15px; }
             .search-row input { flex: 1; padding: 12px 16px; border-radius: 4px; border: 1px solid #444; background: #111; color: white; font-size: 1rem; }
-            .filters-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 15px; }
-            .filters-grid select { padding: 10px; background: #222; border: 1px solid #444; color: #fff; border-radius: 4px; }
+            .filters-grid { display: grid; grid-template-columns: 2fr 1.5fr 1fr; gap: 15px; margin-bottom: 15px; align-items: center; }
+            .filters-grid select { padding: 10px; background: #222; border: 1px solid #444; color: #fff; border-radius: 4px; font-family: inherit; }
+            .slider-container { background: #222; padding: 8px 12px; border-radius: 4px; border: 1px solid #444; display: flex; flex-direction: column; }
+            .slider-container label { font-size: 0.75rem; color: #aaa; margin-bottom: 4px; }
+            .slider-container input[type=range] { width: 100%; accent-color: var(--blue-glow); cursor: pointer; }
+            
             .cta-btn { background: var(--accent-color); color: white; padding: 12px 25px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; width: 100%; font-size: 1rem; transition: background 0.3s; }
             .cta-btn:hover { background: var(--accent-hover); }
 
@@ -152,49 +157,72 @@ def home():
             <h1>Un monastero, un segreto, un crimine.</h1>
             <p>Esplora il catalogo avanzato e trova il tuo prossimo volume garantito.</p>
             
+            <!-- Sezione Cerca il tuo libro (Barra di Ricerca e Filtri con Alberatura Completa) -->
             <div class="search-filters-box">
                 <div class="search-row">
                     <input type="text" id="search-input" placeholder="Cerca per nome o codice ISBN...">
                 </div>
                 <div class="filters-grid">
+                    <!-- Alberatura Completa dei Generi -->
                     <select id="genre-filter">
-                        <option value="">Tutti i Generi</option>
+                        <option value="">Tutti i Generi (Alberatura Completa)</option>
                         <optgroup label="Narrativa e Letteratura">
-                            <option value="Romanzi contemporanei">Romanzi contemporanei</option>
-                            <option value="Narrativa storica">Narrativa storica</option>
-                            <option value="Gialli/Thriller/Noir">Gialli/Thriller/Noir</option>
-                            <option value="Fantasy/Sci-Fi">Fantasy/Sci-Fi</option>
-                            <option value="Horror">Horror</option>
-                            <option value="Romance">Romance</option>
-                            <option value="Classici">Classici</option>
+                            <option value="Romanzi contemporanei">└ Romanzi contemporanei</option>
+                            <option value="Narrativa storica">└ Narrativa storica</option>
+                            <option value="Gialli/Thriller/Noir">└ Gialli/Thriller/Noir</option>
+                            <option value="Fantasy/Sci-Fi">└ Fantasy/Sci-Fi</option>
+                            <option value="Horror">└ Horror</option>
+                            <option value="Romance">└ Romance</option>
+                            <option value="Classici">└ Classici</option>
                         </optgroup>
                         <optgroup label="Saggistica e Cultura">
-                            <option value="Storia e Biografie">Storia e Biografie</option>
-                            <option value="Filosofia e Religione">Filosofia e Religione</option>
-                            <option value="Scienze/Tecnologia/Natura">Scienze/Tecnologia/Natura</option>
-                            <option value="Sociologia/Politica">Sociologia/Politica</option>
-                            <option value="Arte/Musica/Cinema">Arte/Musica/Cinema</option>
+                            <option value="Storia e Biografie">└ Storia e Biografie</option>
+                            <option value="Filosofia e Religione">└ Filosofia e Religione</option>
+                            <option value="Scienze/Tecnologia/Natura">└ Scienze/Tecnologia/Natura</option>
+                            <option value="Sociologia/Politica">└ Sociologia/Politica</option>
+                            <option value="Arte/Musica/Cinema">└ Arte/Musica/Cinema</option>
                         </optgroup>
                         <optgroup label="Crescita Personale e Lifestyle">
-                            <option value="Self-help/Motivazione">Self-help/Motivazione</option>
-                            <option value="Business/Economia">Business/Economia</option>
-                            <option value="Benessere/Salute">Benessere/Salute</option>
-                            <option value="Cucina">Cucina</option>
-                            <option value="Viaggi">Viaggi</option>
-                            <option value="Hobby">Hobby</option>
+                            <option value="Self-help/Motivazione">└ Self-help/Motivazione</option>
+                            <option value="Business/Economia">└ Business/Economia</option>
+                            <option value="Benessere/Salute">└ Benessere/Salute</option>
+                            <option value="Cucina">└ Cucina</option>
+                            <option value="Viaggi">└ Viaggi</option>
+                            <option value="Hobby">└ Hobby</option>
+                        </optgroup>
+                        <optgroup label="Fumetti e Grafica">
+                            <option value="Fumetti">└ Fumetti</option>
+                            <option value="Manga">└ Manga</option>
+                            <option value="Graphic Novel">└ Graphic Novel</option>
+                            <option value="Libri illustrati">└ Libri illustrati</option>
+                            <option value="Design">└ Design</option>
+                        </optgroup>
+                        <optgroup label="Altri settori">
+                            <option value="Sport e Giochi">└ Sport e Giochi</option>
+                            <option value="Esoterismo e Astrologia">└ Esoterismo e Astrologia</option>
+                        </optgroup>
+                        <optgroup label="Bambini e Ragazzi / Young Adult">
+                            <option value="Prima infanzia 0-3 anni">└ Prima infanzia 0-3 anni</option>
+                            <option value="4-8 anni">└ 4-8 anni</option>
+                            <option value="9-13 anni">└ 9-13 anni</option>
+                            <option value="Young Adult">└ Young Adult 14+</option>
                         </optgroup>
                     </select>
-                    <select id="price-filter">
-                        <option value="">Prezzo (qualsiasi)</option>
-                        <option value="15">Fino a 15 €</option>
-                        <option value="30">Fino a 30 €</option>
-                    </select>
+
+                    <!-- Condizioni del Libro -->
                     <select id="condition-filter">
-                        <option value="">Condizioni (qualsiasi)</option>
+                        <option value="">Condizioni (Tutte)</option>
                         <option value="Nuovo">Nuovo</option>
                         <option value="Ottime">Ottime</option>
                         <option value="Buone">Buone</option>
+                        <option value="Discrete">Discrete</option>
                     </select>
+
+                    <!-- Prezzo Modulabile (Slider) -->
+                    <div class="slider-container">
+                        <label for="price-slider">Prezzo massimo: <span id="price-val">50</span> €</label>
+                        <input type="range" id="price-slider" min="5" max="100" value="50" oninput="document.getElementById('price-val').innerText = this.value">
+                    </div>
                 </div>
                 <button class="cta-btn" onclick="executeSearch()">Trova il mio libro</button>
             </div>
@@ -238,6 +266,7 @@ def home():
             async function loadHome() {
                 const res = await fetch('/api/books');
                 const books = await res.json();
+
                 populate('trending-carousel', books);
                 populate('recent-carousel', books.slice().reverse());
                 populate('classics-carousel', books.filter(b => b.genre === 'Classici'));
@@ -252,6 +281,10 @@ def home():
                 const container = document.getElementById(elemId);
                 if(!container) return;
                 container.innerHTML = '';
+                if(list.length === 0) {
+                    container.innerHTML = '<p style="color:#666; font-size:0.85rem;">Nessun libro trovato.</p>';
+                    return;
+                }
                 list.forEach(b => {
                     container.innerHTML += `
                         <a href="/book/${b.id}" class="book-card">
@@ -268,9 +301,21 @@ def home():
 
             async function executeSearch() {
                 const query = document.getElementById('search-input').value.toLowerCase();
+                const genre = document.getElementById('genre-filter').value;
+                const maxPrice = parseFloat(document.getElementById('price-slider').value);
+                const condition = document.getElementById('condition-filter').value;
+
                 const res = await fetch('/api/books');
                 const books = await res.json();
-                const filtered = books.filter(b => b.title.toLowerCase().includes(query) || b.isbn.includes(query));
+
+                const filtered = books.filter(b => {
+                    const matchText = b.title.toLowerCase().includes(query) || b.isbn.includes(query);
+                    const matchGenre = !genre || b.genre === genre;
+                    const matchPrice = b.price <= maxPrice;
+                    const matchCond = !condition || b.condition === condition;
+                    return matchText && matchGenre && matchPrice && matchCond;
+                });
+
                 const mainContainer = document.getElementById('results-container');
                 mainContainer.innerHTML = `<h2 class="section-title">Risultati della Ricerca (${filtered.length})</h2><div class="carousel-container" id="search-results-carousel"></div><p><a href="/" style="color:#00d2ff; text-decoration:none;">← Torna alla vista principale</a></p>`;
                 populate('search-results-carousel', filtered);
@@ -591,8 +636,6 @@ def sell_page():
             input, select, textarea { width: 100%; padding: 10px; background: #333; border: 1px solid #444; color: #fff; border-radius: 4px; box-sizing: border-box; }
             .summary-box { background: #111; padding: 20px; border-radius: 6px; border: 1px dashed #00d2ff; margin-top: 20px; }
             .submit-btn { background: var(--accent-color); color: #fff; padding: 12px; border: none; width: 100%; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 1rem; margin-top: 20px; }
-            
-            /* Carosello Venditori Sottostante per Confronto Prezzi */
             .carousel-container { display: flex; gap: 15px; overflow-x: auto; padding-bottom: 10px; }
             .seller-compare-card { min-width: 180px; background: #222; border-radius: 6px; padding: 12px; text-align: center; border: 1px solid #333; }
         </style>
@@ -693,7 +736,6 @@ def sell_page():
                         </div>
                     </div>
 
-                    <!-- 4. Riepilogo Economico -->
                     <div class="summary-box">
                         <h4 style="margin-top:0; color:#00d2ff;">4. Riepilogo Economico Stimato</h4>
                         <p style="margin:5px 0;">Trattenuta del sito (5%): <span id="sum-fee" style="float:right;">€ 0.73</span></p>
@@ -702,12 +744,10 @@ def sell_page():
                         <p style="margin:5px 0; font-size:1.1rem; font-weight:bold;">Guadagno Netto Stimato: <span id="sum-net" style="float:right; color:#28a745;">€ 13.77</span></p>
                     </div>
 
-                    <!-- 5. Finalizzazione -->
                     <button type="submit" class="submit-btn">5. Conferma e Pubblica Annuncio (Preview)</button>
                 </form>
             </div>
 
-            <!-- 6. Elenco a scorrimento altri venditori attivi (Termine di paragone) -->
             <h3 style="color:#fff; margin-top:40px;">6. Confronto Prezzi: Altri venditori attivi per questo titolo</h3>
             <div class="carousel-container">
                 <div class="seller-compare-card">
