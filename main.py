@@ -112,7 +112,8 @@ def home():
             
             /* Sezione Cerca il tuo libro (Barra di Ricerca e Filtri con Alberatura Completa) */
             .search-filters-box { background: rgba(31, 31, 31, 0.95); padding: 25px; border-radius: 8px; max-width: 950px; backdrop-filter: blur(5px); border: 1px solid #333; }
-            .search-filters-box p.search-subtitle { font-size: 1.05rem; color: #b3b3b3; margin-top: 0; margin-bottom: 20px; font-weight: 400; }
+            .search-filters-box h3.search-title { font-size: 1.2rem; color: #fff; margin-top: 0; margin-bottom: 8px; font-weight: 700; }
+            .search-filters-box p.search-subtitle { font-size: 0.95rem; color: #b3b3b3; margin-top: 0; margin-bottom: 20px; font-weight: 400; }
             .search-row { display: flex; gap: 15px; margin-bottom: 15px; }
             .search-row input { flex: 1; padding: 12px 16px; border-radius: 4px; border: 1px solid #444; background: #111; color: white; font-size: 1rem; }
             .filters-grid { display: grid; grid-template-columns: 2fr 1.5fr 1fr; gap: 15px; margin-bottom: 15px; align-items: center; }
@@ -156,8 +157,9 @@ def home():
         <section class="hero" id="search-section">
             <h1>Un monastero, un segreto, un crimine.</h1>
             
-            <!-- Sezione Cerca il tuo libro con la frase integrata -->
+            <!-- Sezione Cerca il tuo libro con la frase dedicata -->
             <div class="search-filters-box">
+                <h3 class="search-title">Cerca il tuo libro</h3>
                 <p class="search-subtitle">Esplora il catalogo avanzato e trova il tuo prossimo volume garantito.</p>
                 <div class="search-row">
                     <input type="text" id="search-input" placeholder="Cerca per nome o codice ISBN...">
