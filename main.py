@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from typing import List
 import uvicorn
 
-app = FastAPI(title="LoopBooks Marketplace - Dark Fantasy Edition", version="2.0")
+app = FastAPI(title="LoopBooks Marketplace - Dark Fantasy Edition", version="2.1")
 
 class SellerOffer(BaseModel):
     seller_id: int
@@ -66,10 +66,10 @@ fake_books_db = [
         sellers=[SellerOffer(seller_id=101, seller_name="Abbazia di San Sisto", location="Milano Monastica", rating=4.9, condition="Ottime", price=14.50, book_image="https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=600&q=80")]
     ),
     Book(
-        id=2, title="Trattato di Alchimia e Sette Arti", author="Magister Cornelius", genre="Scienze/Tecnologia/Natura", price=28.00, condition="Antico / Raro", isbn="9788803987654", 
+        id=2, title="Trattato di Alchimia e Sette Arti", author="Magister Cornelius", genre="Scienze/Tecnologia/Natura", price=28.00, condition="Nuovo", isbn="9788803987654", 
         description="Formule segrete, trasmutazioni dei metalli e codici segreti per l'intelletto.", 
         image_url="https://images.unsplash.com/photo-1532012197267-da84d127e765?auto=format&fit=crop&w=600&q=80",
-        sellers=[]
+        sellers=[SellerOffer(seller_id=103, seller_name="Scriptorium di Roma", location="Roma Sotterranea", rating=4.9, condition="Nuovo", price=27.00, book_image="https://images.unsplash.com/photo-1532012197267-da84d127e765?auto=format&fit=crop&w=600&q=80")]
     ),
     Book(
         id=3, title="Cronache del Regno Sotterraneo", author="Dante da Norcia", genre="Classici", price=10.00, condition="Buone", isbn="9788801234567", 
@@ -79,7 +79,7 @@ fake_books_db = [
     )
 ]
 
-# --- 1. HOME PAGE (DARK FANTASY / MEDIEVAL-GOTHIC CON HERO 3D) ---
+# --- 1. HOME PAGE CON HERO 3D E TUTTI I CAROSELLI ---
 @app.get("/", response_class=HTMLResponse)
 def home():
     return """
@@ -94,7 +94,6 @@ def home():
             :root {
                 --bg-deep: #0a0807;
                 --bg-card: #14100e;
-                --bg-card-hover: #1c1512;
                 --text-main: #d1c7bd;
                 --text-muted: #8c7e72;
                 --gold-candle: #c5a059;
@@ -104,7 +103,6 @@ def home():
             }
             body { margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-deep); color: var(--text-main); overflow-x: hidden; }
             
-            /* Header Gotico */
             header { display: flex; justify-content: space-between; align-items: center; padding: 20px 50px; background: rgba(10, 8, 7, 0.95); border-bottom: 1px solid var(--border-sepia); position: fixed; top: 0; width: 100%; box-sizing: border-box; z-index: 1000; backdrop-filter: blur(8px); }
             .logo-area { display: flex; align-items: center; gap: 12px; font-family: 'Cinzel', serif; font-size: 1.6rem; font-weight: 700; color: var(--gold-candle); text-decoration: none; text-shadow: 0 0 10px var(--gold-glow); }
             .nav-center { display: flex; gap: 30px; align-items: center; }
@@ -113,7 +111,6 @@ def home():
             .login-btn { background: #1a1410; border: 1px solid var(--gold-candle); color: var(--gold-candle); padding: 8px 18px; border-radius: 2px; text-decoration: none; font-family: 'Cinzel', serif; font-weight: 600; font-size: 0.85rem; transition: all 0.3s; }
             .login-btn:hover { background: var(--gold-candle); color: #0a0807; box-shadow: 0 0 15px var(--gold-glow); }
 
-            /* HERO SECTION (Banner Drammatico Chiaroscuro con Libro 3D Immersivo) */
             .hero-section {
                 padding: 160px 50px 80px 50px;
                 background: linear-gradient(135deg, rgba(10,8,7,0.95) 0%, rgba(26,18,11,0.85) 100%), url('https://images.unsplash.com/photo-1507842229443-77783618cdc3?auto=format&fit=crop&w=1600&q=80') no-repeat center center/cover;
@@ -122,7 +119,6 @@ def home():
                 align-items: center;
                 justify-content: space-between;
                 gap: 50px;
-                position: relative;
                 box-shadow: inset 0 -40px 50px rgba(10,8,7,0.9);
             }
             .hero-content { max-width: 600px; }
@@ -135,12 +131,7 @@ def home():
                 line-height: 1.15;
                 text-shadow: 0 0 25px rgba(197, 160, 89, 0.4);
             }
-            .hero-content p {
-                font-size: 1.1rem;
-                color: var(--text-muted);
-                line-height: 1.6;
-                margin-bottom: 30px;
-            }
+            .hero-content p { font-size: 1.1rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 30px; }
             .hero-cta {
                 display: inline-block;
                 background: linear-gradient(135deg, #c5a059, #8c6d33);
@@ -153,76 +144,36 @@ def home():
                 box-shadow: 0 0 20px rgba(197, 160, 89, 0.3);
                 transition: transform 0.3s, box-shadow 0.3s;
             }
-            .hero-cta:hover {
-                transform: translateY(-3px);
-                box-shadow: 0 0 30px rgba(197, 160, 89, 0.6);
-            }
+            .hero-cta:hover { transform: translateY(-3px); box-shadow: 0 0 30px rgba(197, 160, 89, 0.6); }
 
-            /* EFFETTO 3D DEL LIBRO IN EVIDENZA */
-            .book-3d-wrapper {
-                perspective: 1200px;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                padding: 20px;
-            }
+            /* HERO 3D BOOK */
+            .book-3d-wrapper { perspective: 1200px; display: flex; justify-content: center; align-items: center; padding: 20px; }
             .book-3d {
-                width: 220px;
-                height: 330px;
-                position: relative;
-                transform-style: preserve-3d;
-                transform: rotateY(-25deg) rotateX(10deg);
-                transition: transform 0.6s ease;
-                box-shadow: -25px 25px 40px rgba(0,0,0,0.9);
+                width: 220px; height: 330px; position: relative;
+                transform-style: preserve-3d; transform: rotateY(-25deg) rotateX(10deg);
+                transition: transform 0.6s ease; box-shadow: -25px 25px 40px rgba(0,0,0,0.9);
             }
-            .book-3d:hover {
-                transform: rotateY(0deg) rotateX(0deg) scale(1.02);
-            }
+            .book-3d:hover { transform: rotateY(0deg) rotateX(0deg) scale(1.02); }
             .book-cover {
-                position: absolute;
-                width: 100%;
-                height: 100%;
+                position: absolute; width: 100%; height: 100%;
                 background: url('https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=600&q=80') no-repeat center center/cover;
-                border-radius: 3px 6px 6px 3px;
-                border: 1px solid rgba(197, 160, 89, 0.4);
-                box-sizing: border-box;
+                border-radius: 3px 6px 6px 3px; border: 1px solid rgba(197, 160, 89, 0.4); box-sizing: border-box;
             }
-            /* Dorso del libro 3D */
             .book-spine {
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 35px;
-                height: 100%;
+                position: absolute; top: 0; left: 0; width: 35px; height: 100%;
                 background: linear-gradient(90deg, #120e0b, #261c14);
-                transform-origin: left;
-                transform: rotateY(-90deg);
+                transform-origin: left; transform: rotateY(-90deg);
                 border: 1px solid rgba(197, 160, 89, 0.2);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                writing-mode: vertical-rl;
-                text-orientation: upright;
-                font-family: 'Cinzel', serif;
-                font-size: 0.65rem;
-                color: var(--gold-candle);
-                letter-spacing: 2px;
-                box-shadow: inset 2px 0 5px rgba(0,0,0,0.8);
+                display: flex; align-items: center; justify-content: center;
+                writing-mode: vertical-rl; text-orientation: upright;
+                font-family: 'Cinzel', serif; font-size: 0.65rem; color: var(--gold-candle); letter-spacing: 2px;
             }
-            /* Pagine / Spessore del libro 3D */
             .book-pages {
-                position: absolute;
-                top: 3px;
-                right: -15px;
-                width: 15px;
-                height: calc(100% - 6px);
+                position: absolute; top: 3px; right: -15px; width: 15px; height: calc(100% - 6px);
                 background: linear-gradient(90deg, #d1c7bd, #b3a496, #807264);
-                transform: rotateY(90deg);
-                border-radius: 0 2px 2px 0;
-                box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
+                transform: rotateY(90deg); border-radius: 0 2px 2px 0;
             }
 
-            /* Contenitore Caroselli & Sezioni */
             .container { padding: 40px 50px; }
             h2.section-title { font-family: 'Cinzel', serif; font-size: 1.5rem; margin: 40px 0 20px 0; font-weight: 700; color: #f3e5ab; border-bottom: 1px solid var(--border-sepia); padding-bottom: 8px; text-shadow: 0 0 10px rgba(197,160,89,0.2); }
             
@@ -231,24 +182,11 @@ def home():
             .carousel-container::-webkit-scrollbar-thumb { background: var(--border-sepia); border-radius: 3px; }
             
             .book-card {
-                min-width: 210px;
-                max-width: 210px;
-                background: var(--bg-card);
-                border-radius: 4px;
-                overflow: hidden;
-                flex-shrink: 0;
-                border: 1px solid var(--border-sepia);
-                transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
-                cursor: pointer;
-                text-decoration: none;
-                color: inherit;
-                display: block;
+                min-width: 210px; max-width: 210px; background: var(--bg-card);
+                border-radius: 4px; overflow: hidden; flex-shrink: 0; border: 1px solid var(--border-sepia);
+                transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s; cursor: pointer; text-decoration: none; color: inherit; display: block;
             }
-            .book-card:hover {
-                transform: translateY(-5px);
-                border-color: var(--gold-candle);
-                box-shadow: 0 10px 25px rgba(0,0,0,0.9), 0 0 15px var(--gold-glow);
-            }
+            .book-card:hover { transform: translateY(-5px); border-color: var(--gold-candle); box-shadow: 0 10px 25px rgba(0,0,0,0.9), 0 0 15px var(--gold-glow); }
             .book-card img { width: 100%; height: 260px; object-fit: cover; filter: sepia(20%) contrast(110%); }
             .book-info { padding: 15px; }
             .book-info h3 { margin: 0 0 5px 0; font-family: 'Cinzel', serif; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #f3e5ab; }
@@ -270,7 +208,6 @@ def home():
             <a href="#" class="login-btn">Log-in Scriptorium</a>
         </header>
 
-        <!-- HERO SECTION CON LIBRO 3D IMMERSIVO -->
         <section class="hero-section">
             <div class="hero-content">
                 <h1>Il monastero dei segreti</h1>
@@ -290,18 +227,33 @@ def home():
             <h2 class="section-title">Volumi di Tendenza (Top 10)</h2>
             <div class="carousel-container" id="trending-carousel"></div>
 
+            <h2 class="section-title">Visualizzati di recente</h2>
+            <div class="carousel-container" id="recent-carousel"></div>
+
             <h2 class="section-title">Grandi Classici e Codici</h2>
             <div class="carousel-container" id="classics-carousel"></div>
 
-            <h2 class="section-title">Nuove Scoperte dalle Biblioteche</h2>
+            <h2 class="section-title">Nuove Scoperte</h2>
             <div class="carousel-container" id="new-carousel"></div>
+
+            <h2 class="section-title">Preferiti del Custode</h2>
+            <div class="carousel-container" id="favorites-carousel"></div>
+
+            <h2 class="section-title">Narrativa e Letteratura</h2>
+            <div class="carousel-container" id="narrative-carousel"></div>
+
+            <h2 class="section-title">Saggistica e Alchimia</h2>
+            <div class="carousel-container" id="essays-carousel"></div>
+
+            <h2 class="section-title">Crescita Personale e Spiritualità</h2>
+            <div class="carousel-container" id="lifestyle-carousel"></div>
 
             <div class="merch-section">
                 <div>
                     <h3>📦 Custodie, Ceralacca e Packaging Antico</h3>
                     <p style="color: var(--text-muted); margin: 0; font-size: 0.9rem;">Proteggi i tuoi preziosi manoscritti con scatole rinforzate e sigilli in ceralacca.</p>
                 </div>
-                <a href="/sell" style="background: transparent; border: 1px solid var(--gold-candle); color: var(--gold-candle); padding: 10px 20px; border-radius: 2px; text-decoration: none; font-family: 'Cinzel', serif; font-weight: 600;">Scopri</a>
+                <a href="/sell" style="background: transparent; border: 1px solid var(--gold-candle); color: var(--gold-candle); padding: 10px 20px; border-radius: 2px; text-decoration: none; font-family: 'Cinzel', serif; font-weight: 600;">Esplora</a>
             </div>
         </div>
 
@@ -310,8 +262,13 @@ def home():
                 const res = await fetch('/api/books');
                 const books = await res.json();
                 populate('trending-carousel', books);
+                populate('recent-carousel', books.slice().reverse());
                 populate('classics-carousel', books.filter(b => b.genre === 'Classici'));
                 populate('new-carousel', books);
+                populate('favorites-carousel', books.slice(0, 2));
+                populate('narrative-carousel', books.filter(b => b.genre.includes('Gialli')));
+                populate('essays-carousel', books.filter(b => b.genre.includes('Scienze')));
+                populate('lifestyle-carousel', books.filter(b => b.genre.includes('Crescita') || b.genre.includes('Classici')));
             }
 
             function populate(elemId, list) {
@@ -337,7 +294,7 @@ def home():
     </html>
     """
 
-# --- 2. PAGINA DEDICATA "CERCA LIBRO" ---
+# --- 2. PAGINA DEDICATA "CERCA LIBRO" CON ALBERATURA COMPLETA ---
 @app.get("/search", response_class=HTMLResponse)
 def search_page():
     return """
@@ -414,6 +371,23 @@ def search_page():
                             <option value="Viaggi">└ Viaggi</option>
                             <option value="Hobby">└ Hobby</option>
                         </optgroup>
+                        <optgroup label="Fumetti e Grafica">
+                            <option value="Fumetti">└ Fumetti</option>
+                            <option value="Manga">└ Manga</option>
+                            <option value="Graphic Novel">└ Graphic Novel</option>
+                            <option value="Libri illustrati">└ Libri illustrati</option>
+                            <option value="Design">└ Design</option>
+                        </optgroup>
+                        <optgroup label="Altri settori">
+                            <option value="Sport e Giochi">└ Sport e Giochi</option>
+                            <option value="Esoterismo e Astrologia">└ Esoterismo e Astrologia</option>
+                        </optgroup>
+                        <optgroup label="Bambini e Ragazzi / Young Adult">
+                            <option value="Prima infanzia 0-3 anni">└ Prima infanzia 0-3 anni</option>
+                            <option value="4-8 anni">└ 4-8 anni</option>
+                            <option value="9-13 anni">└ 9-13 anni</option>
+                            <option value="Young Adult">└ Young Adult 14+</option>
+                        </optgroup>
                     </select>
 
                     <select id="condition-filter">
@@ -421,6 +395,7 @@ def search_page():
                         <option value="Nuovo">Nuovo</option>
                         <option value="Ottime">Ottime</option>
                         <option value="Buone">Buone</option>
+                        <option value="Discrete">Discrete</option>
                         <option value="Antico / Raro">Antico / Raro</option>
                     </select>
 
@@ -495,7 +470,7 @@ def search_page():
 def get_books():
     return fake_books_db
 
-# --- 3. PAGINA INFO LIBRO ---
+# --- 3. PAGINA INFO LIBRO CON GRAFICO CHART.JS ---
 @app.get("/book/{book_id}", response_class=HTMLResponse)
 def book_detail(book_id: int):
     book = next((b for b in fake_books_db if b.id == book_id), None)
@@ -581,7 +556,7 @@ def book_detail(book_id: int):
                         fill: true
                     }}]
                 }},
-                options: {{ responsive: true, plugins: {{ legend: {{ labels: {{ color: '#d1c7bd', font: { family: 'Cinzel' } }} }} }}, scales: {{ x: {{ ticks: {{ color: '#8c7e72' }}, grid: {{ color: '#2d221b' }} }}, y: {{ ticks: {{ color: '#8c7e72' }}, grid: {{ color: '#2d221b' }} }} }} }}
+                options: {{ responsive: true, plugins: {{ legend: {{ labels: {{ color: '#d1c7bd' }} }} }}, scales: {{ x: {{ ticks: {{ color: '#8c7e72' }}, grid: {{ color: '#2d221b' }} }}, y: {{ ticks: {{ color: '#8c7e72' }}, grid: {{ color: '#2d221b' }} }} }} }}
             }});
         </script>
     </body>
@@ -657,7 +632,7 @@ def seller_profile(seller_id: int):
     </html>
     """
 
-# --- 5. LA MIA BIBLIOTECA (DASHBOARD UTENTE) ---
+# --- 5. LA MIA BIBLIOTECA (DASHBOARD COMPLETA CON KPI E GRAFICI) ---
 @app.get("/library", response_class=HTMLResponse)
 def library_page():
     return """
@@ -775,7 +750,7 @@ def library_page():
     </html>
     """
 
-# --- 6. SEZIONE "METTI IN VENDITA" ---
+# --- 6. SEZIONE "METTI IN VENDITA" CON FLUSSO GUIDATO E CALCOLI ---
 @app.get("/sell", response_class=HTMLResponse)
 def sell_page():
     return """
