@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from typing import List
 import uvicorn
 
-app = FastAPI(title="LoopBooks Marketplace", version="1.0")
+app = FastAPI(title="LoopBooks Marketplace - Dark Fantasy Edition", version="2.0")
 
 class SellerOffer(BaseModel):
     seller_id: int
@@ -36,50 +36,50 @@ class Book(BaseModel):
     isbn: str
     description: str
     image_url: str
-    publisher: str = "Mondadori Editore"
-    collection: str = "Oscar Bestsellers"
-    edition_year: int = 2022
-    pub_year: int = 2020
+    publisher: str = "Scriptorium Monasticum"
+    collection: str = "Codices Arcani"
+    edition_year: int = 1492
+    pub_year: int = 1485
     sellers: List[SellerOffer] = []
 
 fake_sellers_db = [
     SellerProfile(
         seller_id=101,
-        name="Libreria Del Borgo",
-        location="Milano",
+        name="Abbazia di San Sisto",
+        location="Milano Monastica",
         photo_url="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80",
         verified=True,
-        books_sold=142,
-        total_rating=4.8,
-        comments=["Spedizione velocissima e imballaggio perfetto!", "Libro in condizioni ottime."],
+        books_sold=342,
+        total_rating=4.9,
+        comments=["Pergamena preservata con cura mirabile.", "Spedizione celere attraverso le nebbie."],
         catalog=[
-            SellerOffer(seller_id=101, seller_name="Libreria Del Borgo", location="Milano", rating=4.8, condition="Ottime", price=13.50, book_image="https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=600&q=80")
+            SellerOffer(seller_id=101, seller_name="Abbazia di San Sisto", location="Milano Monastica", rating=4.9, condition="Ottime", price=14.50, book_image="https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=600&q=80")
         ]
     )
 ]
 
 fake_books_db = [
     Book(
-        id=1, title="Il monastero dei segreti", author="Anonimo", genre="Gialli/Thriller/Noir", price=14.50, condition="Ottime", isbn="9788804712345", 
-        description="Un monastero isolato tra le nebbie, un antico manoscritto e un delitto inspiegabile.", 
+        id=1, title="Il monastero dei segreti", author="Frater Aegidius", genre="Gialli/Thriller/Noir", price=14.50, condition="Ottime", isbn="9788804712345", 
+        description="Un monastero isolato tra le nebbie perpetue, un antico manoscritto cifrato e un delitto che sfida la ragione divina.", 
         image_url="https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=600&q=80",
-        sellers=[SellerOffer(seller_id=101, seller_name="Libreria Del Borgo", location="Milano", rating=4.8, condition="Ottime", price=13.50, book_image="https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=600&q=80")]
+        sellers=[SellerOffer(seller_id=101, seller_name="Abbazia di San Sisto", location="Milano Monastica", rating=4.9, condition="Ottime", price=14.50, book_image="https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=600&q=80")]
     ),
     Book(
-        id=2, title="Python per Intelligenza Artificiale", author="Mario Rossi", genre="Scienze/Tecnologia/Natura", price=28.00, condition="Nuovo", isbn="9788803987654", 
-        description="Guida avanzata allo sviluppo di modelli intelligenti con FastAPI e Python.", 
+        id=2, title="Trattato di Alchimia e Sette Arti", author="Magister Cornelius", genre="Scienze/Tecnologia/Natura", price=28.00, condition="Antico / Raro", isbn="9788803987654", 
+        description="Formule segrete, trasmutazioni dei metalli e codici segreti per l'intelletto.", 
         image_url="https://images.unsplash.com/photo-1532012197267-da84d127e765?auto=format&fit=crop&w=600&q=80",
-        sellers=[SellerOffer(seller_id=103, seller_name="TechBooks Roma", location="Roma", rating=4.9, condition="Nuovo", price=27.00, book_image="https://images.unsplash.com/photo-1532012197267-da84d127e765?auto=format&fit=crop&w=600&q=80")]
+        sellers=[]
     ),
     Book(
-        id=3, title="I Promessi Sposi", author="Alessandro Manzoni", genre="Classici", price=10.00, condition="Buone", isbn="9788801234567", 
-        description="Il capolavoro della letteratura italiana.", 
+        id=3, title="Cronache del Regno Sotterraneo", author="Dante da Norcia", genre="Classici", price=10.00, condition="Buone", isbn="9788801234567", 
+        description="Il viaggio nei gironi dimenticati della mente e della terra.", 
         image_url="https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&w=600&q=80",
         sellers=[]
     )
 ]
 
-# --- 1. HOME PAGE, SEZIONE CERCA LIBRO E VETRINA ---
+# --- 1. HOME PAGE (DARK FANTASY / MEDIEVAL-GOTHIC CON HERO 3D) ---
 @app.get("/", response_class=HTMLResponse)
 def home():
     return """
@@ -88,78 +88,301 @@ def home():
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Loopbooks - Marketplace</title>
-        <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+        <title>Loopbooks - Dark Gothic Edition</title>
+        <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
         <style>
             :root {
-                --bg-color: #141414;
-                --card-bg: #1f1f1f;
-                --text-color: #e5e5e5;
-                --accent-color: #e50914;
-                --accent-hover: #b20710;
-                --blue-glow: #00d2ff;
+                --bg-deep: #0a0807;
+                --bg-card: #14100e;
+                --bg-card-hover: #1c1512;
+                --text-main: #d1c7bd;
+                --text-muted: #8c7e72;
+                --gold-candle: #c5a059;
+                --gold-glow: rgba(197, 160, 89, 0.25);
+                --shadow-gothic: 0 10px 30px rgba(0, 0, 0, 0.8);
+                --border-sepia: #2d221b;
             }
-            body { margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-color); color: var(--text-color); }
-            header { display: flex; justify-content: space-between; align-items: center; padding: 20px 50px; background: linear-gradient(to bottom, rgba(0,0,0,0.9), rgba(0,0,0,0)); position: fixed; top: 0; width: 100%; box-sizing: border-box; z-index: 1000; }
-            .logo-area { display: flex; align-items: center; gap: 10px; font-size: 1.5rem; font-weight: 700; color: #fff; text-decoration: none; }
+            body { margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-deep); color: var(--text-main); overflow-x: hidden; }
+            
+            /* Header Gotico */
+            header { display: flex; justify-content: space-between; align-items: center; padding: 20px 50px; background: rgba(10, 8, 7, 0.95); border-bottom: 1px solid var(--border-sepia); position: fixed; top: 0; width: 100%; box-sizing: border-box; z-index: 1000; backdrop-filter: blur(8px); }
+            .logo-area { display: flex; align-items: center; gap: 12px; font-family: 'Cinzel', serif; font-size: 1.6rem; font-weight: 700; color: var(--gold-candle); text-decoration: none; text-shadow: 0 0 10px var(--gold-glow); }
             .nav-center { display: flex; gap: 30px; align-items: center; }
-            .nav-center a { color: var(--text-color); text-decoration: none; font-weight: 600; font-size: 0.9rem; letter-spacing: 0.5px; transition: color 0.3s; }
-            .nav-center a:hover { color: #fff; }
-            .login-btn { background: #333; color: #fff; padding: 8px 16px; border-radius: 4px; text-decoration: none; font-weight: 600; font-size: 0.9rem; }
-            
-            .hero { padding: 140px 50px 50px 50px; background: linear-gradient(to right, rgba(20,20,20,0.95), rgba(20,20,20,0.6)), url('https://images.unsplash.com/photo-1507842229443-77783618cdc3?auto=format&fit=crop&w=1600&q=80') no-repeat center center/cover; }
-            .hero h1 { font-size: 2.5rem; max-width: 700px; margin-bottom: 25px; line-height: 1.2; }
-            
-            /* Sezione Cerca il tuo libro (Barra di Ricerca e Filtri con Alberatura Completa) */
-            .search-filters-box { background: rgba(31, 31, 31, 0.95); padding: 25px; border-radius: 8px; max-width: 950px; backdrop-filter: blur(5px); border: 1px solid #333; }
-            .search-filters-box h3.search-title { font-size: 1.2rem; color: #fff; margin-top: 0; margin-bottom: 8px; font-weight: 700; }
-            .search-filters-box p.search-subtitle { font-size: 0.95rem; color: #b3b3b3; margin-top: 0; margin-bottom: 20px; font-weight: 400; }
-            .search-row { display: flex; gap: 15px; margin-bottom: 15px; }
-            .search-row input { flex: 1; padding: 12px 16px; border-radius: 4px; border: 1px solid #444; background: #111; color: white; font-size: 1rem; }
-            .filters-grid { display: grid; grid-template-columns: 2fr 1.5fr 1fr; gap: 15px; margin-bottom: 15px; align-items: center; }
-            .filters-grid select { padding: 10px; background: #222; border: 1px solid #444; color: #fff; border-radius: 4px; font-family: inherit; }
-            .slider-container { background: #222; padding: 8px 12px; border-radius: 4px; border: 1px solid #444; display: flex; flex-direction: column; }
-            .slider-container label { font-size: 0.75rem; color: #aaa; margin-bottom: 4px; }
-            .slider-container input[type=range] { width: 100%; accent-color: var(--blue-glow); cursor: pointer; }
-            
-            .cta-btn { background: var(--accent-color); color: white; padding: 12px 25px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; width: 100%; font-size: 1rem; transition: background 0.3s; }
-            .cta-btn:hover { background: var(--accent-hover); }
+            .nav-center a { color: var(--text-main); text-decoration: none; font-family: 'Cinzel', serif; font-weight: 600; font-size: 0.85rem; letter-spacing: 1px; transition: color 0.3s; }
+            .nav-center a:hover { color: var(--gold-candle); text-shadow: 0 0 8px var(--gold-glow); }
+            .login-btn { background: #1a1410; border: 1px solid var(--gold-candle); color: var(--gold-candle); padding: 8px 18px; border-radius: 2px; text-decoration: none; font-family: 'Cinzel', serif; font-weight: 600; font-size: 0.85rem; transition: all 0.3s; }
+            .login-btn:hover { background: var(--gold-candle); color: #0a0807; box-shadow: 0 0 15px var(--gold-glow); }
 
-            .container { padding: 20px 50px 60px 50px; }
-            h2.section-title { font-size: 1.3rem; margin: 35px 0 15px 0; font-weight: 600; color: #fff; }
+            /* HERO SECTION (Banner Drammatico Chiaroscuro con Libro 3D Immersivo) */
+            .hero-section {
+                padding: 160px 50px 80px 50px;
+                background: linear-gradient(135deg, rgba(10,8,7,0.95) 0%, rgba(26,18,11,0.85) 100%), url('https://images.unsplash.com/photo-1507842229443-77783618cdc3?auto=format&fit=crop&w=1600&q=80') no-repeat center center/cover;
+                border-bottom: 2px solid var(--border-sepia);
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 50px;
+                position: relative;
+                box-shadow: inset 0 -40px 50px rgba(10,8,7,0.9);
+            }
+            .hero-content { max-width: 600px; }
+            .hero-content h1 {
+                font-family: 'Cinzel', serif;
+                font-size: 3rem;
+                font-weight: 900;
+                color: #f3e5ab;
+                margin: 0 0 20px 0;
+                line-height: 1.15;
+                text-shadow: 0 0 25px rgba(197, 160, 89, 0.4);
+            }
+            .hero-content p {
+                font-size: 1.1rem;
+                color: var(--text-muted);
+                line-height: 1.6;
+                margin-bottom: 30px;
+            }
+            .hero-cta {
+                display: inline-block;
+                background: linear-gradient(135deg, #c5a059, #8c6d33);
+                color: #0a0807;
+                padding: 14px 30px;
+                font-family: 'Cinzel', serif;
+                font-weight: 700;
+                text-decoration: none;
+                border-radius: 2px;
+                box-shadow: 0 0 20px rgba(197, 160, 89, 0.3);
+                transition: transform 0.3s, box-shadow 0.3s;
+            }
+            .hero-cta:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 0 30px rgba(197, 160, 89, 0.6);
+            }
+
+            /* EFFETTO 3D DEL LIBRO IN EVIDENZA */
+            .book-3d-wrapper {
+                perspective: 1200px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding: 20px;
+            }
+            .book-3d {
+                width: 220px;
+                height: 330px;
+                position: relative;
+                transform-style: preserve-3d;
+                transform: rotateY(-25deg) rotateX(10deg);
+                transition: transform 0.6s ease;
+                box-shadow: -25px 25px 40px rgba(0,0,0,0.9);
+            }
+            .book-3d:hover {
+                transform: rotateY(0deg) rotateX(0deg) scale(1.02);
+            }
+            .book-cover {
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                background: url('https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=600&q=80') no-repeat center center/cover;
+                border-radius: 3px 6px 6px 3px;
+                border: 1px solid rgba(197, 160, 89, 0.4);
+                box-sizing: border-box;
+            }
+            /* Dorso del libro 3D */
+            .book-spine {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 35px;
+                height: 100%;
+                background: linear-gradient(90deg, #120e0b, #261c14);
+                transform-origin: left;
+                transform: rotateY(-90deg);
+                border: 1px solid rgba(197, 160, 89, 0.2);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                writing-mode: vertical-rl;
+                text-orientation: upright;
+                font-family: 'Cinzel', serif;
+                font-size: 0.65rem;
+                color: var(--gold-candle);
+                letter-spacing: 2px;
+                box-shadow: inset 2px 0 5px rgba(0,0,0,0.8);
+            }
+            /* Pagine / Spessore del libro 3D */
+            .book-pages {
+                position: absolute;
+                top: 3px;
+                right: -15px;
+                width: 15px;
+                height: calc(100% - 6px);
+                background: linear-gradient(90deg, #d1c7bd, #b3a496, #807264);
+                transform: rotateY(90deg);
+                border-radius: 0 2px 2px 0;
+                box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
+            }
+
+            /* Contenitore Caroselli & Sezioni */
+            .container { padding: 40px 50px; }
+            h2.section-title { font-family: 'Cinzel', serif; font-size: 1.5rem; margin: 40px 0 20px 0; font-weight: 700; color: #f3e5ab; border-bottom: 1px solid var(--border-sepia); padding-bottom: 8px; text-shadow: 0 0 10px rgba(197,160,89,0.2); }
             
-            .carousel-container { display: flex; gap: 20px; overflow-x: auto; padding-bottom: 15px; scroll-behavior: smooth; }
+            .carousel-container { display: flex; gap: 25px; overflow-x: auto; padding-bottom: 20px; scroll-behavior: smooth; }
             .carousel-container::-webkit-scrollbar { height: 6px; }
-            .carousel-container::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+            .carousel-container::-webkit-scrollbar-thumb { background: var(--border-sepia); border-radius: 3px; }
             
-            .book-card { min-width: 200px; max-width: 200px; background: var(--card-bg); border-radius: 8px; overflow: hidden; flex-shrink: 0; transition: transform 0.3s; cursor: pointer; text-decoration: none; color: inherit; display: block; }
-            .book-card:hover { transform: scale(1.05); }
-            .book-card img { width: 100%; height: 260px; object-fit: cover; }
-            .book-info { padding: 12px; }
-            .book-info h3 { margin: 0 0 4px 0; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-            .book-info p { margin: 0; color: #888; font-size: 0.8rem; }
-            .price { color: var(--blue-glow); font-weight: 600; margin-top: 8px; font-size: 0.9rem; }
+            .book-card {
+                min-width: 210px;
+                max-width: 210px;
+                background: var(--bg-card);
+                border-radius: 4px;
+                overflow: hidden;
+                flex-shrink: 0;
+                border: 1px solid var(--border-sepia);
+                transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
+                cursor: pointer;
+                text-decoration: none;
+                color: inherit;
+                display: block;
+            }
+            .book-card:hover {
+                transform: translateY(-5px);
+                border-color: var(--gold-candle);
+                box-shadow: 0 10px 25px rgba(0,0,0,0.9), 0 0 15px var(--gold-glow);
+            }
+            .book-card img { width: 100%; height: 260px; object-fit: cover; filter: sepia(20%) contrast(110%); }
+            .book-info { padding: 15px; }
+            .book-info h3 { margin: 0 0 5px 0; font-family: 'Cinzel', serif; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #f3e5ab; }
+            .book-info p { margin: 0; color: var(--text-muted); font-size: 0.8rem; }
+            .price { color: var(--gold-candle); font-weight: 600; margin-top: 10px; font-size: 0.95rem; font-family: 'Cinzel', serif; text-shadow: 0 0 8px var(--gold-glow); }
             
-            .merch-section { background: linear-gradient(135deg, #1f1f1f, #111); border: 1px solid #333; border-radius: 12px; padding: 25px 30px; margin-top: 40px; display: flex; justify-content: space-between; align-items: center; }
+            .merch-section { background: linear-gradient(135deg, #14100e, #0a0807); border: 1px solid var(--border-sepia); border-radius: 6px; padding: 30px; margin-top: 50px; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow-gothic); }
+            .merch-section h3 { font-family: 'Cinzel', serif; color: #f3e5ab; margin: 0 0 5px 0; }
         </style>
     </head>
     <body>
         <header>
-            <a href="/" class="logo-area"><span>📖 Loopbooks</span></a>
+            <a href="/" class="logo-area"><span>🕯️ Loopbooks</span></a>
             <div class="nav-center">
                 <a href="/sell">METTI IN VENDITA</a>
                 <a href="/library">LA MIA BIBLIOTECA</a>
-                <a href="#search-section">CERCA LIBRO</a>
+                <a href="/search">CERCA LIBRO</a>
             </div>
-            <a href="#" class="login-btn">Log-in</a>
+            <a href="#" class="login-btn">Log-in Scriptorium</a>
         </header>
 
-        <section class="hero" id="search-section">
-            <h1>Un monastero, un segreto, un crimine.</h1>
+        <!-- HERO SECTION CON LIBRO 3D IMMERSIVO -->
+        <section class="hero-section">
+            <div class="hero-content">
+                <h1>Il monastero dei segreti</h1>
+                <p>Esplora il catalogo avanzato illuminato da luci soffuse e pergamene antiche. Scopri volumi introvabili custoditi nelle biblioteche più recondite del mondo.</p>
+                <a href="/search" class="hero-cta">Esplora il Scriptorium</a>
+            </div>
+            <div class="book-3d-wrapper">
+                <div class="book-3d">
+                    <div class="book-spine">MONASTERO DEI SEGRETI</div>
+                    <div class="book-pages"></div>
+                    <div class="book-cover"></div>
+                </div>
+            </div>
+        </section>
+
+        <div class="container">
+            <h2 class="section-title">Volumi di Tendenza (Top 10)</h2>
+            <div class="carousel-container" id="trending-carousel"></div>
+
+            <h2 class="section-title">Grandi Classici e Codici</h2>
+            <div class="carousel-container" id="classics-carousel"></div>
+
+            <h2 class="section-title">Nuove Scoperte dalle Biblioteche</h2>
+            <div class="carousel-container" id="new-carousel"></div>
+
+            <div class="merch-section">
+                <div>
+                    <h3>📦 Custodie, Ceralacca e Packaging Antico</h3>
+                    <p style="color: var(--text-muted); margin: 0; font-size: 0.9rem;">Proteggi i tuoi preziosi manoscritti con scatole rinforzate e sigilli in ceralacca.</p>
+                </div>
+                <a href="/sell" style="background: transparent; border: 1px solid var(--gold-candle); color: var(--gold-candle); padding: 10px 20px; border-radius: 2px; text-decoration: none; font-family: 'Cinzel', serif; font-weight: 600;">Scopri</a>
+            </div>
+        </div>
+
+        <script>
+            async function loadHome() {
+                const res = await fetch('/api/books');
+                const books = await res.json();
+                populate('trending-carousel', books);
+                populate('classics-carousel', books.filter(b => b.genre === 'Classici'));
+                populate('new-carousel', books);
+            }
+
+            function populate(elemId, list) {
+                const container = document.getElementById(elemId);
+                if(!container) return;
+                container.innerHTML = '';
+                list.forEach(b => {
+                    container.innerHTML += `
+                        <a href="/book/${b.id}" class="book-card">
+                            <img src="${b.image_url}" alt="${b.title}">
+                            <div class="book-info">
+                                <h3>${b.title}</h3>
+                                <p>${b.author}</p>
+                                <div class="price">€ ${b.price.toFixed(2)}</div>
+                            </div>
+                        </a>
+                    `;
+                });
+            }
+            loadHome();
+        </script>
+    </body>
+    </html>
+    """
+
+# --- 2. PAGINA DEDICATA "CERCA LIBRO" ---
+@app.get("/search", response_class=HTMLResponse)
+def search_page():
+    return """
+    <!DOCTYPE html>
+    <html lang="it">
+    <head>
+        <meta charset="UTF-8">
+        <title>Cerca Libro - Scriptorium Loopbooks</title>
+        <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+        <style>
+            :root { --bg-deep: #0a0807; --bg-card: #14100e; --text-main: #d1c7bd; --text-muted: #8c7e72; --gold-candle: #c5a059; --gold-glow: rgba(197, 160, 89, 0.25); --border-sepia: #2d221b; }
+            body { margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-deep); color: var(--text-main); padding: 40px; }
+            header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; border-bottom: 1px solid var(--border-sepia); padding-bottom: 20px; }
+            .container { max-width: 1000px; margin: auto; }
             
-            <!-- Sezione Cerca il tuo libro con la frase dedicata -->
+            .search-filters-box { background: var(--bg-card); padding: 35px; border-radius: 6px; border: 1px solid var(--border-sepia); margin-bottom: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
+            .search-filters-box h2 { font-family: 'Cinzel', serif; font-size: 1.6rem; color: #f3e5ab; margin-top: 0; margin-bottom: 8px; text-shadow: 0 0 10px var(--gold-glow); }
+            .search-filters-box p.search-subtitle { font-size: 0.95rem; color: var(--text-muted); margin-top: 0; margin-bottom: 25px; }
+            .search-row { display: flex; gap: 15px; margin-bottom: 20px; }
+            .search-row input { flex: 1; padding: 12px 16px; border-radius: 2px; border: 1px solid var(--border-sepia); background: #0a0807; color: white; font-size: 1rem; }
+            .filters-grid { display: grid; grid-template-columns: 2fr 1.5fr 1fr; gap: 15px; margin-bottom: 20px; align-items: center; }
+            .filters-grid select { padding: 10px; background: #0a0807; border: 1px solid var(--border-sepia); color: var(--text-main); border-radius: 2px; font-family: inherit; }
+            .slider-container { background: #0a0807; padding: 8px 12px; border-radius: 2px; border: 1px solid var(--border-sepia); display: flex; flex-direction: column; }
+            .slider-container label { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px; }
+            .slider-container input[type=range] { width: 100%; accent-color: var(--gold-candle); cursor: pointer; }
+            .cta-btn { background: linear-gradient(135deg, #c5a059, #8c6d33); color: #0a0807; padding: 12px 25px; border: none; border-radius: 2px; font-family: 'Cinzel', serif; font-weight: 700; cursor: pointer; width: 100%; font-size: 1rem; box-shadow: 0 0 15px var(--gold-glow); }
+            
+            .results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 20px; }
+            .book-card { background: var(--bg-card); border-radius: 4px; overflow: hidden; border: 1px solid var(--border-sepia); text-decoration: none; color: inherit; display: block; transition: transform 0.3s, border-color 0.3s; }
+            .book-card:hover { transform: translateY(-3px); border-color: var(--gold-candle); box-shadow: 0 5px 20px rgba(0,0,0,0.8), 0 0 10px var(--gold-glow); }
+            .book-card img { width: 100%; height: 240px; object-fit: cover; filter: sepia(20%) contrast(110%); }
+            .book-info { padding: 15px; }
+            .book-info h3 { margin: 0 0 4px 0; font-family: 'Cinzel', serif; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #f3e5ab; }
+            .price { color: var(--gold-candle); font-weight: 600; margin-top: 8px; font-size: 0.95rem; font-family: 'Cinzel', serif; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <header>
+                <a href="/" style="color:var(--gold-candle); text-decoration:none; font-family:'Cinzel',serif; font-weight:700; font-size:1.5rem;">🕯️ Loopbooks</a>
+                <a href="/" style="color: var(--text-muted); text-decoration: none; font-family:'Cinzel',serif; font-size:0.9rem;">← Torna al Scriptorium</a>
+            </header>
+
             <div class="search-filters-box">
-                <h3 class="search-title">Cerca il tuo libro</h3>
+                <h2>Cerca il tuo libro</h2>
                 <p class="search-subtitle">Esplora il catalogo avanzato e trova il tuo prossimo volume garantito.</p>
                 <div class="search-row">
                     <input type="text" id="search-input" placeholder="Cerca per nome o codice ISBN...">
@@ -191,23 +414,6 @@ def home():
                             <option value="Viaggi">└ Viaggi</option>
                             <option value="Hobby">└ Hobby</option>
                         </optgroup>
-                        <optgroup label="Fumetti e Grafica">
-                            <option value="Fumetti">└ Fumetti</option>
-                            <option value="Manga">└ Manga</option>
-                            <option value="Graphic Novel">└ Graphic Novel</option>
-                            <option value="Libri illustrati">└ Libri illustrati</option>
-                            <option value="Design">└ Design</option>
-                        </optgroup>
-                        <optgroup label="Altri settori">
-                            <option value="Sport e Giochi">└ Sport e Giochi</option>
-                            <option value="Esoterismo e Astrologia">└ Esoterismo e Astrologia</option>
-                        </optgroup>
-                        <optgroup label="Bambini e Ragazzi / Young Adult">
-                            <option value="Prima infanzia 0-3 anni">└ Prima infanzia 0-3 anni</option>
-                            <option value="4-8 anni">└ 4-8 anni</option>
-                            <option value="9-13 anni">└ 9-13 anni</option>
-                            <option value="Young Adult">└ Young Adult 14+</option>
-                        </optgroup>
                     </select>
 
                     <select id="condition-filter">
@@ -215,7 +421,7 @@ def home():
                         <option value="Nuovo">Nuovo</option>
                         <option value="Ottime">Ottime</option>
                         <option value="Buone">Buone</option>
-                        <option value="Discrete">Discrete</option>
+                        <option value="Antico / Raro">Antico / Raro</option>
                     </select>
 
                     <div class="slider-container">
@@ -223,65 +429,25 @@ def home():
                         <input type="range" id="price-slider" min="5" max="100" value="50" oninput="document.getElementById('price-val').innerText = this.value">
                     </div>
                 </div>
-                <button class="cta-btn" onclick="executeSearch()">Trova il mio libro</button>
+                <button class="cta-btn" onclick="executeSearch()">Cerca nel Catalogo</button>
             </div>
-        </section>
 
-        <div class="container" id="results-container">
-            <h2 class="section-title">Libri di tendenza (Top 10)</h2>
-            <div class="carousel-container" id="trending-carousel"></div>
-
-            <h2 class="section-title">Visualizzati di recente</h2>
-            <div class="carousel-container" id="recent-carousel"></div>
-
-            <h2 class="section-title">Grandi classici</h2>
-            <div class="carousel-container" id="classics-carousel"></div>
-
-            <h2 class="section-title">Nuove uscite</h2>
-            <div class="carousel-container" id="new-carousel"></div>
-
-            <h2 class="section-title">Preferiti</h2>
-            <div class="carousel-container" id="favorites-carousel"></div>
-
-            <h2 class="section-title">Narrativa e Letteratura</h2>
-            <div class="carousel-container" id="narrative-carousel"></div>
-
-            <h2 class="section-title">Saggistica e Cultura</h2>
-            <div class="carousel-container" id="essays-carousel"></div>
-
-            <h2 class="section-title">Crescita Personale e Lifestyle</h2>
-            <div class="carousel-container" id="lifestyle-carousel"></div>
-
-            <div class="merch-section">
-                <div>
-                    <h3>📦 Oggettistica per Consegne e Packaging</h3>
-                    <p style="color: #aaa; margin: 5px 0 0 0; font-size: 0.9rem;">Scopri scatole protettive, buste imbottite e materiali ecologici.</p>
-                </div>
-                <a href="/sell" style="background: #e50914; color: #fff; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: 600;">Esplora</a>
-            </div>
+            <h3 id="results-title" style="font-family:'Cinzel',serif; color:#f3e5ab; margin-bottom:20px;">Tutti i volumi disponibili</h3>
+            <div class="results-grid" id="search-results"></div>
         </div>
 
         <script>
-            async function loadHome() {
+            async function loadAllBooks() {
                 const res = await fetch('/api/books');
                 const books = await res.json();
-
-                populate('trending-carousel', books);
-                populate('recent-carousel', books.slice().reverse());
-                populate('classics-carousel', books.filter(b => b.genre === 'Classici'));
-                populate('new-carousel', books);
-                populate('favorites-carousel', books.slice(0, 2));
-                populate('narrative-carousel', books.filter(b => b.genre.includes('Gialli')));
-                populate('essays-carousel', books.filter(b => b.genre.includes('Scienze')));
-                populate('lifestyle-carousel', books.filter(b => b.genre.includes('Crescita')));
+                renderResults(books);
             }
 
-            function populate(elemId, list) {
-                const container = document.getElementById(elemId);
-                if(!container) return;
+            function renderResults(list) {
+                const container = document.getElementById('search-results');
                 container.innerHTML = '';
                 if(list.length === 0) {
-                    container.innerHTML = '<p style="color:#666; font-size:0.85rem;">Nessun libro trovato.</p>';
+                    container.innerHTML = '<p style="color:var(--text-muted);">Nessun manoscritto trovato con i filtri selezionati.</p>';
                     return;
                 }
                 list.forEach(b => {
@@ -290,7 +456,7 @@ def home():
                             <img src="${b.image_url}" alt="${b.title}">
                             <div class="book-info">
                                 <h3>${b.title}</h3>
-                                <p>${b.author}</p>
+                                <p style="margin:0; font-size:0.8rem; color:var(--text-muted);">${b.author}</p>
                                 <div class="price">€ ${b.price.toFixed(2)}</div>
                             </div>
                         </a>
@@ -315,12 +481,11 @@ def home():
                     return matchText && matchGenre && matchPrice && matchCond;
                 });
 
-                const mainContainer = document.getElementById('results-container');
-                mainContainer.innerHTML = `<h2 class="section-title">Risultati della Ricerca (${filtered.length})</h2><div class="carousel-container" id="search-results-carousel"></div><p><a href="/" style="color:#00d2ff; text-decoration:none;">← Torna alla vista principale</a></p>`;
-                populate('search-results-carousel', filtered);
+                document.getElementById('results-title').innerText = `Risultati della Ricerca (${filtered.length})`;
+                renderResults(filtered);
             }
 
-            loadHome();
+            loadAllBooks();
         </script>
     </body>
     </html>
@@ -330,28 +495,27 @@ def home():
 def get_books():
     return fake_books_db
 
-# --- 2. PAGINA INFO LIBRO ---
+# --- 3. PAGINA INFO LIBRO ---
 @app.get("/book/{book_id}", response_class=HTMLResponse)
 def book_detail(book_id: int):
     book = next((b for b in fake_books_db if b.id == book_id), None)
     if not book:
-        raise HTTPException(status_code=404, detail="Libro non trovato")
+        raise HTTPException(status_code=404, detail="Manoscritto non trovato")
     
     sellers_html = ""
     for s in book.sellers:
         sellers_html += f"""
-        <div style="background:#1f1f1f; padding:15px; border-radius:8px; display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+        <div style="background:#14100e; padding:15px; border-radius:4px; border:1px solid #2d221b; display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
             <div style="display:flex; gap:15px; align-items:center;">
-                <img src="{s.book_image}" style="width:50px; height:70px; object-fit:cover; border-radius:4px;">
+                <img src="{s.book_image}" style="width:50px; height:70px; object-fit:cover; border-radius:2px;">
                 <div>
-                    <h4 style="margin:0 0 4px 0;"><a href="/seller/{s.seller_id}" style="color:#00d2ff; text-decoration:none;">{s.seller_name}</a> <span style="font-size:0.8rem; color:#aaa;">({s.location})</span></h4>
-                    <p style="margin:0; font-size:0.85rem; color:#888;">Condizione: <b>{s.condition}</b> | Valutazione: ⭐ {s.rating}</p>
+                    <h4 style="margin:0 0 4px 0; font-family:'Cinzel',serif;"><a href="/seller/{s.seller_id}" style="color:#c5a059; text-decoration:none;">{s.seller_name}</a> <span style="font-size:0.8rem; color:#8c7e72;">({s.location})</span></h4>
+                    <p style="margin:0; font-size:0.85rem; color:#8c7e72;">Condizione: <b>{s.condition}</b> | Valutazione: ⭐ {s.rating}</p>
                 </div>
             </div>
             <div style="display:flex; align-items:center; gap:15px;">
-                <span style="font-size:1.1rem; font-weight:bold; color:#00d2ff;">€ {s.price:.2f}</span>
-                <button onclick="alert('Aggiunto al carrello!')" style="background:#e50914; color:#fff; border:none; padding:8px 12px; border-radius:4px; font-weight:600; cursor:pointer;">Carrello</button>
-                <button onclick="alert('Aggiunto ai preferiti!')" style="background:#333; color:#fff; border:none; padding:8px 12px; border-radius:4px; cursor:pointer;">❤️</button>
+                <span style="font-size:1.1rem; font-weight:bold; color:#c5a059; font-family:'Cinzel',serif;">€ {s.price:.2f}</span>
+                <button onclick="alert('Manoscritto aggiunto al carrello monastico!')" style="background:#c5a059; color:#0a0807; border:none; padding:8px 14px; border-radius:2px; font-weight:bold; cursor:pointer; font-family:'Cinzel',serif;">Ottieni</button>
             </div>
         </div>
         """
@@ -362,43 +526,43 @@ def book_detail(book_id: int):
     <head>
         <meta charset="UTF-8">
         <title>{book.title} - Loopbooks</title>
-        <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <style>
-            body {{ margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; background-color: #141414; color: #e5e5e5; }}
-            header {{ display: flex; justify-content: space-between; align-items: center; padding: 20px 50px; background: rgba(0,0,0,0.9); position: fixed; top: 0; width: 100%; box-sizing: border-box; z-index: 1000; }}
+            body {{ margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; background-color: #0a0807; color: #d1c7bd; }}
+            header {{ display: flex; justify-content: space-between; align-items: center; padding: 20px 50px; background: rgba(10,8,7,0.95); border-bottom: 1px solid #2d221b; position: fixed; top: 0; width: 100%; box-sizing: border-box; z-index: 1000; }}
             .container {{ padding: 120px 50px 60px 50px; max-width: 1000px; margin: auto; }}
             .detail-grid {{ display: grid; grid-template-columns: 300px 1fr; gap: 30px; margin-bottom: 40px; }}
-            .detail-img {{ width: 100%; border-radius: 8px; object-fit: cover; height: 400px; }}
-            .analytics-box {{ background: #1f1f1f; padding: 20px; border-radius: 8px; margin-bottom: 40px; }}
+            .detail-img {{ width: 100%; border-radius: 4px; object-fit: cover; height: 400px; border: 1px solid #2d221b; }}
+            .analytics-box {{ background: #14100e; padding: 20px; border-radius: 6px; border: 1px solid #2d221b; margin-bottom: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }}
         </style>
     </head>
     <body>
         <header>
-            <a href="/" style="color:#fff; text-decoration:none; font-weight:700; font-size:1.5rem;">📖 Loopbooks</a>
-            <a href="/" style="color: #aaa; text-decoration: none;">← Torna alla Home</a>
+            <a href="/" style="color:#c5a059; text-decoration:none; font-family:'Cinzel',serif; font-weight:700; font-size:1.5rem;">🕯️ Loopbooks</a>
+            <a href="/search" style="color: #8c7e72; text-decoration: none; font-family:'Cinzel',serif;">← Torna a Cerca Libro</a>
         </header>
 
         <div class="container">
             <div class="detail-grid">
                 <div><img src="{book.image_url}" class="detail-img"></div>
                 <div>
-                    <h1 style="margin-top:0;">{book.title}</h1>
-                    <p style="color: #aaa; font-size: 1.1rem;">di <b>{book.author}</b></p>
+                    <h1 style="margin-top:0; font-family:'Cinzel',serif; color:#f3e5ab; text-shadow:0 0 10px rgba(197,160,89,0.2);">{book.title}</h1>
+                    <p style="color: #8c7e72; font-size: 1.1rem;">custodito da <b>{book.author}</b></p>
                     <p><b>Genere:</b> {book.genre}</p>
-                    <p><b>Prezzo medio:</b> <span style="color:#00d2ff; font-weight:bold;">€ {book.price:.2f}</span></p>
-                    <p><b>Editore:</b> {book.publisher} | <b>Collana:</b> {book.collection}</p>
-                    <p><b>Codice EAN-ISBN:</b> {book.isbn}</p>
-                    <p style="margin-top: 15px; color: #ccc;">{book.description}</p>
+                    <p><b>Prezzo di stima:</b> <span style="color:#c5a059; font-weight:bold; font-family:'Cinzel',serif;">€ {book.price:.2f}</span></p>
+                    <p><b>Scriptorium:</b> {book.publisher} | <b>Collana:</b> {book.collection}</p>
+                    <p><b>Codice ISBN:</b> {book.isbn}</p>
+                    <p style="margin-top: 15px; color: #b3a496; line-height:1.6;">{book.description}</p>
                 </div>
             </div>
 
             <div class="analytics-box">
-                <h3 style="margin-top:0; color:#fff;">Analitica: Andamento Prezzi e Vendite nel tempo</h3>
+                <h3 style="margin-top:0; color:#f3e5ab; font-family:'Cinzel',serif;">Andamento Storico dei Codici</h3>
                 <canvas id="trendChart" height="90"></canvas>
             </div>
 
-            <h3 style="color:#fff; margin-bottom: 15px;">Lista Venditori</h3>
+            <h3 style="color:#f3e5ab; margin-bottom: 15px; font-family:'Cinzel',serif;">Scribes & Venditori Monastici</h3>
             <div>{sellers_html}</div>
         </div>
 
@@ -409,47 +573,44 @@ def book_detail(book_id: int):
                 data: {{
                     labels: ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu'],
                     datasets: [{{
-                        label: 'Prezzo Medio (€)',
+                        label: 'Valore Storico (€)',
                         data: [{book.price - 1.0}, {book.price - 0.7}, {book.price - 0.4}, {book.price - 0.1}, {book.price}, {book.price}],
-                        borderColor: '#00d2ff',
-                        backgroundColor: 'rgba(0, 210, 255, 0.1)',
+                        borderColor: '#c5a059',
+                        backgroundColor: 'rgba(197, 160, 89, 0.1)',
                         tension: 0.3,
                         fill: true
                     }}]
                 }},
-                options: {{ responsive: true, plugins: {{ legend: {{ labels: {{ color: '#fff' }} }} }}, scales: {{ x: {{ ticks: {{ color: '#888' }}, grid: {{ color: '#333' }} }}, y: {{ ticks: {{ color: '#888' }}, grid: {{ color: '#333' }} }} }} }}
+                options: {{ responsive: true, plugins: {{ legend: {{ labels: {{ color: '#d1c7bd', font: { family: 'Cinzel' } }} }} }}, scales: {{ x: {{ ticks: {{ color: '#8c7e72' }}, grid: {{ color: '#2d221b' }} }}, y: {{ ticks: {{ color: '#8c7e72' }}, grid: {{ color: '#2d221b' }} }} }} }}
             }});
         </script>
     </body>
     </html>
     """
 
-# --- 3. PAGINA DEL VENDITORE ---
+# --- 4. PAGINA DEL VENDITORE ---
 @app.get("/seller/{seller_id}", response_class=HTMLResponse)
 def seller_profile(seller_id: int):
-    seller = next((s for s in fake_sellers_db if s.seller_id == seller_id), None)
-    if not seller:
-        seller = SellerProfile(
-            seller_id=seller_id, name=f"Libreria Partner #{seller_id}", location="Roma",
-            photo_url="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80",
-            verified=True, books_sold=95, total_rating=4.9,
-            comments=["Ottimo servizio!", "Consigliatissimo."],
-            catalog=[SellerOffer(seller_id=seller_id, seller_name=f"Partner #{seller_id}", location="Roma", rating=4.9, condition="Nuovo", price=15.00, book_image="https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=600&q=80")]
-        )
+    seller = SellerProfile(
+        seller_id=seller_id, name=f"Abbazia di San Sisto", location="Milano Monastica",
+        photo_url="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80",
+        verified=True, books_sold=342, total_rating=4.9,
+        comments=["Pergamena preservata con cura mirabile.", "Spedizione celere attraverso le nebbie."],
+        catalog=[SellerOffer(seller_id=seller_id, seller_name="Abbazia di San Sisto", location="Milano Monastica", rating=4.9, condition="Ottime", price=14.50, book_image="https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=600&q=80")]
+    )
 
-    comments_html = "".join([f"<p style='background:#2a2a2a; padding:10px; border-radius:4px; margin:8px 0;'>💬 {c}</p>" for c in seller.comments])
+    comments_html = "".join([f"<p style='background:#14100e; padding:12px; border-radius:4px; border:1px solid #2d221b; margin:8px 0; color:#d1c7bd;'>🕯️ {c}</p>" for c in seller.comments])
     catalog_html = ""
     for item in seller.catalog:
         catalog_html += f"""
-        <div style="background:#1f1f1f; border-radius:8px; overflow:hidden; display:flex; flex-direction:column; justify-content:space-between;">
-            <img src="{item.book_image}" style="width:100%; height:200px; object-fit:cover;">
+        <div style="background:#14100e; border-radius:4px; border:1px solid #2d221b; overflow:hidden; display:flex; flex-direction:column; justify-content:space-between;">
+            <img src="{item.book_image}" style="width:100%; height:200px; object-fit:cover; filter:sepia(20%);">
             <div style="padding:15px;">
-                <h4 style="margin:0 0 5px 0;">Condizione: {item.condition}</h4>
-                <div style="color:#00d2ff; font-weight:bold; font-size:1.1rem; margin-bottom:10px;">€ {item.price:.2f}</div>
+                <h4 style="margin:0 0 5px 0; font-family:'Cinzel',serif; color:#f3e5ab;">Condizione: {item.condition}</h4>
+                <div style="color:#c5a059; font-weight:bold; font-size:1.1rem; margin-bottom:10px; font-family:'Cinzel',serif;">€ {item.price:.2f}</div>
                 <div style="display:flex; gap:8px;">
-                    <button onclick="alert('Aggiunto al carrello!')" style="flex:1; background:#e50914; color:#fff; border:none; padding:8px; border-radius:4px; font-weight:bold; cursor:pointer;">Carrello</button>
-                    <button onclick="alert('Aggiunto ai preferiti!')" style="background:#333; color:#fff; border:none; padding:8px 12px; border-radius:4px; cursor:pointer;">❤️</button>
-                    <a href="/book/1" style="background:#00d2ff; color:#000; padding:8px 12px; border-radius:4px; text-decoration:none; font-weight:bold;">Info</a>
+                    <button onclick="alert('Aggiunto al carrello!')" style="flex:1; background:#c5a059; color:#0a0807; border:none; padding:8px; border-radius:2px; font-weight:bold; cursor:pointer; font-family:'Cinzel',serif;">Ottieni</button>
+                    <a href="/book/1" style="background:#1a1410; border:1px solid #c5a059; color:#c5a059; padding:8px 12px; border-radius:2px; text-decoration:none; font-family:'Cinzel',serif; font-size:0.85rem;">Codice</a>
                 </div>
             </div>
         </div>
@@ -460,35 +621,35 @@ def seller_profile(seller_id: int):
     <html lang="it">
     <head>
         <meta charset="UTF-8">
-        <title>{seller.name} - Profilo Venditore</title>
-        <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+        <title>{seller.name} - Scriptorius</title>
+        <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
         <style>
-            body {{ margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; background-color: #141414; color: #e5e5e5; }}
-            header {{ display: flex; justify-content: space-between; align-items: center; padding: 20px 50px; background: rgba(0,0,0,0.9); position: fixed; top: 0; width: 100%; box-sizing: border-box; z-index: 1000; }}
+            body {{ margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; background-color: #0a0807; color: #d1c7bd; }}
+            header {{ display: flex; justify-content: space-between; align-items: center; padding: 20px 50px; background: rgba(10,8,7,0.95); border-bottom: 1px solid #2d221b; position: fixed; top: 0; width: 100%; box-sizing: border-box; z-index: 1000; }}
             .container {{ padding: 120px 50px 60px 50px; max-width: 1100px; margin: auto; }}
-            .profile-header {{ background: #1f1f1f; padding: 30px; border-radius: 12px; display: flex; gap: 30px; align-items: center; margin-bottom: 30px; }}
-            .profile-avatar {{ width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid #00d2ff; }}
+            .profile-header {{ background: #14100e; padding: 30px; border-radius: 6px; border: 1px solid #2d221b; display: flex; gap: 30px; align-items: center; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }}
+            .profile-avatar {{ width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 2px solid #c5a059; }}
             .catalog-grid {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; }}
         </style>
     </head>
     <body>
         <header>
-            <a href="/" style="color:#fff; text-decoration:none; font-weight:700; font-size:1.5rem;">📖 Loopbooks</a>
-            <a href="/" style="color: #aaa; text-decoration: none;">← Torna alla Home</a>
+            <a href="/" style="color:#c5a059; text-decoration:none; font-family:'Cinzel',serif; font-weight:700; font-size:1.5rem;">🕯️ Loopbooks</a>
+            <a href="/search" style="color: #8c7e72; text-decoration: none; font-family:'Cinzel',serif;">← Torna a Cerca Libro</a>
         </header>
 
         <div class="container">
             <div class="profile-header">
                 <img src="{seller.photo_url}" class="profile-avatar">
                 <div>
-                    <h1 style="margin:0 0 5px 0;">{seller.name} <span style="font-size:1.0rem; color:#00d2ff;">{'✓ Verificato' if seller.verified else ''}</span></h1>
-                    <p style="margin:0 0 10px 0; color:#aaa;">📍 {seller.location} | Libri venduti: <b>{seller.books_sold}</b> | Valutazione: ⭐ <b>{seller.total_rating}/5.0</b></p>
+                    <h1 style="margin:0 0 5px 0; font-family:'Cinzel',serif; color:#f3e5ab;">{seller.name} <span style="font-size:1.0rem; color:#c5a059;">{'✓ Custode Verificato' if seller.verified else ''}</span></h1>
+                    <p style="margin:0 0 10px 0; color:#8c7e72;">📍 {seller.location} | Codici trascritti: <b>{seller.books_sold}</b> | Reputazione: ⭐ <b>{seller.total_rating}/5.0</b></p>
                 </div>
             </div>
-            <h2 style="color:#fff; margin-bottom:20px;">Catalogo del Venditore</h2>
+            <h2 style="color:#f3e5ab; margin-bottom:20px; font-family:'Cinzel',serif;">Codici Custoditi</h2>
             <div class="catalog-grid">{catalog_html}</div>
-            <div style="margin-top: 50px; background:#1f1f1f; padding:25px; border-radius:8px;">
-                <h3 style="margin-top:0;">Commenti e Recensioni</h3>
+            <div style="margin-top: 50px; background:#14100e; padding:25px; border-radius:6px; border:1px solid #2d221b;">
+                <h3 style="margin-top:0; font-family:'Cinzel',serif; color:#f3e5ab;">Testimonianze dei Pellegrini</h3>
                 <div>{comments_html}</div>
             </div>
         </div>
@@ -496,7 +657,7 @@ def seller_profile(seller_id: int):
     </html>
     """
 
-# --- 4. LA MIA BIBLIOTECA (DASHBOARD UTENTE) ---
+# --- 5. LA MIA BIBLIOTECA (DASHBOARD UTENTE) ---
 @app.get("/library", response_class=HTMLResponse)
 def library_page():
     return """
@@ -504,60 +665,60 @@ def library_page():
     <html lang="it">
     <head>
         <meta charset="UTF-8">
-        <title>La Mia Biblioteca - Loopbooks</title>
-        <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+        <title>La Mia Biblioteca - Scriptorius</title>
+        <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <style>
-            body { margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; background-color: #141414; color: #e5e5e5; padding: 40px; }
+            body { margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; background-color: #0a0807; color: #d1c7bd; padding: 40px; }
             .container { max-width: 1200px; margin: auto; }
-            header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+            header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 1px solid #2d221b; padding-bottom: 20px; }
             .kpi-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 15px; margin-bottom: 30px; }
-            .kpi-card { background: #1f1f1f; padding: 15px; border-radius: 8px; text-align: center; border: 1px solid #333; }
-            .kpi-card h3 { margin: 0; color: #888; font-size: 0.75rem; text-transform: uppercase; }
-            .kpi-card p { font-size: 1.2rem; font-weight: bold; margin: 8px 0 0 0; color: #00d2ff; }
+            .kpi-card { background: #14100e; padding: 15px; border-radius: 6px; text-align: center; border: 1px solid #2d221b; box-shadow: 0 5px 20px rgba(0,0,0,0.8); }
+            .kpi-card h3 { margin: 0; color: #8c7e72; font-size: 0.75rem; text-transform: uppercase; font-family: 'Cinzel', serif; }
+            .kpi-card p { font-size: 1.2rem; font-weight: bold; margin: 8px 0 0 0; color: #c5a059; font-family: 'Cinzel', serif; }
             .charts-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 40px; }
-            .chart-box { background: #1f1f1f; padding: 20px; border-radius: 8px; border: 1px solid #333; }
-            .filter-bar { background: #1f1f1f; padding: 20px; border-radius: 8px; display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap: 15px; margin-bottom: 30px; border: 1px solid #333; }
-            .filter-bar input, .filter-bar select { padding: 10px; background: #333; border: none; color: #fff; border-radius: 4px; font-family: inherit; }
+            .chart-box { background: #14100e; padding: 20px; border-radius: 6px; border: 1px solid #2d221b; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
+            .filter-bar { background: #14100e; padding: 20px; border-radius: 6px; display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap: 15px; margin-bottom: 30px; border: 1px solid #2d221b; }
+            .filter-bar input, .filter-bar select { padding: 10px; background: #0a0807; border: 1px solid #2d221b; color: #d1c7bd; border-radius: 2px; font-family: inherit; }
             .library-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
-            .library-card { background: #1f1f1f; border-radius: 8px; overflow: hidden; border: 1px solid #333; transition: transform 0.3s; cursor: pointer; text-decoration: none; color: inherit; display: block; }
-            .library-card:hover { transform: scale(1.03); }
-            .library-card img { width: 100%; height: 240px; object-fit: cover; }
-            .library-info { padding: 12px; }
-            .badge { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; margin-bottom: 5px; }
-            .badge-magazzino { background: #00d2ff22; color: #00d2ff; }
-            .price { color: #00d2ff; font-weight: 600; margin-top: 8px; font-size: 0.9rem; }
+            .library-card { background: #14100e; border-radius: 4px; overflow: hidden; border: 1px solid #2d221b; transition: transform 0.3s, border-color 0.3s; cursor: pointer; text-decoration: none; color: inherit; display: block; }
+            .library-card:hover { transform: translateY(-3px); border-color: #c5a059; box-shadow: 0 5px 20px rgba(0,0,0,0.8); }
+            .library-card img { width: 100%; height: 240px; object-fit: cover; filter: sepia(20%); }
+            .library-info { padding: 15px; }
+            .badge { display: inline-block; padding: 3px 8px; border-radius: 2px; font-size: 0.75rem; font-weight: bold; margin-bottom: 5px; font-family: 'Cinzel', serif; }
+            .badge-magazzino { background: rgba(197, 160, 89, 0.15); color: #c5a059; border: 1px solid rgba(197, 160, 89, 0.3); }
+            .price { color: #c5a059; font-weight: 600; margin-top: 8px; font-size: 0.95rem; font-family: 'Cinzel', serif; }
         </style>
     </head>
     <body>
         <div class="container">
             <header>
-                <a href="/" style="color:#fff; text-decoration:none; font-weight:700; font-size:1.5rem;">📖 Loopbooks - La Mia Biblioteca</a>
-                <a href="/" style="color: #aaa; text-decoration: none;">← Torna alla Home</a>
+                <a href="/" style="color:#c5a059; text-decoration:none; font-family:'Cinzel',serif; font-weight:700; font-size:1.5rem;">🕯️ Loopbooks - La Mia Biblioteca</a>
+                <a href="/" style="color: #8c7e72; text-decoration: none; font-family:'Cinzel',serif;">← Torna al Scriptorium</a>
             </header>
 
             <div class="kpi-grid">
-                <div class="kpi-card"><h3>Libri Venduti</h3><p>1</p></div>
+                <div class="kpi-card"><h3>Codici Ceduti</h3><p>1</p></div>
                 <div class="kpi-card"><h3>Guadagno Netto</h3><p>€ 10.00</p></div>
-                <div class="kpi-card"><h3>Libri Comprati</h3><p>1</p></div>
-                <div class="kpi-card"><h3>Totale Comprato</h3><p>€ 28.00</p></div>
+                <div class="kpi-card"><h3>Codici Ottenuti</h3><p>1</p></div>
+                <div class="kpi-card"><h3>Totale Speso</h3><p>€ 28.00</p></div>
                 <div class="kpi-card"><h3>Magazzino</h3><p>1</p></div>
                 <div class="kpi-card"><h3>Valore Magazzino</h3><p>€ 14.50</p></div>
             </div>
 
             <div class="charts-grid">
                 <div class="chart-box">
-                    <h3 style="margin-top:0; font-size:1rem;">Trend Portafoglio (Soldi / Mesi / Anni)</h3>
+                    <h3 style="margin-top:0; font-size:1rem; font-family:'Cinzel',serif; color:#f3e5ab;">Andamento Storico Portafoglio</h3>
                     <canvas id="trendChart" height="110"></canvas>
                 </div>
                 <div class="chart-box">
-                    <h3 style="margin-top:0; font-size:1rem;">Ripartizione</h3>
+                    <h3 style="margin-top:0; font-size:1rem; font-family:'Cinzel',serif; color:#f3e5ab;">Ripartizione Asset</h3>
                     <canvas id="pieChart" height="135"></canvas>
                 </div>
             </div>
 
             <div class="filter-bar">
-                <input type="text" id="lib-search" placeholder="Cerca nome o ISBN..." onkeyup="filterLibrary()">
+                <input type="text" id="lib-search" placeholder="Cerca titolo o ISBN..." onkeyup="filterLibrary()">
                 <select id="lib-genre" onchange="filterLibrary()">
                     <option value="">Tutti i Generi</option>
                     <option value="Gialli/Thriller/Noir">Gialli/Thriller/Noir</option>
@@ -593,7 +754,7 @@ def library_page():
                             <div class="library-info">
                                 <span class="badge badge-magazzino">${item.type}</span>
                                 <h4>${item.title}</h4>
-                                <p style="margin:0; font-size:0.8rem; color:#888;">Condizioni: ${item.condition}</p>
+                                <p style="margin:0; font-size:0.8rem; color:#8c7e72;">Condizioni: ${item.condition}</p>
                                 <div class="price">€ ${item.price.toFixed(2)}</div>
                             </div>
                         </a>
@@ -603,10 +764,10 @@ def library_page():
             function filterLibrary() { renderLibrary(libraryItems); }
             
             const ctxTrend = document.getElementById('trendChart').getContext('2d');
-            new Chart(ctxTrend, { type: 'line', data: { labels: ['Gen', 'Lug', 'Gen', 'Mag', 'Ott'], datasets: [{ label: 'Netto (€)', data: [30, 50, 75, 110, 142.5], borderColor: '#00d2ff', fill: true, backgroundColor: 'rgba(0,210,255,0.1)' }] } });
+            new Chart(ctxTrend, { type: 'line', data: { labels: ['Gen', 'Lug', 'Gen', 'Mag', 'Ott'], datasets: [{ label: 'Valore Netto (€)', data: [30, 50, 75, 110, 142.5], borderColor: '#c5a059', fill: true, backgroundColor: 'rgba(197,160,89,0.1)' }] } });
             
             const ctxPie = document.getElementById('pieChart').getContext('2d');
-            new Chart(ctxPie, { type: 'doughnut', data: { labels: ['Guadagno', 'Spese', 'Magazzino'], datasets: [{ data: [10, 28, 14.5], backgroundColor: ['#28a745', '#e50914', '#00d2ff'] }] } });
+            new Chart(ctxPie, { type: 'doughnut', data: { labels: ['Guadagno', 'Spese', 'Magazzino'], datasets: [{ data: [10, 28, 14.5], backgroundColor: ['#8c6d33', '#4a1515', '#c5a059'] }] } });
             
             renderLibrary(libraryItems);
         </script>
@@ -614,7 +775,7 @@ def library_page():
     </html>
     """
 
-# --- 5. SEZIONE "METTI IN VENDITA" (INSERZIONE GUIDATA A FLUSSO COMPLETO) ---
+# --- 6. SEZIONE "METTI IN VENDITA" ---
 @app.get("/sell", response_class=HTMLResponse)
 def sell_page():
     return """
@@ -622,42 +783,42 @@ def sell_page():
     <html lang="it">
     <head>
         <meta charset="UTF-8">
-        <title>Metti in Vendita - Loopbooks</title>
-        <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+        <title>Metti in Vendita - Scriptorius</title>
+        <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
         <style>
-            :root { --bg-color: #141414; --card-bg: #1f1f1f; --text-color: #e5e5e5; --accent-color: #e50914; --blue-glow: #00d2ff; }
-            body { margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-color); color: var(--text-color); padding: 40px; }
+            :root { --bg-deep: #0a0807; --bg-card: #14100e; --text-main: #d1c7bd; --text-muted: #8c7e72; --gold-candle: #c5a059; --gold-glow: rgba(197, 160, 89, 0.25); --border-sepia: #2d221b; }
+            body { margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-deep); color: var(--text-main); padding: 40px; }
             .container { max-width: 900px; margin: auto; }
-            header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-            .form-box { background: #1f1f1f; padding: 30px; border-radius: 8px; border: 1px solid #333; margin-bottom: 30px; }
+            header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 1px solid var(--border-sepia); padding-bottom: 20px; }
+            .form-box { background: var(--bg-card); padding: 35px; border-radius: 6px; border: 1px solid var(--border-sepia); margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
             .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-            label { display: block; margin: 10px 0 5px 0; font-size: 0.9rem; color: #aaa; }
-            input, select, textarea { width: 100%; padding: 10px; background: #333; border: 1px solid #444; color: #fff; border-radius: 4px; box-sizing: border-box; }
-            .summary-box { background: #111; padding: 20px; border-radius: 6px; border: 1px dashed #00d2ff; margin-top: 20px; }
-            .submit-btn { background: var(--accent-color); color: #fff; padding: 12px; border: none; width: 100%; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 1rem; margin-top: 20px; }
+            label { display: block; margin: 10px 0 5px 0; font-size: 0.9rem; color: var(--text-muted); font-family: 'Cinzel', serif; }
+            input, select, textarea { width: 100%; padding: 10px; background: #0a0807; border: 1px solid var(--border-sepia); color: var(--text-main); border-radius: 2px; box-sizing: border-box; }
+            .summary-box { background: #0a0807; padding: 20px; border-radius: 4px; border: 1px dashed var(--gold-candle); margin-top: 25px; }
+            .submit-btn { background: linear-gradient(135deg, #c5a059, #8c6d33); color: #0a0807; padding: 14px; border: none; width: 100%; font-family: 'Cinzel', serif; font-weight: 700; border-radius: 2px; cursor: pointer; font-size: 1rem; margin-top: 25px; box-shadow: 0 0 15px var(--gold-glow); }
             .carousel-container { display: flex; gap: 15px; overflow-x: auto; padding-bottom: 10px; }
-            .seller-compare-card { min-width: 180px; background: #222; border-radius: 6px; padding: 12px; text-align: center; border: 1px solid #333; }
+            .seller-compare-card { min-width: 180px; background: var(--bg-card); border-radius: 4px; padding: 12px; text-align: center; border: 1px solid var(--border-sepia); }
         </style>
     </head>
     <body>
         <div class="container">
             <header>
-                <a href="/" style="color:#fff; text-decoration:none; font-weight:700; font-size:1.5rem;">📖 Loopbooks - Crea Annuncio</a>
-                <a href="/" style="color: #aaa; text-decoration: none;">← Torna alla Home</a>
+                <a href="/" style="color:#c5a059; text-decoration:none; font-family:'Cinzel',serif; font-weight:700; font-size:1.5rem;">🕯️ Loopbooks - Trascrivi Annuncio</a>
+                <a href="/" style="color: #8c7e72; text-decoration: none; font-family:'Cinzel',serif;">← Torna al Scriptorium</a>
             </header>
 
             <div class="form-box">
-                <h2 style="margin-top:0;">1. Inserimento ISBN & Autocompilazione IA (Gemini)</h2>
+                <h2 style="margin-top:0; font-family:'Cinzel',serif; color:#f3e5ab;">1. Codice ISBN & Autocompilazione Monastica (Gemini)</h2>
                 <div style="display:flex; gap:10px;">
-                    <input type="text" id="isbn-input" placeholder="Inserisci codice ISBN (es. 9788804712345)..." value="9788804712345">
-                    <button type="button" onclick="simulateAIAutoFill()" style="background:#00d2ff; color:#000; font-weight:bold; border:none; padding:0 20px; border-radius:4px; cursor:pointer;">Autocompila IA</button>
+                    <input type="text" id="isbn-input" placeholder="Inserisci codice ISBN..." value="9788804712345">
+                    <button type="button" onclick="simulateAIAutoFill()" style="background:#c5a059; color:#0a0807; font-weight:bold; border:none; padding:0 20px; border-radius:2px; cursor:pointer; font-family:'Cinzel',serif;">Evoca Dati</button>
                 </div>
 
                 <form action="/api/sell-confirm" method="POST" style="margin-top:25px;">
-                    <h3 style="border-bottom: 1px solid #333; padding-bottom: 8px;">2. Dati del Libro</h3>
+                    <h3 style="border-bottom: 1px solid #2d221b; padding-bottom: 8px; font-family:'Cinzel',serif; color:#f3e5ab;">2. Dati del Manoscritto</h3>
                     <div class="form-grid">
                         <div>
-                            <label>Nome Libro / Titolo</label>
+                            <label>Titolo del Volume</label>
                             <input type="text" id="f-title" name="title" value="Il monastero dei segreti" required>
                         </div>
                         <div>
@@ -665,114 +826,101 @@ def sell_page():
                             <input type="text" id="f-ean" name="ean" value="9788804712345">
                         </div>
                         <div style="grid-column: span 2;">
-                            <label>Descrizione (Riassunto)</label>
-                            <textarea id="f-desc" name="description" rows="3">Un monastero isolato tra le nebbie, un antico manoscritto e un delitto inspiegabile.</textarea>
+                            <label>Sommario / Descrizione</label>
+                            <textarea id="f-desc" name="description" rows="3">Un monastero isolato tra le nebbie perpetue, un antico manoscritto cifrato e un delitto.</textarea>
                         </div>
                         <div>
-                            <label>Anno Pubblicazione</label>
-                            <input type="number" id="f-pub" name="pub_year" value="2020">
+                            <label>Anno di Composizione</label>
+                            <input type="number" id="f-pub" name="pub_year" value="1485">
                         </div>
                         <div>
-                            <label>Anno Edizione</label>
-                            <input type="number" id="f-ed" name="ed_year" value="2022">
+                            <label>Anno di Edizione</label>
+                            <input type="number" id="f-ed" name="ed_year" value="1492">
                         </div>
                         <div>
                             <label>Rilegatura</label>
-                            <input type="text" id="f-bind" name="binding" value="Flessibile / Brossura">
+                            <input type="text" id="f-bind" name="binding" value="Pelle e borchie metalliche">
                         </div>
                         <div>
-                            <label>Collana / Editore</label>
-                            <input type="text" id="f-coll" name="collection" value="Mondadori - Oscar Bestsellers">
+                            <label>Scriptorium / Collana</label>
+                            <input type="text" id="f-coll" name="collection" value="Scriptorium Monasticum">
                         </div>
                     </div>
 
-                    <h3 style="border-bottom: 1px solid #333; padding-bottom: 8px; margin-top:30px;">3. Dettagli dell'Offerta del Venditore</h3>
+                    <h3 style="border-bottom: 1px solid #2d221b; padding-bottom: 8px; margin-top:30px; font-family:'Cinzel',serif; color:#f3e5ab;">3. Dettagli dell'Offerta Monastica</h3>
                     <div class="form-grid">
                         <div>
-                            <label>Prezzo di Vendita Desiderato (€)</label>
+                            <label>Prezzo di Cessione Desiderato (€)</label>
                             <input type="number" step="0.01" id="f-price" name="price" value="14.50" oninput="calculateSummary()" required>
                         </div>
                         <div>
                             <label>Genere</label>
                             <select name="genre">
                                 <option value="Gialli/Thriller/Noir">Gialli / Thriller / Noir</option>
-                                <option value="Narrativa storica">Narrativa storica</option>
                                 <option value="Classici">Classici</option>
-                                <option value="Scienze/Tecnologia/Natura">Scienze / Tecnologia / Natura</option>
-                                <option value="Crescita Personale">Crescita Personale</option>
                             </select>
                         </div>
                         <div>
-                            <label>Condizioni del Libro</label>
+                            <label>Condizioni del Volume</label>
                             <select name="condition">
-                                <option value="Nuovo">Nuovo</option>
                                 <option value="Ottime" selected>Ottime</option>
-                                <option value="Buone">Buone</option>
-                                <option value="Discrete">Discrete</option>
+                                <option value="Antico / Raro">Antico / Raro</option>
                             </select>
                         </div>
                         <div>
-                            <label>Caricamento Foto Reali</label>
+                            <label>Sigillo Fotografico (Immagini)</label>
                             <input type="file" name="photos" accept="image/*">
                         </div>
                         <div>
-                            <label>Modalità di Spedizione</label>
+                            <label>Metodo di Spedizione</label>
                             <select name="shipping_mode" onchange="calculateSummary()" id="f-ship-mode">
-                                <option value="ritiro_casa">Ritiro a casa (Corriere)</option>
-                                <option value="luogo_ritiro">Luogo di ritiro designato</option>
+                                <option value="ritiro_casa">Corriere dei Pellegrini</option>
+                                <option value="luogo_ritiro">Ritiro in Abbazia</option>
                             </select>
                         </div>
                         <div>
-                            <label>Indirizzo Luogo di Ritiro</label>
-                            <input type="text" name="pickup_address" placeholder="Via Roma 10, Milano">
+                            <label>Ubicazione del Scriptorium</label>
+                            <input type="text" name="pickup_address" placeholder="Via Abbazia 3, Milano">
                         </div>
                         <div style="grid-column: span 2;">
-                            <label>Spese di Spedizione a Carico di:</label>
+                            <label>Oneri di Spedizione a Carico di:</label>
                             <select name="shipping_payer" onchange="calculateSummary()" id="f-ship-payer">
-                                <option value="compratore">A carico del Compratore</option>
+                                <option value="compratore">A carico dell'Acquirente</option>
                                 <option value="venditore">A carico del Venditore (€ 4.50)</option>
                             </select>
                         </div>
                     </div>
 
                     <div class="summary-box">
-                        <h4 style="margin-top:0; color:#00d2ff;">4. Riepilogo Economico Stimato</h4>
-                        <p style="margin:5px 0;">Trattenuta del sito (5%): <span id="sum-fee" style="float:right;">€ 0.73</span></p>
-                        <p style="margin:5px 0;">Spese consegna (carico venditore): <span id="sum-ship" style="float:right;">€ 0.00</span></p>
-                        <hr style="border:0; border-top:1px solid #333; margin:10px 0;">
-                        <p style="margin:5px 0; font-size:1.1rem; font-weight:bold;">Guadagno Netto Stimato: <span id="sum-net" style="float:right; color:#28a745;">€ 13.77</span></p>
+                        <h4 style="margin-top:0; color:#c5a059; font-family:'Cinzel',serif;">4. Resoconto Economico Monastico</h4>
+                        <p style="margin:5px 0;">Tassa del Scriptorium (5%): <span id="sum-fee" style="float:right;">€ 0.73</span></p>
+                        <p style="margin:5px 0;">Oneri di spedizione (carico venditore): <span id="sum-ship" style="float:right;">€ 0.00</span></p>
+                        <hr style="border:0; border-top:1px dashed #2d221b; margin:10px 0;">
+                        <p style="margin:5px 0; font-size:1.1rem; font-weight:bold; font-family:'Cinzel',serif;">Guadagno Netto Stimato: <span id="sum-net" style="float:right; color:#c5a059;">€ 13.77</span></p>
                     </div>
 
-                    <button type="submit" class="submit-btn">5. Conferma e Pubblica Annuncio (Preview)</button>
+                    <button type="submit" class="submit-btn">5. Sigilla e Pubblica Annuncio (Anteprima)</button>
                 </form>
             </div>
 
-            <h3 style="color:#fff; margin-top:40px;">6. Confronto Prezzi: Altri venditori attivi per questo titolo</h3>
+            <h3 style="color:#f3e5ab; margin-top:40px; font-family:'Cinzel',serif;">6. Esame di Mercato: Altri Scribes per questo Codice</h3>
             <div class="carousel-container">
                 <div class="seller-compare-card">
-                    <img src="https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=200&q=80" style="width:100%; height:100px; object-fit:cover; border-radius:4px;">
-                    <p style="margin:6px 0 2px 0; font-size:0.85rem; font-weight:bold;">Libreria Del Borgo</p>
-                    <p style="margin:0; color:#00d2ff; font-weight:bold;">€ 13.50 (Ottime)</p>
-                </div>
-                <div class="seller-compare-card">
-                    <img src="https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=200&q=80" style="width:100%; height:100px; object-fit:cover; border-radius:4px;">
-                    <p style="margin:6px 0 2px 0; font-size:0.85rem; font-weight:bold;">BookLovers Store</p>
-                    <p style="margin:0; color:#00d2ff; font-weight:bold;">€ 11.00 (Buone)</p>
+                    <img src="https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=200&q=80" style="width:100%; height:100px; object-fit:cover; border-radius:2px; filter:sepia(20%);">
+                    <p style="margin:6px 0 2px 0; font-size:0.85rem; font-weight:bold; font-family:'Cinzel',serif; color:#f3e5ab;">Abbazia di San Sisto</p>
+                    <p style="margin:0; color:#c5a059; font-weight:bold; font-family:'Cinzel',serif;">€ 13.50 (Ottime)</p>
                 </div>
             </div>
         </div>
 
         <script>
-            function simulateAIAutoFill() {
-                alert('IA Gemini ha riconosciuto il codice ISBN e compilato i dati bibliografici con successo!');
-            }
+            function simulateAIAutoFill() { alert('L’intelligenza monastica di Gemini ha trascritto i dati con successo!'); }
             function calculateSummary() {
                 const price = parseFloat(document.getElementById('f-price').value) || 0;
                 const shipPayer = document.getElementById('f-ship-payer').value;
                 const fee = price * 0.05;
                 const shipCost = (shipPayer === 'venditore') ? 4.50 : 0.00;
                 const net = price - fee - shipCost;
-
                 document.getElementById('sum-fee').innerText = '€ ' + fee.toFixed(2);
                 document.getElementById('sum-ship').innerText = '€ ' + shipCost.toFixed(2);
                 document.getElementById('sum-net').innerText = '€ ' + (net > 0 ? net.toFixed(2) : '0.00');
@@ -785,7 +933,7 @@ def sell_page():
 
 @app.post("/api/sell-confirm")
 def post_sell_confirm(title: str = Form(...), price: float = Form(...)):
-    return HTMLResponse(f"<html><body style='background:#141414;color:#fff;text-align:center;padding-top:80px;font-family:sans-serif;'><h2>Annuncio per '{title}' pubblicato con successo!</h2><p>Il tuo libro è ora online nel marketplace.</p><a href='/' style='color:#00d2ff; text-decoration:none; font-weight:bold;'>← Torna alla Home</a></body></html>")
+    return HTMLResponse(f"<html><body style='background:#0a0807;color:#d1c7bd;text-align:center;padding-top:80px;font-family:Cinzel,serif;'><h2 style='color:#f3e5ab;'>Il manoscritto '{title}' è stato consacrato nel Scriptorium!</h2><p style='color:#8c7e72;'>Il tuo volume è ora visibile ai pellegrini di tutto il regno.</p><a href='/' style='color:#c5a059; text-decoration:none; font-weight:bold;'>← Ritorna al Scriptorium</a></body></html>")
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
