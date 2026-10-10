@@ -79,7 +79,7 @@ fake_books_db = [
     )
 ]
 
-# --- 1. HOME PAGE, RICERCA CON ALBERATURA GENERI E VETRINA ---
+# --- 1. HOME PAGE, SEZIONE CERCA LIBRO E VETRINA ---
 @app.get("/", response_class=HTMLResponse)
 def home():
     return """
@@ -108,11 +108,11 @@ def home():
             .login-btn { background: #333; color: #fff; padding: 8px 16px; border-radius: 4px; text-decoration: none; font-weight: 600; font-size: 0.9rem; }
             
             .hero { padding: 140px 50px 50px 50px; background: linear-gradient(to right, rgba(20,20,20,0.95), rgba(20,20,20,0.6)), url('https://images.unsplash.com/photo-1507842229443-77783618cdc3?auto=format&fit=crop&w=1600&q=80') no-repeat center center/cover; }
-            .hero h1 { font-size: 2.5rem; max-width: 700px; margin-bottom: 10px; line-height: 1.2; }
-            .hero p { font-size: 1.1rem; max-width: 600px; color: #b3b3b3; margin-bottom: 25px; }
+            .hero h1 { font-size: 2.5rem; max-width: 700px; margin-bottom: 25px; line-height: 1.2; }
             
-            /* Sezione Cerca il tuo libro (Barra di Ricerca e Filtri) */
+            /* Sezione Cerca il tuo libro (Barra di Ricerca e Filtri con Alberatura Completa) */
             .search-filters-box { background: rgba(31, 31, 31, 0.95); padding: 25px; border-radius: 8px; max-width: 950px; backdrop-filter: blur(5px); border: 1px solid #333; }
+            .search-filters-box p.search-subtitle { font-size: 1.05rem; color: #b3b3b3; margin-top: 0; margin-bottom: 20px; font-weight: 400; }
             .search-row { display: flex; gap: 15px; margin-bottom: 15px; }
             .search-row input { flex: 1; padding: 12px 16px; border-radius: 4px; border: 1px solid #444; background: #111; color: white; font-size: 1rem; }
             .filters-grid { display: grid; grid-template-columns: 2fr 1.5fr 1fr; gap: 15px; margin-bottom: 15px; align-items: center; }
@@ -155,15 +155,14 @@ def home():
 
         <section class="hero" id="search-section">
             <h1>Un monastero, un segreto, un crimine.</h1>
-            <p>Esplora il catalogo avanzato e trova il tuo prossimo volume garantito.</p>
             
-            <!-- Sezione Cerca il tuo libro (Barra di Ricerca e Filtri con Alberatura Completa) -->
+            <!-- Sezione Cerca il tuo libro con la frase integrata -->
             <div class="search-filters-box">
+                <p class="search-subtitle">Esplora il catalogo avanzato e trova il tuo prossimo volume garantito.</p>
                 <div class="search-row">
                     <input type="text" id="search-input" placeholder="Cerca per nome o codice ISBN...">
                 </div>
                 <div class="filters-grid">
-                    <!-- Alberatura Completa dei Generi -->
                     <select id="genre-filter">
                         <option value="">Tutti i Generi (Alberatura Completa)</option>
                         <optgroup label="Narrativa e Letteratura">
@@ -209,7 +208,6 @@ def home():
                         </optgroup>
                     </select>
 
-                    <!-- Condizioni del Libro -->
                     <select id="condition-filter">
                         <option value="">Condizioni (Tutte)</option>
                         <option value="Nuovo">Nuovo</option>
@@ -218,7 +216,6 @@ def home():
                         <option value="Discrete">Discrete</option>
                     </select>
 
-                    <!-- Prezzo Modulabile (Slider) -->
                     <div class="slider-container">
                         <label for="price-slider">Prezzo massimo: <span id="price-val">50</span> €</label>
                         <input type="range" id="price-slider" min="5" max="100" value="50" oninput="document.getElementById('price-val').innerText = this.value">
